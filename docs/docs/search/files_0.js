@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['tda1997x_2ec',['tda1997x.c',['../tda1997x_8c.html',1,'']]],
-  ['tda1997x_2eh',['tda1997x.h',['../tda1997x_8h.html',1,'']]],
-  ['tda998x_2ec',['tda998x.c',['../tda998x_8c.html',1,'']]],
-  ['tda998x_2eh',['tda998x.h',['../tda998x_8h.html',1,'']]],
-  ['tlv320aic3104_2ec',['tlv320aic3104.c',['../tlv320aic3104_8c.html',1,'']]],
-  ['tlv320aic3104_2eh',['tlv320aic3104.h',['../tlv320aic3104_8h.html',1,'']]]
+  ['hdmi_2dconfig_2ec',['hdmi-config.c',['../hdmi-config_8c.html',1,'']]],
+  ['hdmi_5ftx_2ec',['hdmi_tx.c',['../hdmi__tx_8c.html',1,'']]],
+  ['hdmi_5ftx_2eh',['hdmi_tx.h',['../hdmi__tx_8h.html',1,'']]]
 ];

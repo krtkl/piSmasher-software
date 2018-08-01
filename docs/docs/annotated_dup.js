@@ -1,5 +1,7 @@
 var annotated_dup =
 [
+    [ "_AxiVdma", "struct___axi_vdma.html", "struct___axi_vdma" ],
+    [ "_vidtpg_t", "struct__vidtpg__t.html", "struct__vidtpg__t" ],
     [ "aic3x_asd_if_cfg", "structaic3x__asd__if__cfg.html", "structaic3x__asd__if__cfg" ],
     [ "aic3x_cfg", "structaic3x__cfg.html", "structaic3x__cfg" ],
     [ "aic3x_dev", "structaic3x__dev.html", "structaic3x__dev" ],

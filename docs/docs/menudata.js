@@ -91,10 +91,12 @@ var menudata={children:[
 {text:"Functions",url:"globals_func.html",children:[
 {text:"a",url:"globals_func.html#index_a"},
 {text:"c",url:"globals_func.html#index_c"},
+{text:"h",url:"globals_func.html#index_h"},
 {text:"i",url:"globals_func.html#index_i"},
 {text:"r",url:"globals_func.html#index_r"},
 {text:"s",url:"globals_func.html#index_s"},
 {text:"t",url:"globals_func.html#index_t"},
+{text:"v",url:"globals_func.html#index_v"},
 {text:"w",url:"globals_func.html#index_w"}]},
 {text:"Variables",url:"globals_vars.html"},
 {text:"Enumerations",url:"globals_enum.html",children:[
@@ -116,6 +118,7 @@ var menudata={children:[
 {text:"m",url:"globals_eval_m.html#index_m"},
 {text:"p",url:"globals_eval_p.html#index_p"},
 {text:"q",url:"globals_eval_q.html#index_q"},
+{text:"r",url:"globals_eval_r.html#index_r"},
 {text:"s",url:"globals_eval_s.html#index_s"},
 {text:"t",url:"globals_eval_t.html#index_t"},
 {text:"u",url:"globals_eval_u.html#index_u"},

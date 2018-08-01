@@ -1,4 +1,21 @@
 var searchData=
 [
-  ['aic3x_5faddr',['AIC3X_ADDR',['../tlv320aic3104_8h.html#a69fab0024bd048c7b8cb664c3a622a5b',1,'tlv320aic3104.h']]]
+  ['aic3x_5faddr',['AIC3X_ADDR',['../tlv320aic3104_8h.html#a69fab0024bd048c7b8cb664c3a622a5b',1,'tlv320aic3104.h']]],
+  ['axivdma_5fmm2s_5fcr',['AXIVDMA_MM2S_CR',['../vdma_8c.html#af126cc489d1f35ecf51d94dcbfa4e955',1,'vdma.c']]],
+  ['axivdma_5fmm2s_5ffrmdlystrd',['AXIVDMA_MM2S_FRMDLYSTRD',['../vdma_8c.html#aa374509a24c9463ca4a20022620a88e6',1,'vdma.c']]],
+  ['axivdma_5fmm2s_5fhsize',['AXIVDMA_MM2S_HSIZE',['../vdma_8c.html#a826f19fae14511af45b5dfc919a08d33',1,'vdma.c']]],
+  ['axivdma_5fmm2s_5findex',['AXIVDMA_MM2S_INDEX',['../vdma_8c.html#a0ad91d777a4a0b36dbff55d8952c0607',1,'vdma.c']]],
+  ['axivdma_5fmm2s_5fsr',['AXIVDMA_MM2S_SR',['../vdma_8c.html#aa53147f9828891031f357f625aa59d41',1,'vdma.c']]],
+  ['axivdma_5fmm2s_5fstart_5faddress',['AXIVDMA_MM2S_START_ADDRESS',['../vdma_8c.html#ab676dd84a9f17b05fabf42b873dc19a3',1,'vdma.c']]],
+  ['axivdma_5fmm2s_5fvsize',['AXIVDMA_MM2S_VSIZE',['../vdma_8c.html#af09d7434fa8edf0fddd65c5079dd1f0a',1,'vdma.c']]],
+  ['axivdma_5fpark_5fptr',['AXIVDMA_PARK_PTR',['../vdma_8c.html#a38ddfdbc9e6d43d6a3c4b8ec3ea27bc7',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5fcr',['AXIVDMA_S2MM_CR',['../vdma_8c.html#aa050ba7f7266129e3d1fcde503d287f4',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5ffrmdlystrd',['AXIVDMA_S2MM_FRMDLYSTRD',['../vdma_8c.html#abf9f3073b954beca66314c33a58b964a',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5fhsize',['AXIVDMA_S2MM_HSIZE',['../vdma_8c.html#a0f8205e6b95fd4778e8785f018f3fb1e',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5findex',['AXIVDMA_S2MM_INDEX',['../vdma_8c.html#a7d9bbbd6fa1ffc1d83dfd712c309d63e',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5firq_5fmask',['AXIVDMA_S2MM_IRQ_MASK',['../vdma_8c.html#a6a3d061d4f1237f2c069f94aa9adf64b',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5fsr',['AXIVDMA_S2MM_SR',['../vdma_8c.html#a2c1338957cedf7ed5981a0905bcb0d8d',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5fstart_5faddress',['AXIVDMA_S2MM_START_ADDRESS',['../vdma_8c.html#a29c6657bdc6d5e9ab9bbd3bddd3cf57e',1,'vdma.c']]],
+  ['axivdma_5fs2mm_5fvsize',['AXIVDMA_S2MM_VSIZE',['../vdma_8c.html#a37f4a7902bddcf1dcf32caccda010f37',1,'vdma.c']]],
+  ['axivdma_5fversion',['AXIVDMA_VERSION',['../vdma_8c.html#a93f136688ea055ccb0bad9a718d396cf',1,'vdma.c']]]
 ];

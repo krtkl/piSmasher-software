@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['rate',['rate',['../structtda998x__audin__cfg.html#a59b23da0ff4f17277b8fcb54f35fa718',1,'tda998x_audin_cfg']]],
-  ['read_5freg',['read_reg',['../group___t_d_a1997_x.html#gab4efe309592ca5592a979a1a2260a5d7',1,'read_reg(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t *data):&#160;tda1997x.c'],['../group___t_d_a998_x___functions___i2_c.html#ga43cbd6eb87d03ad067dafffd6b97b3de',1,'read_reg(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t *data):&#160;tda998x.c']]],
-  ['reg_5fmask_5fval',['reg_mask_val',['../structreg__mask__val.html',1,'']]],
-  ['repeat',['repeat',['../structtda998x__mpeg__pkt.html#a98c61ed9410ab805baab005fe7713d9b',1,'tda998x_mpeg_pkt']]]
+  ['qrange_5ffs',['QRANGE_FS',['../group___t_d_a998_x___h_d_m_i___core___registers.html#gga44fd603ddd9994e5a8ce5131ca8e671bad0cc4ed462159f2efe6183d93df4dbd8',1,'tda998x.c']]],
+  ['qrange_5frgb_5fyuv',['QRANGE_RGB_YUV',['../group___t_d_a998_x___h_d_m_i___core___registers.html#gga44fd603ddd9994e5a8ce5131ca8e671bab0c4aa382db72a73f2d5dddfe70619fd',1,'tda998x.c']]],
+  ['qrange_5fyuv',['QRANGE_YUV',['../group___t_d_a998_x___h_d_m_i___core___registers.html#gga44fd603ddd9994e5a8ce5131ca8e671ba574355dff59587df835fe54f17286c2c',1,'tda998x.c']]]
 ];
