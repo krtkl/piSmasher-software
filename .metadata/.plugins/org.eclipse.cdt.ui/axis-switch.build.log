@@ -1,0 +1,6 @@
+09:44:26 **** Incremental Build of configuration Debug for project axis-switch ****
+make all 
+make: Nothing to be done for `all'.
+
+09:44:28 Build Finished (took 1s.269ms)
+

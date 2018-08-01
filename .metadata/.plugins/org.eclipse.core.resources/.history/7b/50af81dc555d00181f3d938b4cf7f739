@@ -1,0 +1,115 @@
+/**
+ ******************************************************************************
+ ******************************************************************************
+ *
+ * @file	gs2971.h
+ * @author	Russell Bush
+ * @email	bush@krtkl.com
+ * @version	v1.0
+ * @date    	Oct 4, 2017
+ * @brief	GS2971 SDI Receiver
+ * @license	FreeBSD
+ *
+ ******************************************************************************
+ *
+ * Copyright (c) 2017, krtkl inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
+ *
+ ******************************************************************************
+ */
+
+#ifndef __GS2971_H
+#define __GS2971_H
+
+
+#define GS2971_INVALID_OP		(0x4105U)
+
+#define GS2971_READ			(1 << 15)
+
+#define RATE_SEL_AUTO			(1 << 2)
+#define RATE_SEL_MODE_MASK		(0x03U)
+
+enum gs2971_rate_sel_mode {
+	RATE_SEL_HD = 0x00,
+	RATE_SEL_SD = 0x01,
+	RATE_SEL_3G = 0x02,
+};
+
+#define IO_DS_MASK			(0x03U)		/**< Bitfield mask */
+
+enum gs29712_io_ds_out {
+	IO_DS_DOUT_LSB = 0x00,		/**< Offset of DOUT[9:0] */
+	IO_DS_DOUT_STAT = 0x02,		/**< Offset of STAT[5:0] */
+	IO_DS_DOUT_MSB  = 0x04		/**< Offset of DOUT[19:10] */
+};
+
+
+enum gs2971_io_ds {
+	IO_DS_DOUT_4mA = 0x00,
+	IO_DS_DOUT_8mA = 0x01,
+	IO_DS_DOUT_10mA = 0x02,
+	IO_DS_DOUT_12mA = 0x03,
+};
+
+#define GS2971_READ_ONLY		(1 << 15)
+
+enum gs2971_reg {
+	IOPROC_1 = 0x000,
+	IOPROC_2 = 0x001,
+	ERROR_STAT_1 = 0x002,
+	ERROR_STAT_2 = 0x003 ,
+	EDH_FLAG_IN = 0x004 | GS2971_READ_ONLY,
+	EDH_FLAG_OUT = 0x005 | GS2971_READ_ONLY,
+	DATA_FORMAT_DS1 = 0x006 | GS2971_READ_ONLY,
+	DATA_FORMAT_DS2 = 0x007 | GS2971_READ_ONLY,
+	IO_CONFIG = 0x008,
+	RATE_SEL = 0x024,
+	ERROR_MASK_2 = 0x038,
+	ACGEN_CTRL = 0x039,
+	CLK_GEN = 0x06C,
+	IO_DRIVE_STRENGTH = 0x06D,
+};
+
+
+struct gs2971_cfg {
+	uint8_t		ss;		/**< Chip select to be used for SPI transfers */
+	int		(*spi_read)(int ss, uint16_t reg, uint16_t *data);
+	int		(*spi_write)(int ss, uint16_t reg, uint16_t data);
+
+};
+
+
+struct gs2971_dev {
+	uint8_t			id;
+	struct gs2971_cfg	*cfg;
+};
+
+int gs2971_init(struct gs2971_dev *dev, struct gs2971_cfg *cfg);
+int gs2971_set_io_drive(struct gs2971_dev *dev, enum gs29712_io_ds_out output, enum gs2971_io_ds drive);
+
+#endif /* __GS2971_H */

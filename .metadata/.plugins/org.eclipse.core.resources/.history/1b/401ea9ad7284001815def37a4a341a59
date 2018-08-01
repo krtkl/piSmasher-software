@@ -1,0 +1,35 @@
+/*
+ * libuio.h
+ *
+ *  Created on: May 14, 2018
+ *      Author: bush
+ */
+
+#ifndef __LIBUIO_H
+#define __LIBUIO_H
+
+
+#define UIO_MAP_READ32(__BASE__, __OFFSET__)					\
+		*((volatile unsigned long *)((__BASE__) + (__OFFSET__)))
+
+#define UIO_MAP_WRITE32(__BASE__, __OFFSET__, __DATA__)				\
+		*((volatile unsigned long *)((__BASE__) + (__OFFSET__))) = (__VAL__)
+
+
+
+
+
+//map->base = mmap (NULL,
+//				map->size,
+//				PROT_READ | PROT_WRITE,
+//				MAP_SHARED,
+//				uio->fd,
+//				map->id * getpagesize ());
+
+
+
+
+
+
+
+#endif /* __LIBUIO_H */

@@ -1,0 +1,15 @@
+/*
+ * video_sources.h
+ *
+ *  Created on: Sep 22, 2017
+ *      Author: Russell Bush
+ */
+
+#ifndef __VIDEO_SOURCES_H
+#define __VIDEO_SOURCES_H
+
+
+int HdmiRx_Setup(void);
+int HdmiRx_HandleInterrupt(void);
+
+#endif /* __VIDEO_SOURCES_H */

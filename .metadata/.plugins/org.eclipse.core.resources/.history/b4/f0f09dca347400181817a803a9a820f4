@@ -1,0 +1,461 @@
+/**
+ *******************************************************************************
+ *******************************************************************************
+ *
+ * @file	tda998x.c
+ * @author	R. Bush
+ * @email	bush@krtkl.com
+ * @version	v1.0
+ * @date	2017 November 10
+ * @brief	TDA998x HDMI Transmitter
+ * @license	FreeBSD
+ *
+ *******************************************************************************
+ *
+ * Copyright (c) 2017, krtkl inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *	  this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *	  this list of conditions and the following disclaimer in the documentation
+ *	  and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
+ *
+ *******************************************************************************
+ */
+
+#include <stdio.h>
+#include <stdint.h>
+#include <unistd.h>
+
+#include "tda998x.h"
+
+
+/**
+ * @defgroup	NXP_TDA998X NXP TDA998x HDMI Transmitter
+ * @{
+ */
+
+
+/**
+ * Lookup table of input port control registers and their swap and mirror masks
+ */
+//CONST_DAT tmbslTDA9989RegVip
+// kRegVip[HDMITX_VIN_PORT_MAP_TABLE_LEN] =
+//{
+//    {E_REG_P00_VIP_CNTRL_0_W,
+//        E_MASKREG_P00_VIP_CNTRL_0_swap_a,
+//        E_MASKREG_P00_VIP_CNTRL_0_mirr_a
+//    }, /* Port group 0 */
+//    {E_REG_P00_VIP_CNTRL_0_W,
+//        E_MASKREG_P00_VIP_CNTRL_0_swap_b,
+//        E_MASKREG_P00_VIP_CNTRL_0_mirr_b
+//    }, /* Port group 1 */
+//    {E_REG_P00_VIP_CNTRL_1_W,
+//        E_MASKREG_P00_VIP_CNTRL_1_swap_c,
+//        E_MASKREG_P00_VIP_CNTRL_1_mirr_c
+//    }, /* Port group 2 */
+//    {E_REG_P00_VIP_CNTRL_1_W,
+//        E_MASKREG_P00_VIP_CNTRL_1_swap_d,
+//        E_MASKREG_P00_VIP_CNTRL_1_mirr_d
+//    }, /* Port group 3 */
+//    {E_REG_P00_VIP_CNTRL_2_W,
+//        E_MASKREG_P00_VIP_CNTRL_2_swap_e,
+//        E_MASKREG_P00_VIP_CNTRL_2_mirr_e
+//    }, /* Port group 4 */
+//    {E_REG_P00_VIP_CNTRL_2_W,
+//        E_MASKREG_P00_VIP_CNTRL_2_swap_f,
+//        E_MASKREG_P00_VIP_CNTRL_2_mirr_f
+//    }  /* Port group 5 */
+//};
+
+
+/**
+ * Table of PLL settings registers to configure for all video input format (vinFmt)
+ */
+//CONST_DAT tmHdmiTxRegMaskVal_t kCommonPllCfg[] =
+//{
+//    {E_REG_P02_PLL_SERIAL_1_RW, E_MASKREG_ALL,  0x00},
+//    {E_REG_P02_PLL_SERIAL_2_RW, E_MASKREG_ALL,  0x01},
+//    {E_REG_P02_PLL_SERIAL_3_RW, E_MASKREG_ALL,  0x00},
+//    {E_REG_P02_SERIALIZER_RW,   E_MASKREG_ALL,  0x00},
+//    {E_REG_P02_BUFFER_OUT_RW,   E_MASKREG_ALL,  0x00},
+//    {E_REG_P02_PLL_SCG1_RW,     E_MASKREG_ALL,  0x00},
+//    {E_REG_P02_AUDIO_DIV_RW,    E_MASKREG_ALL,  0x03},
+//    /*{E_REG_P02_TEST2_RW,        E_MASKREG_ALL,  0x00},*/
+//    {E_REG_P02_SEL_CLK_RW,      E_MASKREG_ALL,  0x09},
+//    {0,0,0}
+//};
+
+
+/**
+ * @brief	Write Data
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Start register and page address
+ * @param	len:	Length of data to write to device
+ * @param	data:	Pointer to data to write from
+ * @return	Number of bytes written or less-than-zero error status
+ */
+static int tda998x_write(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t len, uint8_t *data)
+{
+	int i, err;
+	struct tda998x_cfg *cfg = dev->cfg;
+	uint8_t page = (uint8_t)PAGE_OF(reg);
+
+	if (dev->cur_page != (enum tda998x_hdmi_page)page) {
+		/* Change the page */
+		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)CURPAGE, &page);
+		if (err < 0)
+			return err;
+
+		dev->cur_page = (enum tda998x_hdmi_page)page;
+	}
+
+	for (i = 0; i < len; i++, data++) {
+		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)reg + i, data);
+		if (err < 0)
+			return err;
+	}
+
+	return i;
+}
+
+
+/**
+ * @brief	Write Register
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Register and page address
+ * @param	data:	Data value to write to register
+ * @return	Number of bytes written or less-than-zero error status
+ */
+static int tda998x_write_reg(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t data)
+{
+	uint8_t tmp = data;
+
+	return tda998x_write(dev, reg, 1, &tmp);
+}
+
+
+/**
+ * @brief	Read Data
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Start register and page address
+ * @param	len:	Length of data to read from device
+ * @param	data:	Pointer to data to read to
+ * @return	Number of bytes read or less-than-zero error status
+ */
+static int tda998x_read(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t len, uint8_t *data)
+{
+	int i, err;
+	struct tda998x_cfg *cfg = dev->cfg;
+	uint8_t page = (uint8_t)PAGE_OF(reg);
+
+	if (dev->cur_page != (enum tda998x_hdmi_page)page) {
+		/* Change the page */
+		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)CURPAGE, &page);
+		if (err < 0)
+			return err;
+
+		dev->cur_page = (enum tda998x_hdmi_page)page;
+	}
+
+	for (i = 0; i < len; i++, data++) {
+		err = cfg->i2c_read(cfg->hdmi_addr, (uint8_t)reg + i, data);
+		if (err < 0)
+			return err;
+	}
+
+	return i;
+}
+
+
+/**
+ * @brief	Read Register
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Register and page address
+ * @param	data:	Pointer to data to read to
+ * @return	Number of bytes read or less-than-zero error status
+ */
+static int tda998x_read_reg(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t *data)
+{
+	return tda998x_read(dev, reg, 1, data);
+}
+
+
+/**
+ * @brief	Register Mask Write
+ *		Write a specified value with specified mask bits to a register
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Register and page address
+ * @param	mask:	Mask of bits to be transformed
+ * @param	val:	Bitfield to be written within mask
+ * @return	Number of bytes written or less-than-zero error status
+ */
+static int tda998x_mask_write_reg(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t mask, uint8_t val)
+{
+	int err;
+	uint8_t reg_val;
+
+	err = tda998x_read_reg(dev, reg, &reg_val);
+	if (err < 0)
+		return err;
+
+	reg_val &= ~(mask);
+	reg_val |= val & mask;
+
+	return tda998x_write_reg(dev, reg, reg_val);
+}
+
+
+/**
+ * @brief	CEC Write Data
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Start register and page address
+ * @param	len:	Length of data to write to device
+ * @param	data:	Pointer to data to write from
+ * @return	Number of bytes written or less-than-zero error status
+ */
+static int tda998x_cec_write(struct tda998x_dev *dev, enum tda998x_cec_reg reg, uint8_t len, uint8_t *data)
+{
+	int i, err;
+	struct tda998x_cfg *cfg = dev->cfg;
+
+	for (i = 0; i < len; i++, data++) {
+		err = cfg->i2c_write(cfg->cec_addr, (uint8_t)reg + i, data);
+		if (err < 0)
+			return err;
+	}
+
+	return i;
+}
+
+
+/**
+ * @brief	CEC Write Register
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Register and page address
+ * @param	data:	Data value to write to register
+ * @return	Number of bytes written or less-than-zero error status
+ */
+static int tda998x_cec_write_reg(struct tda998x_dev *dev, enum tda998x_cec_reg reg, uint8_t data)
+{
+	uint8_t tmp = data;
+
+	return tda998x_cec_write(dev, reg, 1, &tmp);
+}
+
+
+/**
+ * @brief	CEC Read Data
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Start register and page address
+ * @param	len:	Length of data to read from device
+ * @param	data:	Pointer to data to read to
+ * @return	Number of bytes read or less-than-zero error status
+ */
+static int tda998x_cec_read(struct tda998x_dev *dev, enum tda998x_cec_reg reg, uint8_t len, uint8_t *data)
+{
+	int i, err;
+	struct tda998x_cfg *cfg = dev->cfg;
+
+	for (i = 0; i < len; i++, data++) {
+		err = cfg->i2c_read(cfg->cec_addr, (uint8_t)reg + i, data);
+		if (err < 0)
+			return err;
+	}
+
+	return i;
+}
+
+
+/**
+ * @brief	CEC Read Register
+ *
+ * @param	dev:	TDA998X device structure pointer
+ * @param	reg:	Register and page address
+ * @param	data:	Pointer to data to read to
+ * @return	Number of bytes read or less-than-zero error status
+ */
+static int tda998x_cec_read_reg(struct tda998x_dev *dev, enum tda998x_cec_reg reg, uint8_t *data)
+{
+	return tda998x_cec_read(dev, reg, 1, data);
+}
+
+
+/**
+ * @brief	CEC Register Mask Write
+ *		Write a specified value with specified mask bits to a register
+ *
+ * @param	dev:	TDA99X device structure pointer
+ * @param	reg:	Register and page address
+ * @param	mask:	Mask of bits to be transformed
+ * @param	val:	Bitfield to be written within mask
+ * @return	Number of bytes written or less-than-zero error status
+ */
+static int tda998x_cec_mask_write_reg(struct tda998x_dev *dev, enum tda998x_cec_reg reg, uint8_t mask, uint8_t val)
+{
+	int err;
+	uint8_t reg_val;
+
+	err = tda998x_cec_read_reg(dev, reg, &reg_val);
+	if (err < 0)
+		return err;
+
+	reg_val &= ~(mask);
+	reg_val |= val & mask;
+
+	return tda998x_cec_write_reg(dev, reg, reg_val);
+}
+
+
+
+int tda998x_init(struct tda998x_dev *dev, struct tda998x_cfg *cfg)
+{
+	int err;
+	uint8_t reg_val;
+
+	/* Reset ENAMODS */
+	err = tda998x_cec_write_reg(dev, ENAMODS, 0x40);
+	if (err < 0)
+		return err;
+
+	/* Enable HDMI and RX sense and FRO */
+	err = tda998x_cec_mask_write_reg(dev,
+				ENAMODS,
+				ENAMODS_HDMI_EN | ENAMODS_RXSENSE_EN | ENAMODS_FRO_DIS,
+				ENAMODS_HDMI_EN | ENAMODS_RXSENSE_EN);
+	if (err < 0)
+		return err;
+
+	/* Get device version */
+	err = tda998x_read_reg(dev, VERSION, &reg_val);
+	if (err < 0)
+		return err;
+
+	/* Set the bias TMDS value */
+	err = tda998x_write_reg(dev, ANA_GENERAL, 0x09);
+	if (err < 0)
+		return err;
+
+	/* Set the PLL */
+	//CONST_DAT tmHdmiTxRegMaskVal_t kCommonPllCfg[] =
+	//{
+	//    {E_REG_P02_PLL_SERIAL_1_RW, E_MASKREG_ALL,  0x00},
+	//    {E_REG_P02_PLL_SERIAL_2_RW, E_MASKREG_ALL,  0x01},
+	//    {E_REG_P02_PLL_SERIAL_3_RW, E_MASKREG_ALL,  0x00},
+	//    {E_REG_P02_SERIALIZER_RW,   E_MASKREG_ALL,  0x00},
+	//    {E_REG_P02_BUFFER_OUT_RW,   E_MASKREG_ALL,  0x00},
+	//    {E_REG_P02_PLL_SCG1_RW,     E_MASKREG_ALL,  0x00},
+	//    {E_REG_P02_AUDIO_DIV_RW,    E_MASKREG_ALL,  0x03},
+	//    /*{E_REG_P02_TEST2_RW,        E_MASKREG_ALL,  0x00},*/
+	//    {E_REG_P02_SEL_CLK_RW,      E_MASKREG_ALL,  0x09},
+	//    {0,0,0}
+	//};
+
+//	err = tda998x_mask_write_reg(dev, )
+
+	/* Reset 656_Alt bit */
+	err = tda998x_mask_write_reg(dev, VIP_CNTRL_4, 0x20, 0);
+	if (err < 0)
+		return err;
+
+	/* Set video input format */
+//	CONST_DAT tmHdmiTxRegMaskVal_t kVfmtOtherPllCfg[] =
+//	{
+//	    {E_REG_P02_PLL_SCGN1_RW,    E_MASKREG_ALL,  0xFA},
+//	    {E_REG_P02_PLL_SCGN2_RW,    E_MASKREG_ALL,  0x00},
+//	    {E_REG_P02_PLL_SCGR1_RW,    E_MASKREG_ALL,  0x5B},
+//	    {E_REG_P02_PLL_SCGR2_RW,    E_MASKREG_ALL,  0x00},
+//	    {0,0,0}
+//	};
+
+	/* Set pixel rate */
+//	CONST_DAT tmHdmiTxRegMaskVal_t kSinglePrateVfmtOtherPllCfg[] =
+//	{
+//	    {E_REG_P02_PLL_SCG2_RW,     E_MASKREG_ALL,  0x10},
+//	    {0,0,0}
+//	};
+
+	/* Enable DDC interface */
+	err = tda998x_write_reg(dev, DDC_DISABLE, 0x00);
+	if (err < 0)
+		return err;
+
+	/* Set DDC channel clock speed */
+	err = tda998x_write_reg(dev, OTP_TX3, 0x27);
+	if (err < 0)
+		return err;
+
+//	err = setCECHwRegister(pDis, E_REG_CEC_FRO_IM_CLK_CTRL_RW, E_MASKREG_CEC_FRO_IM_CLK_CTRL_ghost_dis | E_MASKREG_CEC_FRO_IM_CLK_CTRL_imclk_sel);
+//	    RETIF_REG_FAIL(err)
+//
+//	    /* The DIS hotplug status is HDMITX_HOTPLUG_INVALID, so call the main
+//	     * interrupt handler to read the current Hot Plug status and run any
+//	     * registered HPD callback before interrupts are enabled below */
+//	    //err = tmbslTDA9989HwHandleInterrupt(txUnit);
+//	    RETIF(err != TM_OK, err)
+//
+//	    /* enable  sw _interrupt and  VS_interrupt for debug */
+//	    err = setHwRegister(pDis, E_REG_P00_INT_FLAGS_1_RW,
+//	                        E_MASKREG_P00_INT_FLAGS_1_sw_int);
+//
+//	    /* enable edid read */
+//	    err = setHwRegister(pDis, E_REG_P00_INT_FLAGS_2_RW,
+//	                        E_MASKREG_P00_INT_FLAGS_2_edid_blk_rd);
+//
+//
+//	   /* Read HPD RXS level */
+//	    err = getCECHwRegister(pDis, E_REG_CEC_RXSHPDLEV_R,&regVal);
+//	    RETIF(err != TM_OK, err)
+//
+//	    /* Read Hot Plug input status to know the actual level that caused the interrupt */
+//	    pDis->hotPlugStatus = (regVal & E_MASKREG_CEC_RXSHPDLEV_hpd_level) ?
+//	                HDMITX_HOTPLUG_ACTIVE : HDMITX_HOTPLUG_INACTIVE;
+//
+//	    /*Read RXS_FIL status to know the actual level that caused the interrupt */
+//	    pDis->rxSenseStatus = (regVal & E_MASKREG_CEC_RXSHPDLEV_rxs_level) ?
+//	                 HDMITX_RX_SENSE_ACTIVE : HDMITX_RX_SENSE_INACTIVE;
+//
+//	    /*Disable required Interrupts*/
+//	    err = getCECHwRegister(pDis, E_REG_CEC_RXSHPDINTENA_RW, &EnableIntMask);
+//	    EnableIntMask |= E_MASKREG_CEC_RXSHPDINTENA_ena_rxs_int; /* Enable RxSense Interrupt*/
+//	    EnableIntMask |= E_MASKREG_CEC_RXSHPDINTENA_ena_hpd_int; /* Enable HPD Interrupt*/
+//
+//	    /* Switch BSL State machine into UNINITIALIZED State */
+//	    setState(pDis, EV_INIT);
+//
+//	    /*Write data in RXSHPD Register*/
+//	    err += setCECHwRegister(pDis, E_REG_CEC_RXSHPDINTENA_RW, EnableIntMask);
+//	    err += getCECHwRegister(pDis, E_REG_CEC_RXSHPDLEV_R,&int_level);
+
+	return (0);
+}
+
+

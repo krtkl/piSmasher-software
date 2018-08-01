@@ -1,0 +1,21 @@
+16:04:21 **** Build of configuration Debug for project vdma-test ****
+make all 
+Building file: ../src/main.cc
+Invoking: ARM v7 Linux g++ compiler
+arm-linux-gnueabihf-g++ -Wall -O0 -g3 -I"/opt/Xilinx/SDK/2018.1/data/embeddedsw/ThirdParty/opencv/aarch32/include" -c -fmessage-length=0 -MT"src/main.o" -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.cc"
+Finished building: ../src/main.cc
+ 
+Building target: vdma-test.elf
+Invoking: ARM v7 Linux g++ linker
+arm-linux-gnueabihf-g++ -L"/opt/Xilinx/SDK/2018.1/data/embeddedsw/ThirdParty/opencv/aarch32/lib" -o "vdma-test.elf"  ./src/main.o   -lopencv_core
+Finished building target: vdma-test.elf
+ 
+Invoking: ARM v7 Linux Print Size
+arm-linux-gnueabihf-size vdma-test.elf  |tee "vdma-test.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+  32112	    476	    148	  32736	   7fe0	vdma-test.elf
+Finished building: vdma-test.elf.size
+ 
+
+16:04:24 Build Finished (took 3s.590ms)
+

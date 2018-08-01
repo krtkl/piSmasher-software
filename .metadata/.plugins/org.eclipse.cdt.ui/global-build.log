@@ -1,0 +1,632 @@
+09:40:27 **** Clean-only build of configuration Debug for project hdmi-config ****
+make clean 
+rm -rf  ./src/audio.o ./src/hdmi_rx.o ./src/hdmi_tx.o ./src/i2c.o ./src/main.o ./src/spi.o ./src/tda1997x.o ./src/tda998x.o ./src/tda998x_NEW.o ./src/tlv320aic3104.o ./src/tmbslTDA9989_Edid.o ./src/tmbslTDA9989_HDCP.o ./src/tmbslTDA9989_InOut.o ./src/tmbslTDA9989_Misc.o ./src/tmbslTDA9989_State.o ./src/tmbslTDA9989_local.o ./src/tmdlHdmiCEC.o ./src/tmdlHdmiCEC_IW.o ./src/tmdlHdmiCEC_cfg.o ./src/tmdlHdmiCEC_local.o ./src/tmdlHdmiTx.o ./src/tmdlHdmiTx_IW.o ./src/tmdlHdmiTx_cfg.o ./src/tmdlHdmiTx_local.o  ./src/audio.d ./src/hdmi_rx.d ./src/hdmi_tx.d ./src/i2c.d ./src/main.d ./src/spi.d ./src/tda1997x.d ./src/tda998x.d ./src/tda998x_NEW.d ./src/tlv320aic3104.d ./src/tmbslTDA9989_Edid.d ./src/tmbslTDA9989_HDCP.d ./src/tmbslTDA9989_InOut.d ./src/tmbslTDA9989_Misc.d ./src/tmbslTDA9989_State.d ./src/tmbslTDA9989_local.d ./src/tmdlHdmiCEC.d ./src/tmdlHdmiCEC_IW.d ./src/tmdlHdmiCEC_cfg.d ./src/tmdlHdmiCEC_local.d ./src/tmdlHdmiTx.d ./src/tmdlHdmiTx_IW.d ./src/tmdlHdmiTx_cfg.d ./src/tmdlHdmiTx_local.d  hdmi-config.elf.size  hdmi-config.elf
+' '
+09:44:25 **** Incremental Build of configuration Debug for project audio-config ****
+make all 
+make: Nothing to be done for `all'.
+09:44:26 **** Incremental Build of configuration Debug for project axis-switch ****
+make all 
+make: Nothing to be done for `all'.
+09:44:28 **** Incremental Build of configuration Debug for project fsbl ****
+make pre-build main-build 
+a9-linaro-pre-build-step
+' '
+make: Nothing to be done for `main-build'.
+09:44:32 **** Build of configuration Debug for project hdmi-config ****
+make all 
+'Building file: ../src/audio.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/audio.o" -MMD -MP -MF"src/audio.d" -MT"src/audio.o" -o "src/audio.o" "../src/audio.c"
+'Finished building: ../src/audio.c'
+' '
+'Building file: ../src/hdmi_rx.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/hdmi_rx.o" -MMD -MP -MF"src/hdmi_rx.d" -MT"src/hdmi_rx.o" -o "src/hdmi_rx.o" "../src/hdmi_rx.c"
+'Finished building: ../src/hdmi_rx.c'
+' '
+'Building file: ../src/hdmi_tx.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/hdmi_tx.o" -MMD -MP -MF"src/hdmi_tx.d" -MT"src/hdmi_tx.o" -o "src/hdmi_tx.o" "../src/hdmi_tx.c"
+../src/hdmi_tx.c: In function 'hdmi_tx_init':
+../src/hdmi_tx.c:155:8: warning: implicit declaration of function 'tda998x_set_input_output'; did you mean 'tda998x_set_inout'? [-Wimplicit-function-declaration]
+  err = tda998x_set_input_output(dev, &vin_cfg, &vout_cfg, NULL, SINK_HDMI);
+        ^~~~~~~~~~~~~~~~~~~~~~~~
+        tda998x_set_inout
+'Finished building: ../src/hdmi_tx.c'
+' '
+'Building file: ../src/i2c.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/i2c.o" -MMD -MP -MF"src/i2c.d" -MT"src/i2c.o" -o "src/i2c.o" "../src/i2c.c"
+../src/i2c.c: In function 'i2c_read_block':
+../src/i2c.c:158:23: warning: unused variable 'bus_data' [-Wunused-variable]
+  union i2c_smbus_data bus_data;
+                       ^~~~~~~~
+../src/i2c.c:157:6: warning: unused variable 'i' [-Wunused-variable]
+  int i, fd, err;
+      ^
+'Finished building: ../src/i2c.c'
+' '
+'Building file: ../src/main.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/main.o" -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.c"
+../src/main.c: In function 'hdmi_transmit_init':
+../src/main.c:380:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+At top level:
+../src/main.c:90:12: warning: 'hdmi_transmit_init' defined but not used [-Wunused-function]
+ static int hdmi_transmit_init(void)
+            ^~~~~~~~~~~~~~~~~~
+'Finished building: ../src/main.c'
+' '
+'Building file: ../src/spi.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/spi.o" -MMD -MP -MF"src/spi.d" -MT"src/spi.o" -o "src/spi.o" "../src/spi.c"
+'Finished building: ../src/spi.c'
+' '
+'Building file: ../src/tda1997x.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tda1997x.o" -MMD -MP -MF"src/tda1997x.d" -MT"src/tda1997x.o" -o "src/tda1997x.o" "../src/tda1997x.c"
+../src/tda1997x.c: In function 'tda1997x_cfg_vid_out':
+../src/tda1997x.c:2216:43: warning: passing argument 4 of 'tda1997x_write' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  err = tda1997x_write(dev, BLK_GY_MSB, 6, blank_rgb); // blank_rgb
+                                           ^~~~~~~~~
+../src/tda1997x.c:1844:12: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'const uint8_t * {aka const unsigned char *}'
+ static int tda1997x_write(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
+            ^~~~~~~~~~~~~~
+../src/tda1997x.c: In function 'tda1997x_init':
+../src/tda1997x.c:2854:49: warning: passing argument 4 of 'tda1997x_write' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  err = tda1997x_write(dev, CLK_MIN_RATE_MSB, 6, clk_rate);
+                                                 ^~~~~~~~
+../src/tda1997x.c:1844:12: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'const uint8_t * {aka const unsigned char *}'
+ static int tda1997x_write(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
+            ^~~~~~~~~~~~~~
+../src/tda1997x.c: In function 'tda1997x_sus_irq':
+../src/tda1997x.c:3194:33: warning: passing argument 2 of 'tda1997x_cfg_conv' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+   err =  tda1997x_cfg_conv(dev, color_conv444);
+                                 ^~~~~~~~~~~~~
+../src/tda1997x.c:2160:5: note: expected 'int16_t * {aka short int *}' but argument is of type 'const int16_t * {aka const short int *}'
+ int tda1997x_cfg_conv(struct tda1997x_dev *dev, int16_t *mtx)
+     ^~~~~~~~~~~~~~~~~
+../src/tda1997x.c:3199:44: warning: passing argument 4 of 'tda1997x_write' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+   err = tda1997x_write(dev, BLK_GY_MSB, 6, blank_rgb);
+                                            ^~~~~~~~~
+../src/tda1997x.c:1844:12: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'const uint8_t * {aka const unsigned char *}'
+ static int tda1997x_write(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
+            ^~~~~~~~~~~~~~
+../src/tda1997x.c:3229:34: warning: passing argument 2 of 'tda1997x_cfg_conv' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+    err =  tda1997x_cfg_conv(dev, color_conv444);
+                                  ^~~~~~~~~~~~~
+../src/tda1997x.c:2160:5: note: expected 'int16_t * {aka short int *}' but argument is of type 'const int16_t * {aka const short int *}'
+ int tda1997x_cfg_conv(struct tda1997x_dev *dev, int16_t *mtx)
+     ^~~~~~~~~~~~~~~~~
+../src/tda1997x.c:3234:45: warning: passing argument 4 of 'tda1997x_write' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+    err = tda1997x_write(dev, BLK_GY_MSB, 6, blank_rgb);
+                                             ^~~~~~~~~
+../src/tda1997x.c:1844:12: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'const uint8_t * {aka const unsigned char *}'
+ static int tda1997x_write(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
+            ^~~~~~~~~~~~~~
+At top level:
+../src/tda1997x.c:2090:12: warning: 'tda1997x_soft_rst' defined but not used [-Wunused-function]
+ static int tda1997x_soft_rst(struct tda1997x_dev *dev, uint8_t rst)
+            ^~~~~~~~~~~~~~~~~
+../src/tda1997x.c:1703:22: warning: 'rgb_full_itu709' defined but not used [-Wunused-const-variable=]
+ static const int16_t rgb_full_itu709[COLOR_CONV_MATRIX_LENGTH] = {
+                      ^~~~~~~~~~~~~~~
+../src/tda1997x.c:1695:22: warning: 'rgb_full_itu601' defined but not used [-Wunused-const-variable=]
+ static const int16_t rgb_full_itu601[COLOR_CONV_MATRIX_LENGTH] = {
+                      ^~~~~~~~~~~~~~~
+../src/tda1997x.c:1687:22: warning: 'rgb_lim_itu709' defined but not used [-Wunused-const-variable=]
+ static const int16_t rgb_lim_itu709[COLOR_CONV_MATRIX_LENGTH] = {
+                      ^~~~~~~~~~~~~~
+../src/tda1997x.c:1679:22: warning: 'rgb_lim_itu601' defined but not used [-Wunused-const-variable=]
+ static const int16_t rgb_lim_itu601[COLOR_CONV_MATRIX_LENGTH] = {
+                      ^~~~~~~~~~~~~~
+../src/tda1997x.c:1670:22: warning: 'rgb_lim_rgb_full' defined but not used [-Wunused-const-variable=]
+ static const int16_t rgb_lim_rgb_full[COLOR_CONV_MATRIX_LENGTH] = {
+                      ^~~~~~~~~~~~~~~~
+../src/tda1997x.c:1662:22: warning: 'yuv601_rgb_full' defined but not used [-Wunused-const-variable=]
+ static const int16_t yuv601_rgb_full[COLOR_CONV_MATRIX_LENGTH] = {
+                      ^~~~~~~~~~~~~~~
+../src/tda1997x.c:1654:22: warning: 'yuv709_rgb_full' defined but not used [-Wunused-const-variable=]
+ static const int16_t yuv709_rgb_full[COLOR_CONV_MATRIX_LENGTH] = {
+                      ^~~~~~~~~~~~~~~
+../src/tda1997x.c:1636:22: warning: 'blank_yuv' defined but not used [-Wunused-const-variable=]
+ static const uint8_t blank_yuv[6] = {
+                      ^~~~~~~~~
+../src/tda1997x.c:1591:20: warning: 'audio_freq' defined but not used [-Wunused-variable]
+ static const char *audio_freq[] = {
+                    ^~~~~~~~~~
+'Finished building: ../src/tda1997x.c'
+' '
+'Building file: ../src/tda998x.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tda998x.o" -MMD -MP -MF"src/tda998x.d" -MT"src/tda998x.o" -o "src/tda998x.o" "../src/tda998x.c"
+../src/tda998x.c: In function 'tda998x_set_input_output':
+../src/tda998x.c:1637:37: warning: passing argument 2 of 'tda998x_set_vidport_map' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  err = tda998x_set_vidport_map(dev, port_map_rgb444, mirr_map_rgb444);
+                                     ^~~~~~~~~~~~~~~
+../src/tda998x.c:1220:1: note: expected 'enum vip_cntrl_swap *' but argument is of type 'const enum vip_cntrl_swap *'
+ tda998x_set_vidport_map(struct tda998x_dev *dev,
+ ^~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x.c:1637:54: warning: passing argument 3 of 'tda998x_set_vidport_map' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  err = tda998x_set_vidport_map(dev, port_map_rgb444, mirr_map_rgb444);
+                                                      ^~~~~~~~~~~~~~~
+../src/tda998x.c:1220:1: note: expected 'enum vip_cntrl_mirr *' but argument is of type 'const enum vip_cntrl_mirr *'
+ tda998x_set_vidport_map(struct tda998x_dev *dev,
+ ^~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+../src/tda998x.c:1190:1: warning: 'tda998x_set_vidport_enable' defined but not used [-Wunused-function]
+ tda998x_set_vidport_enable(struct tda998x_dev *dev)
+ ^~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x.c: In function 'tda998x_set_input_output':
+../src/tda998x.c:2020:8: warning: 'toggle' may be used uninitialized in this function [-Wmaybe-uninitialized]
+  err = write_reg_mask(dev,
+        ^~~~~~~~~~~~~~~~~~~
+     TBG_CNTRL_1,
+     ~~~~~~~~~~~~
+     TBG_CNTRL_1_VH_TGL_MASK,
+     ~~~~~~~~~~~~~~~~~~~~~~~~
+     (uint8_t) toggle);
+     ~~~~~~~~~~~~~~~~~
+'Finished building: ../src/tda998x.c'
+' '
+'Building file: ../src/tda998x_NEW.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tda998x_NEW.o" -MMD -MP -MF"src/tda998x_NEW.d" -MT"src/tda998x_NEW.o" -o "src/tda998x_NEW.o" "../src/tda998x_NEW.c"
+../src/tda998x_NEW.c: In function 'tda998x_set_testpat':
+../src/tda998x_NEW.c:2507:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ 
+ ^
+../src/tda998x_NEW.c: In function 'tda998x_vidin_set_config':
+../src/tda998x_NEW.c:2547:20: warning: unused variable 'sync' [-Wunused-variable]
+   return ERR_NULL_PARAM;
+                    ^~~~
+../src/tda998x_NEW.c:2544:19: warning: unused variable 'reg_idx3D' [-Wunused-variable]
+ 
+                   ^        
+../src/tda998x_NEW.c: In function 'tda998x_vidout_set_config':
+../src/tda998x_NEW.c:3191:10: warning: unused variable 'reg_val' [-Wunused-variable]
+    ret = tda998x_mtx_set_conv(dev,
+          ^~~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_vidout_set_sync':
+../src/tda998x_NEW.c:3328:1: warning: multi-line comment [-Wcomment]
+   if (ret < 0)
+ ^
+../src/tda998x_NEW.c:3302:20: warning: unused variable 'desc' [-Wunused-variable]
+  case VFMT_34_1920x1080p_30Hz:
+                    ^~~~
+../src/tda998x_NEW.c:3301:10: warning: unused variable 'reg_idx' [-Wunused-variable]
+  case VFMT_33_1920x1080p_25Hz:
+          ^~~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_VideoSetInOut':
+../src/tda998x_NEW.c:3397:19: warning: unused variable 'reg_idx3D' [-Wunused-variable]
+  return 0;
+}
+                   ^        
+../src/tda998x_NEW.c:3396:27: warning: unused variable 'sca_mode' [-Wunused-variable]
+ 
+                           ^       
+../src/tda998x_NEW.c: In function 'tda998x_pkg_set_spdinfo':
+../src/tda998x_NEW.c:4301:3: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+    } else {
+   ^~~~~~
+../src/tda998x_NEW.c:4301:3: warning: incompatible implicit declaration of built-in function 'memcpy'
+../src/tda998x_NEW.c:4301:3: note: include '<string.h>' or provide a declaration of 'memcpy'
+../src/tda998x_NEW.c:4311:5: warning: passing argument 3 of 'tda998x_write' makes integer from pointer without a cast [-Wint-conversion]
+    /* Input not 422/656, output 422 */
+     ^
+../src/tda998x_NEW.c:1608:1: note: expected 'uint8_t {aka unsigned char}' but argument is of type 'uint8_t * {aka unsigned char *}'
+ tda998x_write(struct tda998x_dev *dev,
+ ^~~~~~~~~~~~~
+../src/tda998x_NEW.c:4312:5: warning: passing argument 4 of 'tda998x_write' makes pointer from integer without a cast [-Wint-conversion]
+    upsample = 0;
+     ^~
+../src/tda998x_NEW.c:1608:1: note: expected 'uint8_t * {aka unsigned char *}' but argument is of type 'int'
+ tda998x_write(struct tda998x_dev *dev,
+ ^~~~~~~~~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_PktSetVsInfoframe':
+../src/tda998x_NEW.c:4519:3: warning: implicit declaration of function 'memset' [-Wimplicit-function-declaration]
+ //  ssd = pll[reg_idx];
+   ^~~~~~
+../src/tda998x_NEW.c:4519:3: warning: incompatible implicit declaration of built-in function 'memset'
+../src/tda998x_NEW.c:4519:3: note: include '<string.h>' or provide a declaration of 'memset'
+../src/tda998x_NEW.c:4526:3: warning: incompatible implicit declaration of built-in function 'memcpy'
+ // /* Set pixel repetition */
+   ^~~~~~
+../src/tda998x_NEW.c:4526:3: note: include '<string.h>' or provide a declaration of 'memcpy'
+../src/tda998x_NEW.c: At top level:
+../src/tda998x_NEW.c:4575:1: warning: multi-line comment [-Wcomment]
+     bool                    OBASupported;               /* OBA supported or not */
+ ^
+../src/tda998x_NEW.c:4670:1: warning: multi-line comment [-Wcomment]
+      return ret;
+ ^
+../src/tda998x_NEW.c: In function 'set_de_vs':
+../src/tda998x_NEW.c:4825:20: warning: unused variable 'sync' [-Wunused-variable]
+   case VFMT_05_1920x1080i_60Hz:
+                    ^~~~
+../src/tda998x_NEW.c:4824:10: warning: unused variable 'reg_idx' [-Wunused-variable]
+   case VFMT_19_1280x720p_50Hz:
+          ^~~~~~~
+../src/tda998x_NEW.c: In function 'set_pix_repeat':
+../src/tda998x_NEW.c:4865:10: warning: unused variable 'ssd' [-Wunused-variable]
+ //     vidin_cfg->mode,
+          ^~~
+../src/tda998x_NEW.c: In function 'tda998x_set_input_output2':
+../src/tda998x_NEW.c:5425:24: warning: assignment from incompatible pointer type [-Wincompatible-pointer-types]
+../src/tda998x_NEW.c:5426:26: warning: assignment from incompatible pointer type [-Wincompatible-pointer-types]
+../src/tda998x_NEW.c:5456:42: warning: passing argument 2 of 'tda998x_vidin_set_mapping' from incompatible pointer type [-Wincompatible-pointer-types]
+../src/tda998x_NEW.c:2757:1: note: expected 'enum vip_cntrl_swap *' but argument is of type 'uint8_t * {aka unsigned char *}'
+  ret = write_reg16(dev, DE_START_MSB, vid->de_start);
+ ^~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:5456:54: warning: passing argument 3 of 'tda998x_vidin_set_mapping' from incompatible pointer type [-Wincompatible-pointer-types]
+../src/tda998x_NEW.c:2757:1: note: expected 'enum vip_cntrl_mirr *' but argument is of type 'uint8_t * {aka unsigned char *}'
+  ret = write_reg16(dev, DE_START_MSB, vid->de_start);
+ ^~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:5303:27: warning: unused variable 'pSinkType' [-Wunused-variable]
+../src/tda998x_NEW.c:5300:31: warning: unused variable 'vinFmtIndex' [-Wunused-variable]
+../src/tda998x_NEW.c:5299:32: warning: unused variable 'pGndVideoPortTable' [-Wunused-variable]
+../src/tda998x_NEW.c:5298:32: warning: unused variable 'pEnaVideoPortTable' [-Wunused-variable]
+../src/tda998x_NEW.c:5293:29: warning: unused variable 'HBRSupported' [-Wunused-variable]
+../src/tda998x_NEW.c:5292:29: warning: unused variable 'DSTSupported' [-Wunused-variable]
+../src/tda998x_NEW.c:5291:29: warning: unused variable 'OBASupported' [-Wunused-variable]
+../src/tda998x_NEW.c:5290:30: warning: unused variable 'scalerMode' [-Wunused-variable]
+../src/tda998x_NEW.c:5287:29: warning: unused variable 'bVerified' [-Wunused-variable]
+../src/tda998x_NEW.c:5286:31: warning: unused variable 'uScRefLine' [-Wunused-variable]
+../src/tda998x_NEW.c:5285:31: warning: unused variable 'uScRefPix' [-Wunused-variable]
+../src/tda998x_NEW.c:5282:30: warning: unused variable 'pixRateSingleDouble' [-Wunused-variable]
+../src/tda998x_NEW.c: At top level:
+../src/tda998x_NEW.c:1548:16: warning: 'reg_vid_fmt' declared 'static' but never defined [-Wunused-function]
+ static uint8_t reg_vid_fmt(enum tda998x_vid_fmt fmt,
+                ^~~~~~~~~~~
+../src/tda998x_NEW.c:1554:12: warning: 'input_config' declared 'static' but never defined [-Wunused-function]
+ static int input_config(struct tda998x_dev *dev,
+            ^~~~~~~~~~~~
+../src/tda998x_NEW.c:5008:1: warning: 'tda998x_set_pix_edge' defined but not used [-Wunused-function]
+../src/tda998x_NEW.c:4803:1: warning: 'get_vid_fmt_index' defined but not used [-Wunused-function]
+ //    }
+ ^~~~~~~          
+../src/tda998x_NEW.c:4790:1: warning: 'set_pix_clk' defined but not used [-Wunused-function]
+       dwidth,
+ ^     ~~~~~
+../src/tda998x_NEW.c:4486:1: warning: 'tda998x_PktSetVsInfoframe' defined but not used [-Wunused-function]
+ //    if (ret < 0)
+ ^~~~~~~~~~~~~~~~~~       
+../src/tda998x_NEW.c:4437:1: warning: 'tda998x_PktSetRawVideoInfoframe' defined but not used [-Wunused-function]
+ //    if (ret < 0)
+ ^~~~~~~~~~~~~~~~~~             
+../src/tda998x_NEW.c:4270:1: warning: 'tda998x_pkg_set_spdinfo' defined but not used [-Wunused-function]
+   return ret;
+ ^ ~~~~~~~~~~~          
+../src/tda998x_NEW.c:4248:1: warning: 'tda998x_pkt_set_null' defined but not used [-Wunused-function]
+ //  }
+ ^~~~~               
+../src/tda998x_NEW.c:4228:1: warning: 'tda998x_PktSetNullInsert' defined but not used [-Wunused-function]
+ //   (reg_idx3D != REGVFMT_INVALID)) {
+ ^~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:4168:1: warning: 'tda998x_PktSetMpegInfoframe' defined but not used [-Wunused-function]
+ // VFREQ_60Hz = 5,     /**< 60Hz */
+ ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:4116:1: warning: 'tda998x_PktSetIsrc2' defined but not used [-Wunused-function]
+ // { E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_INVALID, E_PIXCLK_INVALID }, /* HDMITX_VFMT_18_720x576p_50Hz   */
+ ^~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:4040:1: warning: 'tda998x_PktSetIsrc1' defined but not used [-Wunused-function]
+ 
+ ^                  
+../src/tda998x_NEW.c:4015:1: warning: 'tda998x_PktSetGeneralCntrl' defined but not used [-Wunused-function]
+ //  {HDMITX_VFMT_06_720x480i_60Hz, E_REGVFMT_720x480i_60Hz},
+ ^~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:3931:1: warning: 'tda998x_aud_set_pkt_infoframe' defined but not used [-Wunused-function]
+ 
+ ^                            
+../src/tda998x_NEW.c:3871:1: warning: 'tda998x_PktSetAcp' defined but not used [-Wunused-function]
+   return ERR_NOT_PERMITTED;
+
+ ^ ~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:3859:1: warning: 'tda998x_set_aud_pkt_enable' defined but not used [-Wunused-function]
+ //
+//  if (ret < 0)
+ ^~~~~~~~~~~~~~~~~~~       
+../src/tda998x_NEW.c:3800:1: warning: 'tda998x_mtx_set_outoffset' defined but not used [-Wunused-function]
+ //  /* Pointer to structure provided so check parameters */
+ ^~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:3762:1: warning: 'tda998x_mtx_set_inoffset' defined but not used [-Wunused-function]
+   buf[1] = 0x01;  /* Version 1 [CEA 861B] */
+ ^ ~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:3577:1: warning: 'tda998x_mtx_set_coeffs' defined but not used [-Wunused-function]
+ 
+ ^                     
+../src/tda998x_NEW.c:3163:1: warning: 'tda998x_vidout_enable' defined but not used [-Wunused-function]
+ //   (vin_fmt, format_3d, &reg_idx, &reg_idx3D, 0));
+ ^~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:2930:1: warning: 'set_video_config' defined but not used [-Wunused-function]
+   if (ret < 0)
+ ^ ~~~~~~~~~~~~  
+../src/tda998x_NEW.c:2378:1: warning: 'tda998x_set_testpat' defined but not used [-Wunused-function]
+   ret = read_reg(dev, VIP_CNTRL_4, &vip_cntrl_4);
+ ^ ~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:2309:1: warning: 'tda998x_aud_set_mute' defined but not used [-Wunused-function]
+ //         dev->vinFmt,
+ ^~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:2276:1: warning: 'tda998x_aud_set_chan_status_mapping' defined but not used [-Wunused-function]
+ ////              ret = write_reg(dev,
+ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:2057:1: warning: 'tda998x_aud_set_cts' defined but not used [-Wunused-function]
+   return ret;
+ ^ ~~~~~~~~~~~      
+../src/tda998x_NEW.c:1929:1: warning: 'tda998x_aud_set_config' defined but not used [-Wunused-function]
+   /**
+ ^ ~~~                 
+../src/tda998x_NEW.c:1912:1: warning: 'tda998x_aud_reset_cts' defined but not used [-Wunused-function]
+ {
+ /* Reset and release the CTS generator */
+ ^~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:1896:1: warning: 'tda998x_aud_set_clk_enable' defined but not used [-Wunused-function]
+ {
+ ^                         
+../src/tda998x_NEW.c:1878:1: warning: 'tda998x_aud_set_port_enable' defined but not used [-Wunused-function]
+   uint8_t en)
+ ^ ~~~~~~~~~~~              
+../src/tda998x_NEW.c:1845:1: warning: 'cec_write_reg_mask' defined but not used [-Wunused-function]
+ cec_write_reg_mask(struct tda998x_dev *dev,
+ ^~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c:1378:31: warning: 'ref_sync_extra' defined but not used [-Wunused-const-variable=]
+ static const struct sync_desc ref_sync_extra[] =
+                               ^~~~~~~~~~~~~~
+../src/tda998x_NEW.c:1345:31: warning: 'ref_sync' defined but not used [-Wunused-const-variable=]
+ static const struct sync_desc ref_sync[] =
+                               ^~~~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_aud_set_cts':
+../src/tda998x_NEW.c:2161:28: warning: 'acrN' may be used uninitialized in this function [-Wmaybe-uninitialized]
+  * @param dev: TDA998x device structure pointer
+                      ~~~~~~^~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_vidin_set_config':
+../src/tda998x_NEW.c:2585:17: warning: 'vidin_cfg' may be used uninitialized in this function [-Wmaybe-uninitialized]
+  * @param tgl_x: Toggle DE/FREF
+        ~~~~~~~~~^~~~~~~~~~
+../src/tda998x_NEW.c:2659:12: warning: 'reg_idx' may be used uninitialized in this function [-Wmaybe-uninitialized]
+ // VS_LINE_END_1_MSB = PAGE_ADDR(PAGE_00, 0xAD),
+         ~~~^~~~~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_mtx_set_conv':
+../src/tda998x_NEW.c:3736:40: warning: 'matrixIndex' may be used uninitialized in this function [-Wmaybe-uninitialized]
+   return ret;
+             ~                          ^  
+../src/tda998x_NEW.c: In function 'set_de_vs':
+../src/tda998x_NEW.c:4839:6: warning: 'vsPixStrt2' is used uninitialized in this function [-Wuninitialized]
+         /* Combination found in table for scaler: configure input manually */
+      ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ //        RETIF_SEM(dlHdmiTxItSemaphore[instance],
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ //            (ret = tmbslHdmiTxVideoInSetSyncManual(instance,
+ ~~~~~~~~~~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_VideoSetInOut':
+../src/tda998x_NEW.c:3508:7: warning: 'reg_idx' may be used uninitialized in this function [-Wmaybe-uninitialized]
+ static int
+tda998x_aud_set_pkt_infoframe(struct tda998x_dev *dev,
+  struct tda998x_aud_if_pkt *pkt,
+  bool en)
+{
+ int ret;
+   ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/tda998x_NEW.c: In function 'tda998x_set_input_output2':
+../src/tda998x_NEW.c:5559:7: warning: 'uRefPix' may be used uninitialized in this function [-Wmaybe-uninitialized]
+../src/tda998x_NEW.c:5559:7: warning: 'uRefLine' may be used uninitialized in this function [-Wmaybe-uninitialized]
+'Finished building: ../src/tda998x_NEW.c'
+' '
+'Building file: ../src/tlv320aic3104.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tlv320aic3104.o" -MMD -MP -MF"src/tlv320aic3104.d" -MT"src/tlv320aic3104.o" -o "src/tlv320aic3104.o" "../src/tlv320aic3104.c"
+'Finished building: ../src/tlv320aic3104.c'
+' '
+'Building file: ../src/tmbslTDA9989_Edid.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmbslTDA9989_Edid.o" -MMD -MP -MF"src/tmbslTDA9989_Edid.d" -MT"src/tmbslTDA9989_Edid.o" -o "src/tmbslTDA9989_Edid.o" "../src/tmbslTDA9989_Edid.c"
+'Finished building: ../src/tmbslTDA9989_Edid.c'
+' '
+'Building file: ../src/tmbslTDA9989_HDCP.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmbslTDA9989_HDCP.o" -MMD -MP -MF"src/tmbslTDA9989_HDCP.d" -MT"src/tmbslTDA9989_HDCP.o" -o "src/tmbslTDA9989_HDCP.o" "../src/tmbslTDA9989_HDCP.c"
+'Finished building: ../src/tmbslTDA9989_HDCP.c'
+' '
+'Building file: ../src/tmbslTDA9989_InOut.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmbslTDA9989_InOut.o" -MMD -MP -MF"src/tmbslTDA9989_InOut.d" -MT"src/tmbslTDA9989_InOut.o" -o "src/tmbslTDA9989_InOut.o" "../src/tmbslTDA9989_InOut.c"
+../src/tmbslTDA9989_InOut.c: In function 'tmbslTDA9989VideoSetInOut':
+../src/tmbslTDA9989_InOut.c:3337:50: warning: passing argument 3 of 'getHwRegister' discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+     getHwRegister(pDis, E_REG_P00_MAT_CONTRL_W,  &gMatContrl[txUnit], False);
+                                                  ^
+In file included from ../src/tmbslTDA9989_InOut.c:26:0:
+../src/tmbslTDA9989_local.h:2022:18: note: expected 'UInt8 * {aka unsigned char *}' but argument is of type 'volatile UInt8 * {aka volatile unsigned char *}'
+ tmErrorCode_t    getHwRegister (tmHdmiTxobject_t *pDis,
+                  ^~~~~~~~~~~~~
+../src/tmbslTDA9989_InOut.c:3338:50: warning: passing argument 3 of 'getHwRegister' discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+     getHwRegister(pDis, E_REG_P00_HVF_CNTRL_0_W, &gHvfCntrl0[txUnit], False);
+                                                  ^
+In file included from ../src/tmbslTDA9989_InOut.c:26:0:
+../src/tmbslTDA9989_local.h:2022:18: note: expected 'UInt8 * {aka unsigned char *}' but argument is of type 'volatile UInt8 * {aka volatile unsigned char *}'
+ tmErrorCode_t    getHwRegister (tmHdmiTxobject_t *pDis,
+                  ^~~~~~~~~~~~~
+../src/tmbslTDA9989_InOut.c:3339:50: warning: passing argument 3 of 'getHwRegister' discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+     getHwRegister(pDis, E_REG_P00_HVF_CNTRL_1_W, &gHvfCntrl1[txUnit], False);
+                                                  ^
+In file included from ../src/tmbslTDA9989_InOut.c:26:0:
+../src/tmbslTDA9989_local.h:2022:18: note: expected 'UInt8 * {aka unsigned char *}' but argument is of type 'volatile UInt8 * {aka volatile unsigned char *}'
+ tmErrorCode_t    getHwRegister (tmHdmiTxobject_t *pDis,
+                  ^~~~~~~~~~~~~
+'Finished building: ../src/tmbslTDA9989_InOut.c'
+' '
+'Building file: ../src/tmbslTDA9989_Misc.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmbslTDA9989_Misc.o" -MMD -MP -MF"src/tmbslTDA9989_Misc.d" -MT"src/tmbslTDA9989_Misc.o" -o "src/tmbslTDA9989_Misc.o" "../src/tmbslTDA9989_Misc.c"
+../src/tmbslTDA9989_Misc.c: In function 'tmbslTDA9989HwHandleInterrupt':
+../src/tmbslTDA9989_Misc.c:848:26: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+     if(pDis->ePowerState == tmPowerOn)
+                          ^~
+../src/tmbslTDA9989_Misc.c:985:38: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+                 if(pDis->ePowerState == tmPowerOn)
+                                      ^~
+../src/tmbslTDA9989_Misc.c:696:10: warning: variable 'hpdOrRxsLevelHasChanged' set but not used [-Wunused-but-set-variable]
+     Bool hpdOrRxsLevelHasChanged = False;
+          ^~~~~~~~~~~~~~~~~~~~~~~
+../src/tmbslTDA9989_Misc.c: In function 'tmbslTDA9989HwStartup':
+../src/tmbslTDA9989_Misc.c:1282:13: warning: passing argument 1 of 'lmemset' discards 'volatile' qualifier from pointer target type [-Wdiscarded-array-qualifiers]
+     lmemset(&gHdmiTxInstance, 0, sizeof(gHdmiTxInstance));
+             ^
+In file included from ../src/tmbslTDA9989_Misc.c:23:0:
+../src/tmbslTDA9989_local.h:2088:18: note: expected 'void *' but argument is of type 'volatile tmHdmiTxobject_t (*)[2] {aka volatile struct _tmHdmiTxobject_t (*)[2]}'
+ tmErrorCode_t    lmemset (void *pTable1,
+                  ^~~~~~~
+../src/tmbslTDA9989_Misc.c: In function 'tmbslTDA9989Init':
+../src/tmbslTDA9989_Misc.c:1316:10: warning: assignment discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+     pDis = &gHdmiTxInstance[txUnit];
+          ^
+../src/tmbslTDA9989_Misc.c: In function 'tmbslTDA9989PowerSetState':
+../src/tmbslTDA9989_Misc.c:1660:61: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+     if ((ePowerState == tmPowerStandby)&&(pDis->ePowerState != tmPowerStandby))
+                                                             ^~
+../src/tmbslTDA9989_Misc.c:1671:31: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+         if (pDis->ePowerState == tmPowerOn)
+                               ^~
+../src/tmbslTDA9989_Misc.c:1739:66: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+     else if ((ePowerState == tmPowerSuspend)&&(pDis->ePowerState != tmPowerSuspend))
+                                                                  ^~
+../src/tmbslTDA9989_Misc.c:1743:31: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+         if (pDis->ePowerState == tmPowerOn)
+                               ^~
+../src/tmbslTDA9989_Misc.c:1792:30: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+         if(pDis->ePowerState == tmPowerStandby)
+                              ^~
+../src/tmbslTDA9989_Misc.c:1820:61: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+     else if ((ePowerState == tmPowerOn)&&(pDis->ePowerState != tmPowerOn))
+                                                             ^~
+../src/tmbslTDA9989_Misc.c:1832:30: warning: comparison between 'tmbslHdmiTxPowerState_t {aka enum <anonymous>}' and 'enum tmPowerState' [-Wenum-compare]
+         if(pDis->ePowerState == tmPowerStandby)
+                              ^~
+'Finished building: ../src/tmbslTDA9989_Misc.c'
+' '
+'Building file: ../src/tmbslTDA9989_State.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmbslTDA9989_State.o" -MMD -MP -MF"src/tmbslTDA9989_State.d" -MT"src/tmbslTDA9989_State.o" -o "src/tmbslTDA9989_State.o" "../src/tmbslTDA9989_State.c"
+'Finished building: ../src/tmbslTDA9989_State.c'
+' '
+'Building file: ../src/tmbslTDA9989_local.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmbslTDA9989_local.o" -MMD -MP -MF"src/tmbslTDA9989_local.d" -MT"src/tmbslTDA9989_local.o" -o "src/tmbslTDA9989_local.o" "../src/tmbslTDA9989_local.c"
+../src/tmbslTDA9989_local.c: In function 'checkUnitSetDis':
+../src/tmbslTDA9989_local.c:136:12: warning: assignment discards 'volatile' qualifier from pointer target type [-Wdiscarded-qualifiers]
+     *ppDis = &gHdmiTxInstance[txUnit];
+            ^
+'Finished building: ../src/tmbslTDA9989_local.c'
+' '
+'Building file: ../src/tmdlHdmiCEC.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiCEC.o" -MMD -MP -MF"src/tmdlHdmiCEC.d" -MT"src/tmdlHdmiCEC.o" -o "src/tmdlHdmiCEC.o" "../src/tmdlHdmiCEC.c"
+../src/tmdlHdmiCEC.c: In function 'tmdlHdmiCecSetInitiatorAddress':
+../src/tmdlHdmiCEC.c:853:37: warning: variable 'pDis' set but not used [-Wunused-but-set-variable]
+     tmdlHdmiCecDriverConfigTable_t *pDis;           /* Pointer to Device Instance Structure */
+                                     ^~~~
+../src/tmdlHdmiCEC.c: In function 'tmdlHdmiCecGetInitiatorAddress':
+../src/tmdlHdmiCEC.c:895:37: warning: variable 'pDis' set but not used [-Wunused-but-set-variable]
+     tmdlHdmiCecDriverConfigTable_t *pDis;           /* Pointer to Device Instance Structure */
+                                     ^~~~
+In file included from ../src/tmdlHdmiCEC_IW.h:49:0,
+                 from ../src/tmdlHdmiCEC.c:50:
+../src/tmdlHdmiCEC.c: In function 'tmdlHdmiCecSetLogicalAddress':
+../src/tmdlHdmiCEC.c:970:23: warning: too many arguments for format [-Wformat-extra-args]
+             PRNT_ARGS("CEC: Set device %s logical address %d\n",
+                       ^
+../src/tmNxTypes.h:390:53: note: in definition of macro 'PRNT_ARGS'
+ #define PRNT_ARGS(format, args ...) PRNT_FX(stderr, format, args)
+                                                     ^~~~~~
+../src/tmdlHdmiCEC.c:979:23: warning: too many arguments for format [-Wformat-extra-args]
+             PRNT_ARGS("CEC: Set device %s logical address %d\n",
+                       ^
+../src/tmNxTypes.h:390:53: note: in definition of macro 'PRNT_ARGS'
+ #define PRNT_ARGS(format, args ...) PRNT_FX(stderr, format, args)
+                                                     ^~~~~~
+../src/tmdlHdmiCEC.c: In function 'tmdlHdmiCecEnableCalibration':
+../src/tmdlHdmiCEC.c:7889:37: warning: variable 'pDis' set but not used [-Wunused-but-set-variable]
+     tmdlHdmiCecDriverConfigTable_t *pDis;
+                                     ^~~~
+'Finished building: ../src/tmdlHdmiCEC.c'
+' '
+'Building file: ../src/tmdlHdmiCEC_IW.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiCEC_IW.o" -MMD -MP -MF"src/tmdlHdmiCEC_IW.d" -MT"src/tmdlHdmiCEC_IW.o" -o "src/tmdlHdmiCEC_IW.o" "../src/tmdlHdmiCEC_IW.c"
+../src/tmdlHdmiCEC_IW.c: In function 'tmdlHdmiCecIWTaskStart':
+../src/tmdlHdmiCEC_IW.c:281:6: warning: variable 'rc' set but not used [-Wunused-but-set-variable]
+  int rc;
+      ^~
+../src/tmdlHdmiCEC_IW.c: In function 'tmdlHdmiCecIWQueueDestroy':
+../src/tmdlHdmiCEC_IW.c:413:15: warning: type of 'handle' defaults to 'int' [-Wimplicit-int]
+ tmErrorCode_t tmdlHdmiCecIWQueueDestroy( handle)
+               ^~~~~~~~~~~~~~~~~~~~~~~~~
+'Finished building: ../src/tmdlHdmiCEC_IW.c'
+' '
+'Building file: ../src/tmdlHdmiCEC_cfg.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiCEC_cfg.o" -MMD -MP -MF"src/tmdlHdmiCEC_cfg.d" -MT"src/tmdlHdmiCEC_cfg.o" -o "src/tmdlHdmiCEC_cfg.o" "../src/tmdlHdmiCEC_cfg.c"
+'Finished building: ../src/tmdlHdmiCEC_cfg.c'
+' '
+'Building file: ../src/tmdlHdmiCEC_local.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiCEC_local.o" -MMD -MP -MF"src/tmdlHdmiCEC_local.d" -MT"src/tmdlHdmiCEC_local.o" -o "src/tmdlHdmiCEC_local.o" "../src/tmdlHdmiCEC_local.c"
+'Finished building: ../src/tmdlHdmiCEC_local.c'
+' '
+'Building file: ../src/tmdlHdmiTx.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiTx.o" -MMD -MP -MF"src/tmdlHdmiTx.d" -MT"src/tmdlHdmiTx.o" -o "src/tmdlHdmiTx.o" "../src/tmdlHdmiTx.c"
+../src/tmdlHdmiTx.c: In function 'tmdlHdmiTxSetInputOutput':
+../src/tmdlHdmiTx.c:1921:36: warning: comparison between 'tmdlHdmiTxPixRate_t {aka enum <anonymous>}' and 'enum <anonymous>' [-Wenum-compare]
+     if (videoInputConfig.pixelRate == HDMITX_PIXRATE_SINGLE_REPEATED)
+                                    ^~
+../src/tmdlHdmiTx.c:1927:39: warning: comparison between 'tmdlHdmiTx3DStructure_t {aka enum <anonymous>}' and 'enum <anonymous>' [-Wenum-compare]
+     if ((videoInputConfig.structure3D != HDMITX_3D_FRAME_PACKING) &&
+                                       ^~
+../src/tmdlHdmiTx.c: In function 'dlHdmiTxGetReflineRefpix':
+../src/tmdlHdmiTx.c:4995:17: warning: comparison between 'tmdlHdmiTxVidFmt_t {aka enum <anonymous>}' and 'enum <anonymous>' [-Wenum-compare]
+       ((voutFmt >= HDMITX_VFMT_35_2880x480p_60Hz) && (voutFmt <= HDMITX_VFMT_38_2880x576p_50Hz)))
+                 ^~
+../src/tmdlHdmiTx.c:4995:63: warning: comparison between 'tmdlHdmiTxVidFmt_t {aka enum <anonymous>}' and 'enum <anonymous>' [-Wenum-compare]
+       ((voutFmt >= HDMITX_VFMT_35_2880x480p_60Hz) && (voutFmt <= HDMITX_VFMT_38_2880x576p_50Hz)))
+                                                               ^~
+'Finished building: ../src/tmdlHdmiTx.c'
+' '
+'Building file: ../src/tmdlHdmiTx_IW.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiTx_IW.o" -MMD -MP -MF"src/tmdlHdmiTx_IW.d" -MT"src/tmdlHdmiTx_IW.o" -o "src/tmdlHdmiTx_IW.o" "../src/tmdlHdmiTx_IW.c"
+../src/tmdlHdmiTx_IW.c: In function 'tmdlHdmiTxIWTaskStart':
+../src/tmdlHdmiTx_IW.c:269:6: warning: variable 'rc' set but not used [-Wunused-but-set-variable]
+  int rc;
+      ^~
+'Finished building: ../src/tmdlHdmiTx_IW.c'
+' '
+'Building file: ../src/tmdlHdmiTx_cfg.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiTx_cfg.o" -MMD -MP -MF"src/tmdlHdmiTx_cfg.d" -MT"src/tmdlHdmiTx_cfg.o" -o "src/tmdlHdmiTx_cfg.o" "../src/tmdlHdmiTx_cfg.c"
+'Finished building: ../src/tmdlHdmiTx_cfg.c'
+' '
+'Building file: ../src/tmdlHdmiTx_local.c'
+'Invoking: ARM v7 Linux gcc compiler'
+arm-linux-gnueabihf-gcc -DRAM_DAT=volatile -DCONST_DAT=const -DTMFL_OS_LINUX_USER -DTMFL_CEC_AVAILABLE -DTMFL_NO_RTOS -DTMFL_TDA19989 -DDEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/tmdlHdmiTx_local.o" -MMD -MP -MF"src/tmdlHdmiTx_local.d" -MT"src/tmdlHdmiTx_local.o" -o "src/tmdlHdmiTx_local.o" "../src/tmdlHdmiTx_local.c"
+'Finished building: ../src/tmdlHdmiTx_local.c'
+' '
+'Building target: hdmi-config.elf'
+'Invoking: ARM v7 Linux gcc linker'
+arm-linux-gnueabihf-gcc  -o "hdmi-config.elf"  ./src/audio.o ./src/hdmi_rx.o ./src/hdmi_tx.o ./src/i2c.o ./src/main.o ./src/spi.o ./src/tda1997x.o ./src/tda998x.o ./src/tda998x_NEW.o ./src/tlv320aic3104.o ./src/tmbslTDA9989_Edid.o ./src/tmbslTDA9989_HDCP.o ./src/tmbslTDA9989_InOut.o ./src/tmbslTDA9989_Misc.o ./src/tmbslTDA9989_State.o ./src/tmbslTDA9989_local.o ./src/tmdlHdmiCEC.o ./src/tmdlHdmiCEC_IW.o ./src/tmdlHdmiCEC_cfg.o ./src/tmdlHdmiCEC_local.o ./src/tmdlHdmiTx.o ./src/tmdlHdmiTx_IW.o ./src/tmdlHdmiTx_cfg.o ./src/tmdlHdmiTx_local.o   -lpthread -lrt
+'Finished building target: hdmi-config.elf'
+' '
+'Invoking: ARM v7 Linux Print Size'
+arm-linux-gnueabihf-size hdmi-config.elf  |tee "hdmi-config.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 226161	   2612	   4724	 233497	  39019	hdmi-config.elf
+'Finished building: hdmi-config.elf.size'
+' '
+09:45:22 **** Incremental Build of configuration Debug for project uio-vdma ****
+make all 
+make: Nothing to be done for `all'.
+09:45:25 **** Incremental Build of configuration Debug for project vid-tpg-config ****
+make all 
+make: Nothing to be done for `all'.

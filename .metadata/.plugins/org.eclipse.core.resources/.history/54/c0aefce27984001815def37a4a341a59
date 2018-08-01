@@ -1,0 +1,73 @@
+/*
+ * axissw.h
+ *
+ *  Created on: Jul 10, 2018
+ *      Author: bush
+ */
+
+#ifndef __AXISSW_H
+#define __AXISSW_H
+
+
+/**
+ * @brief	AXIS Switch Regs
+ */
+
+typedef enum _AxisSw_Regs {
+	AXISSW_MI00_MUX			(0x00000040U)
+	AXISSW_MI01_MUX			(0x00000044U)
+	AXISSW_MI02_MUX			(0x00000048U)
+	AXISSW_MI03_MUX			(0x0000004cU)
+	AXISSW_MI04_MUX			(0x00000050U)
+	AXISSW_MI05_MUX			(0x00000054U)
+	AXISSW_MI06_MUX			(0x00000058U)
+	AXISSW_MI07_MUX			(0x0000005cU)
+	AXISSW_MI08_MUX			(0x00000060U)
+	AXISSW_MI09_MUX			(0x00000064U)
+	AXISSW_MI10_MUX			(0x00000068U)
+	AXISSW_MI11_MUX			(0x0000006cU)
+	AXISSW_MI12_MUX			(0x00000070U)
+	AXISSW_MI13_MUX			(0x00000074U)
+	AXISSW_MI14_MUX			(0x00000078U)
+	AXISSW_MI15_MUX			(0x0000007cU)
+} AxisSw_Regs;
+
+
+/**
+ * @brief	AXIS Switch MUX Input Selection Enumeration
+ */
+typedef enum _AxisSw_MuxIn {
+	AXISSW_SI00 = 0x00,
+	AXISSW_SI01 = 0x01,
+	AXISSW_SI02 = 0x02,
+	AXISSW_SI03 = 0x03,
+	AXISSW_SI04 = 0x04,
+	AXISSW_SI05 = 0x05,
+	AXISSW_SI06 = 0x06,
+	AXISSW_SI07 = 0x07,
+	AXISSW_SI08 = 0x08,
+	AXISSW_SI09 = 0x09,
+	AXISSW_SI10 = 0x0a,
+	AXISSW_SI11 = 0x0b,
+	AXISSW_SI12 = 0x0c,
+	AXISSW_SI13 = 0x0d,
+	AXISSW_SI14 = 0x0e,
+	AXISSW_SI15 = 0x0f
+} AxisSw_MuxIn;
+
+#define AXISSW_MUX_DISABLE		(1 << 31)
+
+/**
+ * @brief	AXIS Switch Device Structure
+ */
+typedef struct _AxisSw {
+	void *base;
+} AxisSw;
+
+
+int axissw_init(AxisSw *sw);
+int axissw_port_config(AxisSw *sw, int port, AxisSw_MuxIn cfg);
+int axissw_update(AxisSw *sw);
+
+
+#endif /* __AXISSW_H */

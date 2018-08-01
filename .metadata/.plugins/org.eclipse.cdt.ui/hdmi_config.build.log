@@ -1,0 +1,15 @@
+20:19:04 **** Auto Build of configuration Debug for project hdmi_config ****
+make pre-build main-build 
+a9-linaro-pre-build-step
+' '
+'Building file: ../src/audio.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -DCONST_DAT=const -DRAM_DAT=volatile -DTMFL_TDA19988 -DTMFL_TDA19971 -DTMFL_NO_RTOS -DTMFL_CEC_AVAILABLE -DDEBUG_INFO -DSPI_DEBUG -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/audio.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -I../../hdmi_config_bsp/ps7_cortexa9_0/include -MMD -MP -MF"src/audio.d" -MT"src/audio.o" -o "src/audio.o" "../src/audio.c"
+../src/audio.c:12:10: fatal error: sleep.h: No such file or directory
+ #include "sleep.h"
+          ^~~~~~~~~
+compilation terminated.
+make: *** [src/audio.o] Error 1
+
+20:19:09 Build Finished (took 5s.219ms)
+

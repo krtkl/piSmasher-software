@@ -1,0 +1,1219 @@
+/**
+ *******************************************************************************
+ *******************************************************************************
+ *
+ * @file	tda998x.h
+ * @author	R. Bush
+ * @email	bush@krtkl.com
+ * @version	v1.0
+ * @date	2017 November 10
+ * @brief	NXP TDA998x HDMI Transmitter
+ * @license	FreeBSD
+ *
+ *******************************************************************************
+ *
+ * Copyright (c) 2017, krtkl inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *	  this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *	  this list of conditions and the following disclaimer in the documentation
+ *	  and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
+ *
+ *******************************************************************************
+ */
+
+#ifndef __TDA998X_H
+#define __TDA998X_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @addtogroup	NXP_TDA998X
+ * @{
+ */
+
+#define PAGE_ADDR(__PAGE__, __ADDR__)			(((__PAGE__) << 8) | ((__ADDR__) & 0xFFU))
+
+#define PAGE_OF(__REG__)				(((__REG__) >> 8) & 0xFFU)
+
+
+#define ENAMODS_FRO_DIS			(1 << 6)
+#define ENAMODS_CCLK_DIS		(1 << 5)
+#define ENAMODS_RXSENSE_EN		(1 << 2)
+#define ENAMODS_HDMI_EN			(1 << 1)
+#define ENAMODS_CEC_EN			(1 << 0)
+
+/**
+ * @addtogroup	NXP_TDA998X_CEC_Core
+ * @{
+ */
+
+/**
+ * @brief	CEC Core Registers
+ */
+enum tda998x_cec_reg {
+	INTERRUPTSTATUS = 0xEE,
+#define INTERRUPTSTATUS_CEC			(1 << 0)
+#define INTERRUPTSTATUS_HDMI			(1 << 1)
+
+	RXSHPDINTENA = 0xFC,
+#define RXSHPDINTENA_ena_rxs_int		(1 << 0)
+#define RXSHPDINTENA_ena_hpd_int		(1 << 1)
+
+	RXSHPDINT = 0xFD,
+#define RXSHPDINT_rxs_int			(1 << 0)
+#define RXSHPDINT_hpd_int			(1 << 1)
+
+	RXSHPDLEV = 0xFE,
+#define RXSHPDLEV_rxs_level			(1 << 0)
+#define RXSHPDLEV_hpd_level			(1 << 1)
+
+	ENAMODS = 0xFF,
+#define ENAMODS_ena_cec				(1 << 0)
+#define ENAMODS_ena_hdmi			(1 << 1)
+#define ENAMODS_ena_rxs				(1 << 2)
+#define ENAMODS_dis_cclk			(1 << 5)
+#define ENAMODS_dis_fro				(1 << 6)
+
+	FRO_IM_CLK_CTRL = 0xFB,
+#define FRO_IM_CLK_CTRL_fro_div			(1 << 0)
+#define FRO_IM_CLK_CTRL_imclk_sel		(1 << 1)
+#define FRO_IM_CLK_CTRL_ena_otp			(1 << 6)
+#define FRO_IM_CLK_CTRL_ghost_dis		(1 << 7)
+};
+
+/**
+ * @}
+ */
+
+
+//enum _ePage
+//{
+//    PAGE_00      = 0,
+//    E_PAGE_01      = 1,
+//    E_PAGE_02      = 2,
+//    E_PAGE_09      = 3,
+//    E_PAGE_10      = 4,
+//    E_PAGE_11      = 5,
+//    E_PAGE_12      = 6,
+//    E_PAGE_13      = 7,
+
+/**
+ * @addtogroup	NXP_TDA998X_HDMI_Core
+ * @{
+ */
+
+/**
+ * @brief	HDMI Core Register Pages
+ */
+enum tda998x_hdmi_page {
+	PAGE_00 = 0x00,
+	PAGE_01 = 0x01,
+	PAGE_02 = 0x02,
+	PAGE_12 = 0x12,
+	PAGE_INVALID = 0xFF
+};
+
+/**
+ * @brief	HDMI Core Registers
+ */
+enum tda998x_hdmi_reg {
+	VERSION			= PAGE_ADDR(PAGE_00, 0x00),
+#define VERSION_NOT_S				(1 << 4)
+#define VERSION_NOT_H				(1 << 5)
+
+	MAIN_CNTRL0		= PAGE_ADDR(PAGE_00, 0x01),
+#define MAIN_CNTRL0_sr				(1 << 0)
+#define MAIN_CNTRL0_decs			(1 << 1)
+#define MAIN_CNTRL0_dehs			(1 << 2)
+#define MAIN_CNTRL0_cecs			(1 << 3)
+#define MAIN_CNTRL0_cehs			(1 << 4)
+#define MAIN_CNTRL0_scaler			(1 << 7)
+
+	VERSION_MSB		= PAGE_ADDR(PAGE_00, 0x02),
+	PACKAGE_TYPE		= PAGE_ADDR(PAGE_00, 0x03),
+
+	SR_REG			= PAGE_ADDR(PAGE_00, 0x0A),
+#define SR_REG_sr_audio				(1 << 0)
+#define SR_REG_sr_i2c_ms			(1 << 1)
+
+	DDC_DISABLE		= PAGE_ADDR(PAGE_00, 0x0B),
+#define DDC_DISABLE_ddc_dis			(1 << 0)
+
+	CCLK_ON			= PAGE_ADDR(PAGE_00, 0x0C),
+#define CCLK_ON_cclk_ddc_on			(1 << 0)
+
+	I2C_MASTER		= PAGE_ADDR(PAGE_00, 0x0D),
+#define I2C_MASTER_dis_mm			(1 << 0)
+#define I2C_MASTER_dis_filt			(1 << 1)
+#define I2C_MASTER_app_strt_lat			(1 << 2)
+
+#ifdef TMFL_HDCP_OPTIMIZED_POWER
+	FEAT_POWER_DOWN		= PAGE_ADDR(PAGE_00, 0x0E),
+#endif
+
+	INT_FLAGS_0		= PAGE_ADDR(PAGE_00, 0x0F),
+//        INT_FLAGS_0_r0            (1 << 7)
+//		    INT_FLAGS_0_pj            (1 << 6)
+//		    INT_FLAGS_0_sha_1         (1 << 5)
+//		    INT_FLAGS_0_bstatus       (1 << 4)
+//		    INT_FLAGS_0_bcaps         (1 << 3)
+//		    INT_FLAGS_0_t0            (1 << 2)
+//		    /*INT_FLAGS_0_hpd          (1 << 1)*/
+//		    INT_FLAGS_0_encrypt       (1 << 0)
+//
+	INT_FLAGS_1		= PAGE_ADDR(PAGE_00, 0x10),
+//        /*INT_FLAGS_1_hpd_in        (1 << 7)*/
+//		    INT_FLAGS_1_sw_int        (1 << 6)
+//		    INT_FLAGS_1_sc_deil       (1 << 5)
+//		    INT_FLAGS_1_sc_vid        (1 << 4)
+//		    INT_FLAGS_1_sc_out        (1 << 3)
+//		    INT_FLAGS_1_sc_in         (1 << 2)
+//		    INT_FLAGS_1_otp          (1 << 1)
+//		    INT_FLAGS_1_vs_rpt        (1 << 0)
+//
+	INT_FLAGS_2		= PAGE_ADDR(PAGE_00, 0x11),
+//        /*INT_FLAGS_2_rx_sense      (1 << 0)*/
+//		    INT_FLAGS_2_edid_blk_rd  (1 << 1)
+//
+//    /*INT_FLAGS_3_R          = PAGE_ADDR(PAGE_00, 0x12),*/
+//		    /*INT_FLAGS_3_rxs_fil       (1 << 0)*/
+
+	SW_INT			= PAGE_ADDR(PAGE_00, 0x15),
+//        SW_INT_sw_int             (1 << 0)
+//
+	ENA_ACLK		= PAGE_ADDR(PAGE_00, 0x16),
+//        ENA_ACLK_ena_aclk         (1 << 0)
+//		    GND_ACLK_gnd_aclk         (1 << 0)
+//
+	ENA_VP_0		= PAGE_ADDR(PAGE_00, 0x18),
+//        ENA_VP_0_ena_vp7          (1 << 7)
+//		    ENA_VP_0_ena_vp6          (1 << 6)
+//		    ENA_VP_0_ena_vp5          (1 << 5)
+//		    ENA_VP_0_ena_vp4          (1 << 4)
+//		    ENA_VP_0_ena_vp3          (1 << 3)
+//		    ENA_VP_0_ena_vp2          (1 << 2)
+//		    ENA_VP_0_ena_vp1         (1 << 1)
+//		    ENA_VP_0_ena_vp0          (1 << 0)
+//
+	ENA_VP_1		= PAGE_ADDR(PAGE_00, 0x19),
+//        ENA_VP_1_ena_vp15         (1 << 7)
+//	    	ENA_VP_1_ena_vp14         (1 << 6)
+//		    ENA_VP_1_ena_vp13         (1 << 5)
+//		    ENA_VP_1_ena_vp12         (1 << 4)
+//		    ENA_VP_1_ena_vp11         (1 << 3)
+//		    ENA_VP_1_ena_vp10         (1 << 2)
+//		    ENA_VP_1_ena_vp9         (1 << 1)
+//		    ENA_VP_1_ena_vp8          (1 << 0)
+//
+	ENA_VP_2		= PAGE_ADDR(PAGE_00, 0x1A),
+//        ENA_VP_2_ena_vp23         (1 << 7)
+//	    	ENA_VP_2_ena_vp22         (1 << 6)
+//	    	ENA_VP_2_ena_vp21         (1 << 5)
+//	    	ENA_VP_2_ena_vp20         (1 << 4)
+//	    	ENA_VP_2_ena_vp19         (1 << 3)
+//		    ENA_VP_2_ena_vp18         (1 << 2)
+//  	  	ENA_VP_2_ena_vp17        (1 << 1)
+// 	  		ENA_VP_2_ena_vp16         (1 << 0)
+//
+	ENA_AP			= PAGE_ADDR(PAGE_00, 0x1E),
+//      	ENA_AP_ena_ap7            (1 << 7)
+//	    	ENA_AP_ena_ap6            (1 << 6)
+//	    	ENA_AP_ena_ap5            (1 << 5)
+//	    	ENA_AP_ena_ap4            (1 << 4)
+//		    ENA_AP_ena_ap3            (1 << 3)
+// 			  ENA_AP_ena_ap2            (1 << 2)
+// 		  	ENA_AP_ena_ap1           (1 << 1)
+// 	  		ENA_AP_ena_ap0            (1 << 0)
+//
+	VIP_CNTRL_0		= PAGE_ADDR(PAGE_00, 0x20),
+//        VIP_CNTRL_0_mirr_a        (1 << 7)
+//		    VIP_CNTRL_0_swap_a        = BINARY(0,1,1,1, 0,0,0,0),
+//		    VIP_CNTRL_0_mirr_b        (1 << 3)
+//		    VIP_CNTRL_0_swap_b        = BINARY(0,0,0,0, 0,1,1,1),
+//
+	VIP_CNTRL_1		= PAGE_ADDR(PAGE_00, 0x21),
+//        VIP_CNTRL_1_mirr_c        (1 << 7)
+//  		  VIP_CNTRL_1_swap_c        = BINARY(0,1,1,1, 0,0,0,0),
+//  		  VIP_CNTRL_1_mirr_d        (1 << 3)
+//		    VIP_CNTRL_1_swap_d        = BINARY(0,0,0,0, 0,1,1,1),
+//
+	VIP_CNTRL_2		= PAGE_ADDR(PAGE_00, 0x22),
+//        VIP_CNTRL_2_mirr_e        (1 << 7)
+//		    VIP_CNTRL_2_swap_e        = BINARY(0,1,1,1, 0,0,0,0),
+//  		  VIP_CNTRL_2_mirr_f        (1 << 3)
+//    		VIP_CNTRL_2_swap_f        = BINARY(0,0,0,0, 0,1,1,1),
+//
+	VIP_CNTRL_3		= PAGE_ADDR(PAGE_00, 0x23),
+//        VIP_CNTRL_3_edge          (1 << 7)
+//		    VIP_CNTRL_3_de_int        (1 << 6)
+//  		  VIP_CNTRL_3_sp_sync       (0x30U)
+//    		VIP_CNTRL_3_emb           (1 << 3)
+//    		VIP_CNTRL_3_v_tgl         (1 << 2)
+//    		VIP_CNTRL_3_h_tgl        (1 << 1)
+//    		VIP_CNTRL_3_x_tgl         (1 << 0)
+
+	VIP_CNTRL_4		= PAGE_ADDR(PAGE_00, 0x24),
+#define VIP_CNTRL_4_tst_pat		(1 << 7)
+#define VIP_CNTRL_4_tst_656		(1 << 6)
+#define VIP_CNTRL_4_656_alt		(1 << 5)
+#define VIP_CNTRL_4_ccir656		(1 << 4)
+#define VIP_CNTRL_4_blankit		(0x0CU)
+#define VIP_CNTRL_4_blc			(0x03U)
+
+	VIP_CNTRL_5		= PAGE_ADDR(PAGE_00, 0x25),
+//        VIP_CNTRL_5_sp_cnt        = BINARY(0,0,0,0, 0,1,1,0),
+//		    VIP_CNTRL_5_ckcase        (1 << 0)
+//
+	MUX_AP			= PAGE_ADDR(PAGE_00, 0x26),
+	MUX_VP_VIP_OUT		= PAGE_ADDR(PAGE_00, 0x27),
+	MAT_CONTRL		= PAGE_ADDR(PAGE_00, 0x80),
+//        MAT_CONTRL_mat_bp         (1 << 2)
+//		MAT_CONTRL_mat_sc         (0x03U)
+
+//    MAT_OI1_MSB_W          = PAGE_ADDR(PAGE_00, 0x81),
+//    MAT_OI1_LSB_W          = PAGE_ADDR(PAGE_00, 0x82),
+//    MAT_OI2_MSB_W          = PAGE_ADDR(PAGE_00, 0x83),
+//    MAT_OI2_LSB_W          = PAGE_ADDR(PAGE_00, 0x84),
+//    MAT_OI3_MSB_W          = PAGE_ADDR(PAGE_00, 0x85),
+//    MAT_OI3_LSB_W          = PAGE_ADDR(PAGE_00, 0x86),
+//    MAT_P11_MSB_W          = PAGE_ADDR(PAGE_00, 0x87),
+//    MAT_P11_LSB_W          = PAGE_ADDR(PAGE_00, 0x88),
+//    MAT_P12_MSB_W          = PAGE_ADDR(PAGE_00, 0x89),
+//    MAT_P12_LSB_W          = PAGE_ADDR(PAGE_00, 0x8A),
+//    MAT_P13_MSB_W          = PAGE_ADDR(PAGE_00, 0x8B),
+//    MAT_P13_LSB_W          = PAGE_ADDR(PAGE_00, 0x8C),
+//    MAT_P21_MSB_W          = PAGE_ADDR(PAGE_00, 0x8D),
+//    MAT_P21_LSB_W          = PAGE_ADDR(PAGE_00, 0x8E),
+//    MAT_P22_MSB_W          = PAGE_ADDR(PAGE_00, 0x8F),
+//    MAT_P22_LSB_W          = PAGE_ADDR(PAGE_00, 0x90),
+//    MAT_P23_MSB_W          = PAGE_ADDR(PAGE_00, 0x91),
+//    MAT_P23_LSB_W          = PAGE_ADDR(PAGE_00, 0x92),
+//    MAT_P31_MSB_W          = PAGE_ADDR(PAGE_00, 0x93),
+//    MAT_P31_LSB_W          = PAGE_ADDR(PAGE_00, 0x94),
+//    MAT_P32_MSB_W          = PAGE_ADDR(PAGE_00, 0x95),
+//    MAT_P32_LSB_W          = PAGE_ADDR(PAGE_00, 0x96),
+//    MAT_P33_MSB_W          = PAGE_ADDR(PAGE_00, 0x97),
+//    MAT_P33_LSB_W          = PAGE_ADDR(PAGE_00, 0x98),
+//    MAT_OO1_MSB_W          = PAGE_ADDR(PAGE_00, 0x99),
+//    MAT_OO1_LSB_W          = PAGE_ADDR(PAGE_00, 0x9A),
+//    MAT_OO2_MSB_W          = PAGE_ADDR(PAGE_00, 0x9B),
+//    MAT_OO2_LSB_W          = PAGE_ADDR(PAGE_00, 0x9C),
+//    MAT_OO3_MSB_W          = PAGE_ADDR(PAGE_00, 0x9D),
+//    MAT_OO3_LSB_W          = PAGE_ADDR(PAGE_00, 0x9E),
+
+	VIDFORMAT		= PAGE_ADDR(PAGE_00, 0xA0),
+#ifdef TMFL_TDA19989
+# define VIDFORMAT_3d_neg_vs	(1 << 6)
+# define VIDFORMAT_3d		(1 << 7)
+#endif
+#define VIDFORMAT_vidformat		(0x1FU)
+
+	REFPIX_MSB		= PAGE_ADDR(PAGE_00, 0xA1),
+	REFPIX_LSB		= PAGE_ADDR(PAGE_00, 0xA2),
+	REFLINE_MSB		= PAGE_ADDR(PAGE_00, 0xA3),
+	REFLINE_LSB		= PAGE_ADDR(PAGE_00, 0xA4),
+	NPIX_MSB		= PAGE_ADDR(PAGE_00, 0xA5),
+	NPIX_LSB		= PAGE_ADDR(PAGE_00, 0xA6),
+	NLINE_MSB		= PAGE_ADDR(PAGE_00, 0xA7),
+	NLINE_LSB		= PAGE_ADDR(PAGE_00, 0xA8),
+	VS_LINE_STRT_1_MSB	= PAGE_ADDR(PAGE_00, 0xA9),
+	VS_LINE_STRT_1_LSB	= PAGE_ADDR(PAGE_00, 0xAA),
+	VS_PIX_STRT_1_MSB	= PAGE_ADDR(PAGE_00, 0xAB),
+	VS_PIX_STRT_1_LSB	= PAGE_ADDR(PAGE_00, 0xAC),
+	VS_LINE_END_1_MSB	= PAGE_ADDR(PAGE_00, 0xAD),
+	VS_LINE_END_1_LSB	= PAGE_ADDR(PAGE_00, 0xAE),
+	VS_PIX_END_1_MSB	= PAGE_ADDR(PAGE_00, 0xAF),
+	VS_PIX_END_1_LSB	= PAGE_ADDR(PAGE_00, 0xB0),
+	VS_LINE_STRT_2_MSB	= PAGE_ADDR(PAGE_00, 0xB1),
+	VS_LINE_STRT_2_LSB	= PAGE_ADDR(PAGE_00, 0xB2),
+	VS_PIX_STRT_2_MSB	= PAGE_ADDR(PAGE_00, 0xB3),
+	VS_PIX_STRT_2_LSB	= PAGE_ADDR(PAGE_00, 0xB4),
+	VS_LINE_END_2_MSB	= PAGE_ADDR(PAGE_00, 0xB5),
+	VS_LINE_END_2_LSB	= PAGE_ADDR(PAGE_00, 0xB6),
+	VS_PIX_END_2_MSB	= PAGE_ADDR(PAGE_00, 0xB7),
+	VS_PIX_END_2_LSB	= PAGE_ADDR(PAGE_00, 0xB8),
+	HS_PIX_START_MSB	= PAGE_ADDR(PAGE_00, 0xB9),
+	HS_PIX_START_LSB	= PAGE_ADDR(PAGE_00, 0xBA),
+	HS_PIX_STOP_MSB		= PAGE_ADDR(PAGE_00, 0xBB),
+	HS_PIX_STOP_LSB		= PAGE_ADDR(PAGE_00, 0xBC),
+	VWIN_START_1_MSB	= PAGE_ADDR(PAGE_00, 0xBD),
+	VWIN_START_1_LSB	= PAGE_ADDR(PAGE_00, 0xBE),
+	VWIN_END_1_MSB		= PAGE_ADDR(PAGE_00, 0xBF),
+	VWIN_END_1_LSB		= PAGE_ADDR(PAGE_00, 0xC0),
+	VWIN_START_2_MSB	= PAGE_ADDR(PAGE_00, 0xC1),
+	VWIN_START_2_LSB	= PAGE_ADDR(PAGE_00, 0xC2),
+	VWIN_END_2_MSB		= PAGE_ADDR(PAGE_00, 0xC3),
+	VWIN_END_2_LSB		= PAGE_ADDR(PAGE_00, 0xC4),
+	DE_START_MSB		= PAGE_ADDR(PAGE_00, 0xC5),
+	DE_START_LSB		= PAGE_ADDR(PAGE_00, 0xC6),
+	DE_STOP_MSB		= PAGE_ADDR(PAGE_00, 0xC7),
+	DE_STOP_LSB		= PAGE_ADDR(PAGE_00, 0xC8),
+	COLBAR_WIDTH		= PAGE_ADDR(PAGE_00, 0xC9),
+
+	TBG_CNTRL_0		= PAGE_ADDR(PAGE_00, 0xCA),
+//        TBG_CNTRL_0_sync_once     (1 << 7)
+//		    TBG_CNTRL_0_sync_mthd     (1 << 6)
+//		    TBG_CNTRL_0_frame_dis     (1 << 5)
+//
+	TBG_CNTRL_1		= PAGE_ADDR(PAGE_00, 0xCB),
+//        TBG_CNTRL_1_dwin_dis      (1 << 6)
+//		    TBG_CNTRL_1_vhx_ext       = BINARY(0,0,1,1, 1,0,0,0),
+//		    TBG_CNTRL_1_vhx_ext_vs    (1 << 5)
+//		    TBG_CNTRL_1_vhx_ext_hs    (1 << 4)
+//		    TBG_CNTRL_1_vhx_ext_de    (1 << 3)
+//		    TBG_CNTRL_1_vh_tgl        = BINARY(0,0,0,0, 0,1,1,1),
+//		    TBG_CNTRL_1_vh_tgl_2      (1 << 2)
+//		    TBG_CNTRL_1_vh_tgl_1     (1 << 1)
+//		    TBG_CNTRL_1_vh_tgl_0      (1 << 0)
+//
+	VBL_OFFSET_START	= PAGE_ADDR(PAGE_00, 0xCC),
+	VBL_OFFSET_END		= PAGE_ADDR(PAGE_00, 0xCD),
+	HBL_OFFSET_START	= PAGE_ADDR(PAGE_00, 0xCE),
+	HBL_OFFSET_END		= PAGE_ADDR(PAGE_00, 0xCF),
+	DWIN_RE_DE		= PAGE_ADDR(PAGE_00, 0xD0),
+	DWIN_FE_DE		= PAGE_ADDR(PAGE_00, 0xD1),
+
+//#ifdef TMFL_RGB_DDR_12BITS
+//    VSPACE_START_MSB_W     = PAGE_ADDR(PAGE_00, 0xD2),
+//    VSPACE_START_LSB_W     = PAGE_ADDR(PAGE_00, 0xD3),
+//    VSPACE_END_MSB_W       = PAGE_ADDR(PAGE_00, 0xD4),
+//    VSPACE_END_LSB_W       = PAGE_ADDR(PAGE_00, 0xD5),
+//    ENABLE_SPACE_W         = PAGE_ADDR(PAGE_00, 0xD6),
+//    VSPACE_Y_DATA_W        = PAGE_ADDR(PAGE_00, 0xD7),
+//    VSPACE_U_DATA_W        = PAGE_ADDR(PAGE_00, 0xD8),
+//    VSPACE_V_DATA_W        = PAGE_ADDR(PAGE_00, 0xD9),
+//#endif
+//
+	TIMER_RI_PJ		= PAGE_ADDR(PAGE_00, 0xE1),
+//        I2C_TIMER_RI              = BINARY(0,0,0,0, 1,1,1,1),
+//		    I2C_TIMER_PJ              = BINARY(1,1,1,1, 0,0,0,0),
+//
+	BCAPS_POLL		= PAGE_ADDR(PAGE_00, 0xE2),
+//    100us_RW               = PAGE_ADDR(PAGE_00, 0xE3),
+//
+	HVF_CNTRL_0		= PAGE_ADDR(PAGE_00, 0xE4),
+//        HVF_CNTRL_0_sm            (1 << 7)
+//		    HVF_CNTRL_0_rwb           (1 << 6)
+//  		  HVF_CNTRL_0_prefil        = BINARY(0,0,0,0, 1,1,0,0),
+//    		HVF_CNTRL_0_intpol        = BINARY(0,0,0,0, 0,0,1,1),
+//
+	HVF_CNTRL_1		= PAGE_ADDR(PAGE_00, 0xE5),
+//        HVF_CNTRL_1_semi_planar   (1 << 6)
+//    		HVF_CNTRL_1_pad           = BINARY(0,0,1,1, 0,0,0,0),
+//    		HVF_CNTRL_1_vqr           = BINARY(0,0,0,0, 1,1,0,0),
+//  		  HVF_CNTRL_1_yuvblk       (1 << 1)
+//		    HVF_CNTRL_1_for           (1 << 0)
+//
+	TIMER_H			= PAGE_ADDR(PAGE_00, 0xE8),
+//        TIMER_H_wd_clksel         (1 << 6)
+//		    TIMER_H_tim_h             = BINARY(0,0,0,0, 0,0,1,1),
+
+	TIMER_M			= PAGE_ADDR(PAGE_00, 0xE9),
+	TIMER_L			= PAGE_ADDR(PAGE_00, 0xEA),
+	TIMER_2SEC		= PAGE_ADDR(PAGE_00, 0xEB),
+	TIMER_5SEC		= PAGE_ADDR(PAGE_00, 0xEC),
+	NDIV_IM			= PAGE_ADDR(PAGE_00, 0xEE),
+	NDIV_PF			= PAGE_ADDR(PAGE_00, 0xEF),
+	RPT_CNTRL		= PAGE_ADDR(PAGE_00, 0xF0),
+	LEAD_OFF		= PAGE_ADDR(PAGE_00, 0xF1),
+	TRAIL_OFF		= PAGE_ADDR(PAGE_00, 0xF2),
+	MISR_EXP_0		= PAGE_ADDR(PAGE_00, 0xF3),
+	MISR_EXP_1		= PAGE_ADDR(PAGE_00, 0xF4),
+	MISR_EXP_2		= PAGE_ADDR(PAGE_00, 0xF5),
+	MISR_0			= PAGE_ADDR(PAGE_00, 0xF6),
+	MISR_1			= PAGE_ADDR(PAGE_00, 0xF7),
+
+	DEBUG_PROBE		= PAGE_ADDR(PAGE_00, 0xF8),
+//        DEBUG_PROBE_sel           = BINARY(0,0,1,1, 0,0,0,0),
+//		    DEBUG_PROBE_bypass        (1 << 3)
+//  		  DEBUG_PROBE_vid_de        (1 << 2)
+//		    DEBUG_PROBE_di_de        (1 << 1)
+//  		  DEBUG_PROBE_woo_en        (1 << 0)
+//
+	GHOST_XADDR		= PAGE_ADDR(PAGE_00, 0xF9),
+	MISR_2			= PAGE_ADDR(PAGE_00, 0xFA),
+
+	I2S_FORMAT		= PAGE_ADDR(PAGE_00, 0xFC),
+//		    I2S_FORMAT_i2s_format     = BINARY(0,0,0,0, 1,1,1,1),
+//		    //I2S_FORMAT_i2s_data_size  = BINARY(0,0,0,0, 1,1,0,0),
+//
+	AIP_CLKSEL		= PAGE_ADDR(PAGE_00, 0xFD),
+//        AIP_CLKSEL_dst_rate       (1 << 6)
+//    		AIP_CLKSEL_sel_aip_SHIFT  = 3,
+//    		AIP_CLKSEL_sel_aip        = BINARY(0,0,1,1, 1,0,0,0),
+//  		  AIP_CLKSEL_sel_pol_clk    (1 << 2)
+//		    AIP_CLKSEL_sel_fs         = BINARY(0,0,0,0, 0,0,1,1),
+//
+	GHOST_ADDR		= PAGE_ADDR(PAGE_00, 0xFE),
+
+	SC_VIDFORMAT		= PAGE_ADDR(PAGE_01, 0x00),
+//        SC_VIDFORMAT_lut_sel      = BINARY(1,1,0,0, 0,0,0,0),
+//		    SC_VIDFORMAT_vid_format_o = BINARY(0,0,1,1, 1,0,0,0),
+//  		  SC_VIDFORMAT_vid_format_i = BINARY(0,0,0,0, 0,1,1,1),
+//
+	SC_CNTRL		= PAGE_ADDR(PAGE_01, 0x01),
+//        SC_CNTRL_phases_h         (1 << 4)
+//    		SC_CNTRL_il_out_on        (1 << 3)
+//    		SC_CNTRL_phases_v         (1 << 2)
+//  		  SC_CNTRL_vs_on           (1 << 1)
+//		    SC_CNTRL_deil_on          (1 << 0)
+//
+	SC_DELTA_PHASE_V	= PAGE_ADDR(PAGE_01, 0x02),
+	SC_DELTA_PHASE_H	= PAGE_ADDR(PAGE_01, 0x03),
+	SC_START_PHASE_H	= PAGE_ADDR(PAGE_01, 0x04),
+	SC_NPIX_IN_LSB		= PAGE_ADDR(PAGE_01, 0x05),
+	SC_NPIX_IN_MSB		= PAGE_ADDR(PAGE_01, 0x06),
+	SC_NPIX_OUT_LSB		= PAGE_ADDR(PAGE_01, 0x07),
+	SC_NPIX_OUT_MSB		= PAGE_ADDR(PAGE_01, 0x08),
+	SC_NLINE_IN_LSB		= PAGE_ADDR(PAGE_01, 0x09),
+	SC_NLINE_IN_MSB		= PAGE_ADDR(PAGE_01, 0x0A),
+	SC_NLINE_OUT_LSB	= PAGE_ADDR(PAGE_01, 0x0B),
+	SC_NLINE_OUT_MSB	= PAGE_ADDR(PAGE_01, 0x0C),
+	SC_NLINE_SKIP		= PAGE_ADDR(PAGE_01, 0x0D),
+	SC_SAMPLE_BUFFIL	= PAGE_ADDR(PAGE_01, 0x0E),
+	SC_MAX_BUFFILL_P_0	= PAGE_ADDR(PAGE_01, 0x0F),
+	SC_MAX_BUFFILL_P_1	= PAGE_ADDR(PAGE_01, 0x10),
+	SC_MAX_BUFFILL_D_0	= PAGE_ADDR(PAGE_01, 0x11),
+	SC_MAX_BUFFILL_D_1	= PAGE_ADDR(PAGE_01, 0x12),
+	SC_SAMPLE_FIFOFILL	= PAGE_ADDR(PAGE_01, 0x13),
+	SC_MAX_FIFOFILL_PI	= PAGE_ADDR(PAGE_01, 0x14),
+	SC_MIN_FIFOFILL_PO1	= PAGE_ADDR(PAGE_01, 0x15),
+	SC_MIN_FIFOFILL_PO2	= PAGE_ADDR(PAGE_01, 0x16),
+	SC_MIN_FIFOFILL_PO3	= PAGE_ADDR(PAGE_01, 0x17),
+	SC_MIN_FIFOFILL_PO4	= PAGE_ADDR(PAGE_01, 0x18),
+	SC_MAX_FIFOFILL_DI	= PAGE_ADDR(PAGE_01, 0x19),
+	SC_MAX_FIFOFILL_DO	= PAGE_ADDR(PAGE_01, 0x1A),
+	SC_VS_LUT_0		= PAGE_ADDR(PAGE_01, 0x1B),
+	SC_VS_LUT_1		= PAGE_ADDR(PAGE_01, 0x1C),
+	SC_VS_LUT_2		= PAGE_ADDR(PAGE_01, 0x1D),
+	SC_VS_LUT_3		= PAGE_ADDR(PAGE_01, 0x1E),
+	SC_VS_LUT_4		= PAGE_ADDR(PAGE_01, 0x1F),
+	SC_VS_LUT_5		= PAGE_ADDR(PAGE_01, 0x20),
+	SC_VS_LUT_6		= PAGE_ADDR(PAGE_01, 0x21),
+	SC_VS_LUT_7		= PAGE_ADDR(PAGE_01, 0x22),
+	SC_VS_LUT_8		= PAGE_ADDR(PAGE_01, 0x23),
+	SC_VS_LUT_9		= PAGE_ADDR(PAGE_01, 0x24),
+	SC_VS_LUT_10		= PAGE_ADDR(PAGE_01, 0x25),
+	SC_VS_LUT_11		= PAGE_ADDR(PAGE_01, 0x26),
+	SC_VS_LUT_12		= PAGE_ADDR(PAGE_01, 0x27),
+	SC_VS_LUT_13		= PAGE_ADDR(PAGE_01, 0x28),
+	SC_VS_LUT_14		= PAGE_ADDR(PAGE_01, 0x29),
+	SC_VS_LUT_15		= PAGE_ADDR(PAGE_01, 0x2A),
+	SC_VS_LUT_16		= PAGE_ADDR(PAGE_01, 0x2B),
+	SC_VS_LUT_17		= PAGE_ADDR(PAGE_01, 0x2C),
+	SC_VS_LUT_18		= PAGE_ADDR(PAGE_01, 0x2D),
+	SC_VS_LUT_19		= PAGE_ADDR(PAGE_01, 0x2E),
+	SC_VS_LUT_20		= PAGE_ADDR(PAGE_01, 0x2F),
+	SC_VS_LUT_21		= PAGE_ADDR(PAGE_01, 0x30),
+	SC_VS_LUT_22		= PAGE_ADDR(PAGE_01, 0x31),
+	SC_VS_LUT_23		= PAGE_ADDR(PAGE_01, 0x32),
+	SC_VS_LUT_24		= PAGE_ADDR(PAGE_01, 0x33),
+	SC_VS_LUT_25		= PAGE_ADDR(PAGE_01, 0x34),
+	SC_VS_LUT_26		= PAGE_ADDR(PAGE_01, 0x35),
+	SC_VS_LUT_27		= PAGE_ADDR(PAGE_01, 0x36),
+	SC_VS_LUT_28		= PAGE_ADDR(PAGE_01, 0x37),
+	SC_VS_LUT_29		= PAGE_ADDR(PAGE_01, 0x38),
+	SC_VS_LUT_30		= PAGE_ADDR(PAGE_01, 0x39),
+	SC_VS_LUT_31		= PAGE_ADDR(PAGE_01, 0x3A),
+	SC_VS_LUT_32		= PAGE_ADDR(PAGE_01, 0x3B),
+	SC_VS_LUT_33		= PAGE_ADDR(PAGE_01, 0x3C),
+	SC_VS_LUT_34		= PAGE_ADDR(PAGE_01, 0x3D),
+	SC_VS_LUT_35		= PAGE_ADDR(PAGE_01, 0x3E),
+	SC_VS_LUT_36		= PAGE_ADDR(PAGE_01, 0x3F),
+	SC_VS_LUT_37		= PAGE_ADDR(PAGE_01, 0x40),
+	SC_VS_LUT_38		= PAGE_ADDR(PAGE_01, 0x41),
+	SC_VS_LUT_39		= PAGE_ADDR(PAGE_01, 0x42),
+	SC_VS_LUT_40		= PAGE_ADDR(PAGE_01, 0x43),
+	SC_VS_LUT_41		= PAGE_ADDR(PAGE_01, 0x44),
+	SC_VS_LUT_42		= PAGE_ADDR(PAGE_01, 0x45),
+	SC_VS_LUT_43		= PAGE_ADDR(PAGE_01, 0x46),
+	SC_VS_LUT_44		= PAGE_ADDR(PAGE_01, 0x47),
+	SC_LAT_SCO		= PAGE_ADDR(PAGE_01, 0x48),
+
+	VIDFORMAT_W            = PAGE_ADDR(PAGE_01, 0xA0),
+//		    VIDFORMAT_vidformat       = BINARY(0,0,0,0, 0,1,1,1),
+//
+//    REFPIX_MSB_W           = PAGE_ADDR(PAGE_01, 0xA1),
+//    REFPIX_LSB_W           = PAGE_ADDR(PAGE_01, 0xA2),
+//    REFLINE_MSB_W          = PAGE_ADDR(PAGE_01, 0xA3),
+//    REFLINE_LSB_W          = PAGE_ADDR(PAGE_01, 0xA4),
+//    NPIX_MSB_W             = PAGE_ADDR(PAGE_01, 0xA5),
+//    NPIX_LSB_W             = PAGE_ADDR(PAGE_01, 0xA6),
+//    NLINE_MSB_W            = PAGE_ADDR(PAGE_01, 0xA7),
+//    NLINE_LSB_W            = PAGE_ADDR(PAGE_01, 0xA8),
+//    VWIN_START_1_MSB_W     = PAGE_ADDR(PAGE_01, 0xBD),
+//    VWIN_START_1_LSB_W     = PAGE_ADDR(PAGE_01, 0xBE),
+//    VWIN_END_1_MSB_W       = PAGE_ADDR(PAGE_01, 0xBF),
+//    VWIN_END_1_LSB_W       = PAGE_ADDR(PAGE_01, 0xC0),
+//    VWIN_START_2_MSB_W     = PAGE_ADDR(PAGE_01, 0xC1),
+//    VWIN_START_2_LSB_W     = PAGE_ADDR(PAGE_01, 0xC2),
+//    VWIN_END_2_MSB_W       = PAGE_ADDR(PAGE_01, 0xC3),
+//    VWIN_END_2_LSB_W       = PAGE_ADDR(PAGE_01, 0xC4),
+//    DE_START_MSB_W         = PAGE_ADDR(PAGE_01, 0xC5),
+//    DE_START_LSB_W         = PAGE_ADDR(PAGE_01, 0xC6),
+//    DE_STOP_MSB_W          = PAGE_ADDR(PAGE_01, 0xC7),
+//    DE_STOP_LSB_W          = PAGE_ADDR(PAGE_01, 0xC8),
+//    TBG_CNTRL_0_W          = SPA(E_SP01_TBG_CNTRL_0 , E_PAGE_01, 0xCA),
+//        TBG_CNTRL_0_sync_once     (1 << 7)
+//    		TBG_CNTRL_0_sync_mthd     (1 << 6)
+//   			TBG_CNTRL_0_frame_dis     (1 << 5)
+//   			TBG_CNTRL_0_top_ext       (1 << 3)
+//    		TBG_CNTRL_0_de_ext        (1 << 2)
+//  		  TBG_CNTRL_0_top_sel      (1 << 1)
+//		    TBG_CNTRL_0_top_tgl       (1 << 0)
+//
+//    PLL_SERIAL_1_RW        = PAGE_ADDR(PAGE_02, 0x00),
+//        PLL_SERIAL_1_srl_man_iz   (1 << 6)
+//  		  PLL_SERIAL_1_srl_iz       = BINARY(0,0,0,0, 0,1,1,0),
+//		    PLL_SERIAL_1_srl_fdn      (1 << 0)
+//
+//    PLL_SERIAL_2_RW        = PAGE_ADDR(PAGE_02, 0x01),
+//        PLL_SERIAL_2_srl_pr       = BINARY(1,1,1,1, 0,0,0,0),
+//		    PLL_SERIAL_2_srl_nosc     = BINARY(0,0,0,0, 0,0,1,1),
+//
+//    PLL_SERIAL_3_RW        = PAGE_ADDR(PAGE_02, 0x02),
+//        PLL_SERIAL_3_srl_pxin_sel (1 << 4)
+//  		  PLL_SERIAL_3_srl_de      (1 << 1)
+//		    PLL_SERIAL_3_srl_ccir     (1 << 0)
+//
+//    SERIALIZER_RW          = PAGE_ADDR(PAGE_02, 0x03),
+//        SERIALIZER_srl_phase3     = BINARY(1,1,1,1, 0,0,0,0),
+//		    SERIALIZER_srl_phase2     = BINARY(0,0,0,0, 1,1,1,1),
+//
+//    BUFFER_OUT_RW          = PAGE_ADDR(PAGE_02, 0x04),
+//        BUFFER_OUT_srl_force      = BINARY(0,0,0,0, 1,1,0,0),
+//		    BUFFER_OUT_srl_clk        = BINARY(0,0,0,0, 0,0,1,1),
+//
+//    PLL_SCG1_RW            = PAGE_ADDR(PAGE_02, 0x05),
+//    PLL_SCG2_RW            = PAGE_ADDR(PAGE_02, 0x06),
+//    PLL_SCGN1_RW           = PAGE_ADDR(PAGE_02, 0x07),
+//    PLL_SCGN2_RW           = PAGE_ADDR(PAGE_02, 0x08),
+//    PLL_SCGR1_RW           = PAGE_ADDR(PAGE_02, 0x09),
+//        PLL_SCG1_scg_fdn          (1 << 0)
+//
+//    PLL_SCGR2_RW           = PAGE_ADDR(PAGE_02, 0x0A),
+//        PLL_SCG2_bypass_scg       (1 << 7)
+//		    PLL_SCG2_selpllclkin      (1 << 4)
+//		    PLL_SCG2_scg_nosc         = BINARY(0,0,0,0, 0,0,1,1),
+//
+//    VAI_PLL_R              = PAGE_ADDR(PAGE_02, 0x0D),
+//        VAI_PLL_pllde_hvp         (1 << 6)
+//		    VAI_PLL_pllscg_hvp        (1 << 5)
+//		    VAI_PLL_pllsrl_hvp        (1 << 4)
+//		    VAI_PLL_pllscg_lock      (1 << 1)
+//		    VAI_PLL_pllsrl_lock       (1 << 0)
+//
+//    AUDIO_DIV_RW           = PAGE_ADDR(PAGE_02, 0x0E),
+//        AUDIO_DIV_audio_div       = BINARY(0,0,0,0, 0,1,1,1),
+//
+//    TEST1_RW               = PAGE_ADDR(PAGE_02, 0x0F),
+//        TEST1_srldat              = BINARY(1,1,0,0, 0,0,0,0),
+//		    TEST1_tst_nosc           (1 << 1)
+//		    TEST1_tst_enahvp          (1 << 0)
+//
+//    /*TEST2_RW               = PAGE_ADDR(PAGE_02, 0x10),*/
+//        //TEST2_pwd1v8             (1 << 1)
+//		    //TEST2_divtestoe           (1 << 0)
+//    SEL_CLK_RW             = PAGE_ADDR(PAGE_02, 0x11),
+//        SEL_CLK_ena_sc_clk        (1 << 3)
+//		    SEL_CLK_sel_vrf_clk       = BINARY(0,0,0,0, 0,1,1,0),
+//		    SEL_CLK_sel_clk1          (1 << 0)
+//
+
+
+	ANA_GENERAL		= PAGE_ADDR(PAGE_02, 0x12),
+
+//    BUFFER_OUT2_RW         = PAGE_ADDR(PAGE_02, 0x13),
+//        BUFF_OUT2_force_dat2      = BINARY(0,0,1,1, 0,0,0,0),
+//    		BUFF_OUT2_force_dat1      = BINARY(0,0,0,0, 1,1,0,0),
+//    		BUFF_OUT2_force_dat0      = BINARY(0,0,0,0, 0,0,1,1),
+//
+//    SRL_TSTPAT0_RW         = PAGE_ADDR(PAGE_02, 0x14),
+//    SRL_TSTPAT1_RW         = PAGE_ADDR(PAGE_02, 0x15),
+//    SRL_TSTPAT2_RW         = PAGE_ADDR(PAGE_02, 0x16),
+//    SRL_TSTPAT3_RW         = PAGE_ADDR(PAGE_02, 0x17),
+//
+//
+//
+//
+//    EDID_DATA_0_R          = PAGE_ADDR(PAGE_09, 0x00),
+//    EDID_DATA_1_R          = PAGE_ADDR(PAGE_09, 0x01),
+//    EDID_DATA_2_R          = PAGE_ADDR(PAGE_09, 0x02),
+//    EDID_DATA_3_R          = PAGE_ADDR(PAGE_09, 0x03),
+//    EDID_DATA_4_R          = PAGE_ADDR(PAGE_09, 0x04),
+//    EDID_DATA_5_R          = PAGE_ADDR(PAGE_09, 0x05),
+//    EDID_DATA_6_R          = PAGE_ADDR(PAGE_09, 0x06),
+//    EDID_DATA_7_R          = PAGE_ADDR(PAGE_09, 0x07),
+//    EDID_DATA_8_R          = PAGE_ADDR(PAGE_09, 0x08),
+//    EDID_DATA_9_R          = PAGE_ADDR(PAGE_09, 0x09),
+//    EDID_DATA_10_R         = PAGE_ADDR(PAGE_09, 0x0A),
+//    EDID_DATA_11_R         = PAGE_ADDR(PAGE_09, 0x0B),
+//    EDID_DATA_12_R         = PAGE_ADDR(PAGE_09, 0x0C),
+//    EDID_DATA_13_R         = PAGE_ADDR(PAGE_09, 0x0D),
+//    EDID_DATA_14_R         = PAGE_ADDR(PAGE_09, 0x0E),
+//    EDID_DATA_15_R         = PAGE_ADDR(PAGE_09, 0x0F),
+//    EDID_DATA_16_R         = PAGE_ADDR(PAGE_09, 0x10),
+//    EDID_DATA_17_R         = PAGE_ADDR(PAGE_09, 0x11),
+//    EDID_DATA_18_R         = PAGE_ADDR(PAGE_09, 0x12),
+//    EDID_DATA_19_R         = PAGE_ADDR(PAGE_09, 0x13),
+//    EDID_DATA_20_R         = PAGE_ADDR(PAGE_09, 0x14),
+//    EDID_DATA_21_R         = PAGE_ADDR(PAGE_09, 0x15),
+//    EDID_DATA_22_R         = PAGE_ADDR(PAGE_09, 0x16),
+//    EDID_DATA_23_R         = PAGE_ADDR(PAGE_09, 0x17),
+//    EDID_DATA_24_R         = PAGE_ADDR(PAGE_09, 0x18),
+//    EDID_DATA_25_R         = PAGE_ADDR(PAGE_09, 0x19),
+//    EDID_DATA_26_R         = PAGE_ADDR(PAGE_09, 0x1A),
+//    EDID_DATA_27_R         = PAGE_ADDR(PAGE_09, 0x1B),
+//    EDID_DATA_28_R         = PAGE_ADDR(PAGE_09, 0x1C),
+//    EDID_DATA_29_R         = PAGE_ADDR(PAGE_09, 0x1D),
+//    EDID_DATA_30_R         = PAGE_ADDR(PAGE_09, 0x1E),
+//    EDID_DATA_31_R         = PAGE_ADDR(PAGE_09, 0x1F),
+//    EDID_DATA_32_R         = PAGE_ADDR(PAGE_09, 0x20),
+//    EDID_DATA_33_R         = PAGE_ADDR(PAGE_09, 0x21),
+//    EDID_DATA_34_R         = PAGE_ADDR(PAGE_09, 0x22),
+//    EDID_DATA_35_R         = PAGE_ADDR(PAGE_09, 0x23),
+//    EDID_DATA_36_R         = PAGE_ADDR(PAGE_09, 0x24),
+//    EDID_DATA_37_R         = PAGE_ADDR(PAGE_09, 0x25),
+//    EDID_DATA_38_R         = PAGE_ADDR(PAGE_09, 0x26),
+//    EDID_DATA_39_R         = PAGE_ADDR(PAGE_09, 0x27),
+//    EDID_DATA_40_R         = PAGE_ADDR(PAGE_09, 0x28),
+//    EDID_DATA_41_R         = PAGE_ADDR(PAGE_09, 0x29),
+//    EDID_DATA_42_R         = PAGE_ADDR(PAGE_09, 0x2A),
+//    EDID_DATA_43_R         = PAGE_ADDR(PAGE_09, 0x2B),
+//    EDID_DATA_44_R         = PAGE_ADDR(PAGE_09, 0x2C),
+//    EDID_DATA_45_R         = PAGE_ADDR(PAGE_09, 0x2D),
+//    EDID_DATA_46_R         = PAGE_ADDR(PAGE_09, 0x2E),
+//    EDID_DATA_47_R         = PAGE_ADDR(PAGE_09, 0x2F),
+//    EDID_DATA_48_R         = PAGE_ADDR(PAGE_09, 0x30),
+//    EDID_DATA_49_R         = PAGE_ADDR(PAGE_09, 0x31),
+//    EDID_DATA_50_R         = PAGE_ADDR(PAGE_09, 0x32),
+//    EDID_DATA_51_R         = PAGE_ADDR(PAGE_09, 0x33),
+//    EDID_DATA_52_R         = PAGE_ADDR(PAGE_09, 0x34),
+//    EDID_DATA_53_R         = PAGE_ADDR(PAGE_09, 0x35),
+//    EDID_DATA_54_R         = PAGE_ADDR(PAGE_09, 0x36),
+//    EDID_DATA_55_R         = PAGE_ADDR(PAGE_09, 0x37),
+//    EDID_DATA_56_R         = PAGE_ADDR(PAGE_09, 0x38),
+//    EDID_DATA_57_R         = PAGE_ADDR(PAGE_09, 0x39),
+//    EDID_DATA_58_R         = PAGE_ADDR(PAGE_09, 0x3A),
+//    EDID_DATA_59_R         = PAGE_ADDR(PAGE_09, 0x3B),
+//    EDID_DATA_60_R         = PAGE_ADDR(PAGE_09, 0x3C),
+//    EDID_DATA_61_R         = PAGE_ADDR(PAGE_09, 0x3D),
+//    EDID_DATA_62_R         = PAGE_ADDR(PAGE_09, 0x3E),
+//    EDID_DATA_63_R         = PAGE_ADDR(PAGE_09, 0x3F),
+//    EDID_DATA_64_R         = PAGE_ADDR(PAGE_09, 0x40),
+//    EDID_DATA_65_R         = PAGE_ADDR(PAGE_09, 0x41),
+//    EDID_DATA_66_R         = PAGE_ADDR(PAGE_09, 0x42),
+//    EDID_DATA_67_R         = PAGE_ADDR(PAGE_09, 0x43),
+//    EDID_DATA_68_R         = PAGE_ADDR(PAGE_09, 0x44),
+//    EDID_DATA_69_R         = PAGE_ADDR(PAGE_09, 0x45),
+//    EDID_DATA_70_R         = PAGE_ADDR(PAGE_09, 0x46),
+//    EDID_DATA_71_R         = PAGE_ADDR(PAGE_09, 0x47),
+//    EDID_DATA_72_R         = PAGE_ADDR(PAGE_09, 0x48),
+//    EDID_DATA_73_R         = PAGE_ADDR(PAGE_09, 0x49),
+//    EDID_DATA_74_R         = PAGE_ADDR(PAGE_09, 0x4A),
+//    EDID_DATA_75_R         = PAGE_ADDR(PAGE_09, 0x4B),
+//    EDID_DATA_76_R         = PAGE_ADDR(PAGE_09, 0x4C),
+//    EDID_DATA_77_R         = PAGE_ADDR(PAGE_09, 0x4D),
+//    EDID_DATA_78_R         = PAGE_ADDR(PAGE_09, 0x4E),
+//    EDID_DATA_79_R         = PAGE_ADDR(PAGE_09, 0x4F),
+//    EDID_DATA_80_R         = PAGE_ADDR(PAGE_09, 0x50),
+//    EDID_DATA_81_R         = PAGE_ADDR(PAGE_09, 0x51),
+//    EDID_DATA_82_R         = PAGE_ADDR(PAGE_09, 0x52),
+//    EDID_DATA_83_R         = PAGE_ADDR(PAGE_09, 0x53),
+//    EDID_DATA_84_R         = PAGE_ADDR(PAGE_09, 0x54),
+//    EDID_DATA_85_R         = PAGE_ADDR(PAGE_09, 0x55),
+//    EDID_DATA_86_R         = PAGE_ADDR(PAGE_09, 0x56),
+//    EDID_DATA_87_R         = PAGE_ADDR(PAGE_09, 0x57),
+//    EDID_DATA_88_R         = PAGE_ADDR(PAGE_09, 0x58),
+//    EDID_DATA_89_R         = PAGE_ADDR(PAGE_09, 0x59),
+//    EDID_DATA_90_R         = PAGE_ADDR(PAGE_09, 0x5A),
+//    EDID_DATA_91_R         = PAGE_ADDR(PAGE_09, 0x5B),
+//    EDID_DATA_92_R         = PAGE_ADDR(PAGE_09, 0x5C),
+//    EDID_DATA_93_R         = PAGE_ADDR(PAGE_09, 0x5D),
+//    EDID_DATA_94_R         = PAGE_ADDR(PAGE_09, 0x5E),
+//    EDID_DATA_95_R         = PAGE_ADDR(PAGE_09, 0x5F),
+//    EDID_DATA_96_R         = PAGE_ADDR(PAGE_09, 0x60),
+//    EDID_DATA_97_R         = PAGE_ADDR(PAGE_09, 0x61),
+//    EDID_DATA_98_R         = PAGE_ADDR(PAGE_09, 0x62),
+//    EDID_DATA_99_R         = PAGE_ADDR(PAGE_09, 0x63),
+//    EDID_DATA_100_R        = PAGE_ADDR(PAGE_09, 0x64),
+//    EDID_DATA_101_R        = PAGE_ADDR(PAGE_09, 0x65),
+//    EDID_DATA_102_R        = PAGE_ADDR(PAGE_09, 0x66),
+//    EDID_DATA_103_R        = PAGE_ADDR(PAGE_09, 0x67),
+//    EDID_DATA_104_R        = PAGE_ADDR(PAGE_09, 0x68),
+//    EDID_DATA_105_R        = PAGE_ADDR(PAGE_09, 0x69),
+//    EDID_DATA_106_R        = PAGE_ADDR(PAGE_09, 0x6A),
+//    EDID_DATA_107_R        = PAGE_ADDR(PAGE_09, 0x6B),
+//    EDID_DATA_108_R        = PAGE_ADDR(PAGE_09, 0x6C),
+//    EDID_DATA_109_R        = PAGE_ADDR(PAGE_09, 0x6D),
+//    EDID_DATA_110_R        = PAGE_ADDR(PAGE_09, 0x6E),
+//    EDID_DATA_111_R        = PAGE_ADDR(PAGE_09, 0x6F),
+//    EDID_DATA_112_R        = PAGE_ADDR(PAGE_09, 0x70),
+//    EDID_DATA_113_R        = PAGE_ADDR(PAGE_09, 0x71),
+//    EDID_DATA_114_R        = PAGE_ADDR(PAGE_09, 0x72),
+//    EDID_DATA_115_R        = PAGE_ADDR(PAGE_09, 0x73),
+//    EDID_DATA_116_R        = PAGE_ADDR(PAGE_09, 0x74),
+//    EDID_DATA_117_R        = PAGE_ADDR(PAGE_09, 0x75),
+//    EDID_DATA_118_R        = PAGE_ADDR(PAGE_09, 0x76),
+//    EDID_DATA_119_R        = PAGE_ADDR(PAGE_09, 0x77),
+//    EDID_DATA_120_R        = PAGE_ADDR(PAGE_09, 0x78),
+//    EDID_DATA_121_R        = PAGE_ADDR(PAGE_09, 0x79),
+//    EDID_DATA_122_R        = PAGE_ADDR(PAGE_09, 0x7A),
+//    EDID_DATA_123_R        = PAGE_ADDR(PAGE_09, 0x7B),
+//    EDID_DATA_124_R        = PAGE_ADDR(PAGE_09, 0x7C),
+//    EDID_DATA_125_R        = PAGE_ADDR(PAGE_09, 0x7D),
+//    EDID_DATA_126_R        = PAGE_ADDR(PAGE_09, 0x7E),
+//    EDID_DATA_127_R        = PAGE_ADDR(PAGE_09, 0x7F),
+//    EDID_CTRL_RW           = PAGE_ADDR(PAGE_09, 0xFA),
+//		    EDID_CTRL_edid_rd         (1 << 0)
+//
+//    DDC_ADDR_RW            = PAGE_ADDR(PAGE_09, 0xFB),
+//    DDC_OFFS_RW            = PAGE_ADDR(PAGE_09, 0xFC),
+//    DDC_SEGM_ADDR_RW       = PAGE_ADDR(PAGE_09, 0xFD),
+//    DDC_SEGM_RW            = PAGE_ADDR(PAGE_09, 0xFE),
+//
+//
+//
+//
+//
+//    IF1_HB0_RW             = PAGE_ADDR(PAGE_10, 0x20),
+//    IF1_HB1_RW             = PAGE_ADDR(PAGE_10, 0x21),
+//    IF1_HB2_RW             = PAGE_ADDR(PAGE_10, 0x22),
+//    IF1_PB0_RW             = PAGE_ADDR(PAGE_10, 0x23),
+//    IF1_PB1_RW             = PAGE_ADDR(PAGE_10, 0x24),
+//    IF1_PB2_RW             = PAGE_ADDR(PAGE_10, 0x25),
+//    IF1_PB3_RW             = PAGE_ADDR(PAGE_10, 0x26),
+//    IF1_PB4_RW             = PAGE_ADDR(PAGE_10, 0x27),
+//    IF1_PB5_RW             = PAGE_ADDR(PAGE_10, 0x28),
+//    IF1_PB6_RW             = PAGE_ADDR(PAGE_10, 0x29),
+//    IF1_PB7_RW             = PAGE_ADDR(PAGE_10, 0x2A),
+//    IF1_PB8_RW             = PAGE_ADDR(PAGE_10, 0x2B),
+//    IF1_PB9_RW             = PAGE_ADDR(PAGE_10, 0x2C),
+//    IF1_PB10_RW            = PAGE_ADDR(PAGE_10, 0x2D),
+//    IF1_PB11_RW            = PAGE_ADDR(PAGE_10, 0x2E),
+//    IF1_PB12_RW            = PAGE_ADDR(PAGE_10, 0x2F),
+//    IF1_PB13_RW            = PAGE_ADDR(PAGE_10, 0x30),
+//    IF1_PB14_RW            = PAGE_ADDR(PAGE_10, 0x31),
+//    IF1_PB15_RW            = PAGE_ADDR(PAGE_10, 0x32),
+//    IF1_PB16_RW            = PAGE_ADDR(PAGE_10, 0x33),
+//    IF1_PB17_RW            = PAGE_ADDR(PAGE_10, 0x34),
+//    IF1_PB18_RW            = PAGE_ADDR(PAGE_10, 0x35),
+//    IF1_PB19_RW            = PAGE_ADDR(PAGE_10, 0x36),
+//    IF1_PB20_RW            = PAGE_ADDR(PAGE_10, 0x37),
+//    IF1_PB21_RW            = PAGE_ADDR(PAGE_10, 0x38),
+//    IF1_PB22_RW            = PAGE_ADDR(PAGE_10, 0x39),
+//    IF1_PB23_RW            = PAGE_ADDR(PAGE_10, 0x3A),
+//    IF1_PB24_RW            = PAGE_ADDR(PAGE_10, 0x3B),
+//    IF1_PB25_RW            = PAGE_ADDR(PAGE_10, 0x3C),
+//    IF1_PB26_RW            = PAGE_ADDR(PAGE_10, 0x3D),
+//    IF1_PB27_RW            = PAGE_ADDR(PAGE_10, 0x3E),
+//    IF2_HB0_RW             = PAGE_ADDR(PAGE_10, 0x40),
+//    IF2_HB1_RW             = PAGE_ADDR(PAGE_10, 0x41),
+//    IF2_HB2_RW             = PAGE_ADDR(PAGE_10, 0x42),
+//    IF2_PB0_RW             = PAGE_ADDR(PAGE_10, 0x43),
+//    IF2_PB1_RW             = PAGE_ADDR(PAGE_10, 0x44),
+//    IF2_PB2_RW             = PAGE_ADDR(PAGE_10, 0x45),
+//    IF2_PB3_RW             = PAGE_ADDR(PAGE_10, 0x46),
+//    IF2_PB4_RW             = PAGE_ADDR(PAGE_10, 0x47),
+//    IF2_PB5_RW             = PAGE_ADDR(PAGE_10, 0x48),
+//    IF2_PB6_RW             = PAGE_ADDR(PAGE_10, 0x49),
+//    IF2_PB7_RW             = PAGE_ADDR(PAGE_10, 0x4A),
+//    IF2_PB8_RW             = PAGE_ADDR(PAGE_10, 0x4B),
+//    IF2_PB9_RW             = PAGE_ADDR(PAGE_10, 0x4C),
+//    IF2_PB10_RW            = PAGE_ADDR(PAGE_10, 0x4D),
+//    IF2_PB11_RW            = PAGE_ADDR(PAGE_10, 0x4E),
+//    IF2_PB12_RW            = PAGE_ADDR(PAGE_10, 0x4F),
+//    IF2_PB13_RW            = PAGE_ADDR(PAGE_10, 0x50),
+//    IF2_PB14_RW            = PAGE_ADDR(PAGE_10, 0x51),
+//    IF2_PB15_RW            = PAGE_ADDR(PAGE_10, 0x52),
+//    IF2_PB16_RW            = PAGE_ADDR(PAGE_10, 0x53),
+//    IF2_PB17_RW            = PAGE_ADDR(PAGE_10, 0x54),
+//    IF2_PB18_RW            = PAGE_ADDR(PAGE_10, 0x55),
+//    IF2_PB19_RW            = PAGE_ADDR(PAGE_10, 0x56),
+//    IF2_PB20_RW            = PAGE_ADDR(PAGE_10, 0x57),
+//    IF2_PB21_RW            = PAGE_ADDR(PAGE_10, 0x58),
+//    IF2_PB22_RW            = PAGE_ADDR(PAGE_10, 0x59),
+//    IF2_PB23_RW            = PAGE_ADDR(PAGE_10, 0x5A),
+//    IF2_PB24_RW            = PAGE_ADDR(PAGE_10, 0x5B),
+//    IF2_PB25_RW            = PAGE_ADDR(PAGE_10, 0x5C),
+//    IF2_PB26_RW            = PAGE_ADDR(PAGE_10, 0x5D),
+//    IF2_PB27_RW            = PAGE_ADDR(PAGE_10, 0x5E),
+//    IF3_HB0_RW             = PAGE_ADDR(PAGE_10, 0x60),
+//    IF3_HB1_RW             = PAGE_ADDR(PAGE_10, 0x61),
+//    IF3_HB2_RW             = PAGE_ADDR(PAGE_10, 0x62),
+//    IF3_PB0_RW             = PAGE_ADDR(PAGE_10, 0x63),
+//    IF3_PB1_RW             = PAGE_ADDR(PAGE_10, 0x64),
+//    IF3_PB2_RW             = PAGE_ADDR(PAGE_10, 0x65),
+//    IF3_PB3_RW             = PAGE_ADDR(PAGE_10, 0x66),
+//    IF3_PB4_RW             = PAGE_ADDR(PAGE_10, 0x67),
+//    IF3_PB5_RW             = PAGE_ADDR(PAGE_10, 0x68),
+//    IF3_PB6_RW             = PAGE_ADDR(PAGE_10, 0x69),
+//    IF3_PB7_RW             = PAGE_ADDR(PAGE_10, 0x6A),
+//    IF3_PB8_RW             = PAGE_ADDR(PAGE_10, 0x6B),
+//    IF3_PB9_RW             = PAGE_ADDR(PAGE_10, 0x6C),
+//    IF3_PB10_RW            = PAGE_ADDR(PAGE_10, 0x6D),
+//    IF3_PB11_RW            = PAGE_ADDR(PAGE_10, 0x6E),
+//    IF3_PB12_RW            = PAGE_ADDR(PAGE_10, 0x6F),
+//    IF3_PB13_RW            = PAGE_ADDR(PAGE_10, 0x70),
+//    IF3_PB14_RW            = PAGE_ADDR(PAGE_10, 0x71),
+//    IF3_PB15_RW            = PAGE_ADDR(PAGE_10, 0x72),
+//    IF3_PB16_RW            = PAGE_ADDR(PAGE_10, 0x73),
+//    IF3_PB17_RW            = PAGE_ADDR(PAGE_10, 0x74),
+//    IF3_PB18_RW            = PAGE_ADDR(PAGE_10, 0x75),
+//    IF3_PB19_RW            = PAGE_ADDR(PAGE_10, 0x76),
+//    IF3_PB20_RW            = PAGE_ADDR(PAGE_10, 0x77),
+//    IF3_PB21_RW            = PAGE_ADDR(PAGE_10, 0x78),
+//    IF3_PB22_RW            = PAGE_ADDR(PAGE_10, 0x79),
+//    IF3_PB23_RW            = PAGE_ADDR(PAGE_10, 0x7A),
+//    IF3_PB24_RW            = PAGE_ADDR(PAGE_10, 0x7B),
+//    IF3_PB25_RW            = PAGE_ADDR(PAGE_10, 0x7C),
+//    IF3_PB26_RW            = PAGE_ADDR(PAGE_10, 0x7D),
+//    IF3_PB27_RW            = PAGE_ADDR(PAGE_10, 0x7E),
+//    IF4_HB0_RW             = PAGE_ADDR(PAGE_10, 0x80),
+//    IF4_HB1_RW             = PAGE_ADDR(PAGE_10, 0x81),
+//    IF4_HB2_RW             = PAGE_ADDR(PAGE_10, 0x82),
+//    IF4_PB0_RW             = PAGE_ADDR(PAGE_10, 0x83),
+//    IF4_PB1_RW             = PAGE_ADDR(PAGE_10, 0x84),
+//    IF4_PB2_RW             = PAGE_ADDR(PAGE_10, 0x85),
+//    IF4_PB3_RW             = PAGE_ADDR(PAGE_10, 0x86),
+//    IF4_PB4_RW             = PAGE_ADDR(PAGE_10, 0x87),
+//    IF4_PB5_RW             = PAGE_ADDR(PAGE_10, 0x88),
+//    IF4_PB6_RW             = PAGE_ADDR(PAGE_10, 0x89),
+//    IF4_PB7_RW             = PAGE_ADDR(PAGE_10, 0x8A),
+//    IF4_PB8_RW             = PAGE_ADDR(PAGE_10, 0x8B),
+//    IF4_PB9_RW             = PAGE_ADDR(PAGE_10, 0x8C),
+//    IF4_PB10_RW            = PAGE_ADDR(PAGE_10, 0x8D),
+//    IF4_PB11_RW            = PAGE_ADDR(PAGE_10, 0x8E),
+//    IF4_PB12_RW            = PAGE_ADDR(PAGE_10, 0x8F),
+//    IF4_PB13_RW            = PAGE_ADDR(PAGE_10, 0x90),
+//    IF4_PB14_RW            = PAGE_ADDR(PAGE_10, 0x91),
+//    IF4_PB15_RW            = PAGE_ADDR(PAGE_10, 0x92),
+//    IF4_PB16_RW            = PAGE_ADDR(PAGE_10, 0x93),
+//    IF4_PB17_RW            = PAGE_ADDR(PAGE_10, 0x94),
+//    IF4_PB18_RW            = PAGE_ADDR(PAGE_10, 0x95),
+//    IF4_PB19_RW            = PAGE_ADDR(PAGE_10, 0x96),
+//    IF4_PB20_RW            = PAGE_ADDR(PAGE_10, 0x97),
+//    IF4_PB21_RW            = PAGE_ADDR(PAGE_10, 0x98),
+//    IF4_PB22_RW            = PAGE_ADDR(PAGE_10, 0x99),
+//    IF4_PB23_RW            = PAGE_ADDR(PAGE_10, 0x9A),
+//    IF4_PB24_RW            = PAGE_ADDR(PAGE_10, 0x9B),
+//    IF4_PB25_RW            = PAGE_ADDR(PAGE_10, 0x9C),
+//    IF4_PB26_RW            = PAGE_ADDR(PAGE_10, 0x9D),
+//    IF4_PB27_RW            = PAGE_ADDR(PAGE_10, 0x9E),
+//    IF5_HB0_RW             = PAGE_ADDR(PAGE_10, 0xA0),
+//    IF5_HB1_RW             = PAGE_ADDR(PAGE_10, 0xA1),
+//    IF5_HB2_RW             = PAGE_ADDR(PAGE_10, 0xA2),
+//    IF5_PB0_RW             = PAGE_ADDR(PAGE_10, 0xA3),
+//    IF5_PB1_RW             = PAGE_ADDR(PAGE_10, 0xA4),
+//    IF5_PB2_RW             = PAGE_ADDR(PAGE_10, 0xA5),
+//    IF5_PB3_RW             = PAGE_ADDR(PAGE_10, 0xA6),
+//    IF5_PB4_RW             = PAGE_ADDR(PAGE_10, 0xA7),
+//    IF5_PB5_RW             = PAGE_ADDR(PAGE_10, 0xA8),
+//    IF5_PB6_RW             = PAGE_ADDR(PAGE_10, 0xA9),
+//    IF5_PB7_RW             = PAGE_ADDR(PAGE_10, 0xAA),
+//    IF5_PB8_RW             = PAGE_ADDR(PAGE_10, 0xAB),
+//    IF5_PB9_RW             = PAGE_ADDR(PAGE_10, 0xAC),
+//    IF5_PB10_RW            = PAGE_ADDR(PAGE_10, 0xAD),
+//    IF5_PB11_RW            = PAGE_ADDR(PAGE_10, 0xAE),
+//    IF5_PB12_RW            = PAGE_ADDR(PAGE_10, 0xAF),
+//    IF5_PB13_RW            = PAGE_ADDR(PAGE_10, 0xB0),
+//    IF5_PB14_RW            = PAGE_ADDR(PAGE_10, 0xB1),
+//    IF5_PB15_RW            = PAGE_ADDR(PAGE_10, 0xB2),
+//    IF5_PB16_RW            = PAGE_ADDR(PAGE_10, 0xB3),
+//    IF5_PB17_RW            = PAGE_ADDR(PAGE_10, 0xB4),
+//    IF5_PB18_RW            = PAGE_ADDR(PAGE_10, 0xB5),
+//    IF5_PB19_RW            = PAGE_ADDR(PAGE_10, 0xB6),
+//    IF5_PB20_RW            = PAGE_ADDR(PAGE_10, 0xB7),
+//    IF5_PB21_RW            = PAGE_ADDR(PAGE_10, 0xB8),
+//    IF5_PB22_RW            = PAGE_ADDR(PAGE_10, 0xB9),
+//    IF5_PB23_RW            = PAGE_ADDR(PAGE_10, 0xBA),
+//    IF5_PB24_RW            = PAGE_ADDR(PAGE_10, 0xBB),
+//    IF5_PB25_RW            = PAGE_ADDR(PAGE_10, 0xBC),
+//    IF5_PB26_RW            = PAGE_ADDR(PAGE_10, 0xBD),
+//    IF5_PB27_RW            = PAGE_ADDR(PAGE_10, 0xBE),
+//
+//    AIP_CNTRL_0_RW         = PAGE_ADDR(PAGE_11, 0x00),
+//        AIP_CNTRL_0_rst_cts       (1 << 6)
+//		    AIP_CNTRL_0_acr_man       (1 << 5)
+//  		  AIP_CNTRL_0_layout        (1 << 2)
+//    		AIP_CNTRL_0_swap         (1 << 1)
+//	    	AIP_CNTRL_0_rst_fifo      (1 << 0)
+//
+//    CA_I2S_RW              = PAGE_ADDR(PAGE_11, 0x01),
+//        CA_I2S_hbr_chstat_4       (1 << 5)
+//    		CA_I2S_ca_i2s             = BINARY(0,0,0,1, 1,1,1,1),
+//
+//    CA_DSD_RW              = PAGE_ADDR(PAGE_11, 0x02),
+//    OBA_PH_RW              = PAGE_ADDR(PAGE_11, 0x03),
+//    LATENCY_RD_RW          = PAGE_ADDR(PAGE_11, 0x04),
+//    ACR_CTS_0_RW           = PAGE_ADDR(PAGE_11, 0x05),
+//    ACR_CTS_1_RW           = PAGE_ADDR(PAGE_11, 0x06),
+//    ACR_CTS_2_RW           = PAGE_ADDR(PAGE_11, 0x07),
+//    ACR_N_0_RW             = PAGE_ADDR(PAGE_11, 0x08),
+//    ACR_N_1_RW             = PAGE_ADDR(PAGE_11, 0x09),
+//    ACR_N_2_RW             = PAGE_ADDR(PAGE_11, 0x0A),
+//    GC_AVMUTE_RW           = PAGE_ADDR(PAGE_11, 0x0B),
+//        GC_AVMUTE_set_mute       (1 << 1)
+//    		GC_AVMUTE_clr_mute        (1 << 0)
+//    		GC_AVMUTE_setclr_mute     = BINARY(0,0,0,0, 0,0,1,1),
+//
+//    CTS_N_RW               = PAGE_ADDR(PAGE_11, 0x0C),
+//        CTS_N_m_sel               = BINARY(0,0,1,1, 0,0,0,0),
+//    		CTS_N_k_sel               = BINARY(0,0,0,0, 0,1,1,1),
+//
+//    ENC_CNTRL_RW           = PAGE_ADDR(PAGE_11, 0x0D),
+//        ENC_CNTRL_ctl_code        = BINARY(0,0,0,0, 1,1,0,0),
+//    		ENC_CNTRL_rst_sel        (1 << 1)
+//    		ENC_CNTRL_rst_enc         (1 << 0)
+//
+//    DIP_FLAGS_RW           = PAGE_ADDR(PAGE_11, 0x0E),
+//        DIP_FLAGS_force_null      (1 << 7)
+//    		DIP_FLAGS_null            (1 << 6)
+//    		DIP_FLAGS_acp             (1 << 4)
+//    		DIP_FLAGS_isrc2           (1 << 3)
+//    		DIP_FLAGS_isrc1           (1 << 2)
+//    		DIP_FLAGS_gc             (1 << 1)
+//    		DIP_FLAGS_acr             (1 << 0)
+//
+//    DIP_IF_FLAGS_RW        = PAGE_ADDR(PAGE_11, 0x0F),
+//        DIP_IF_FLAGS_if5          (1 << 5)
+//    		DIP_IF_FLAGS_if4          (1 << 4)
+//    		DIP_IF_FLAGS_if3          (1 << 3)
+//    		DIP_IF_FLAGS_if2          (1 << 2)
+//   			DIP_IF_FLAGS_if1         (1 << 1)
+//
+//
+//    CH_STAT_B_0_RW         = PAGE_ADDR(PAGE_11, 0x14),
+//    CH_STAT_B_1_RW         = PAGE_ADDR(PAGE_11, 0x15),
+//    CH_STAT_B_3_RW         = PAGE_ADDR(PAGE_11, 0x16),
+//    CH_STAT_B_4_RW         = PAGE_ADDR(PAGE_11, 0x17),
+//    CH_STAT_B_2_ap0_l_RW   = PAGE_ADDR(PAGE_11, 0x18),
+//    CH_STAT_B_2_ap0_r_RW   = PAGE_ADDR(PAGE_11, 0x19),
+//    CH_STAT_B_2_ap1_l_RW   = PAGE_ADDR(PAGE_11, 0x1A),
+//    CH_STAT_B_2_ap1_r_RW   = PAGE_ADDR(PAGE_11, 0x1B),
+//    CH_STAT_B_2_ap2_l_RW   = PAGE_ADDR(PAGE_11, 0x1C),
+//    CH_STAT_B_2_ap2_r_RW   = PAGE_ADDR(PAGE_11, 0x1D),
+//    CH_STAT_B_2_ap3_l_RW   = PAGE_ADDR(PAGE_11, 0x1E),
+//    CH_STAT_B_2_ap3_r_RW   = PAGE_ADDR(PAGE_11, 0x1F),
+//    ISRC1_HB0_RW           = PAGE_ADDR(PAGE_11, 0x20),
+//    ISRC1_HB1_RW           = PAGE_ADDR(PAGE_11, 0x21),
+//    ISRC1_HB2_RW           = PAGE_ADDR(PAGE_11, 0x22),
+//    ISRC1_PB0_RW           = PAGE_ADDR(PAGE_11, 0x23),
+//    ISRC1_PB1_RW           = PAGE_ADDR(PAGE_11, 0x24),
+//    ISRC1_PB2_RW           = PAGE_ADDR(PAGE_11, 0x25),
+//    ISRC1_PB3_RW           = PAGE_ADDR(PAGE_11, 0x26),
+//    ISRC1_PB4_RW           = PAGE_ADDR(PAGE_11, 0x27),
+//    ISRC1_PB5_RW           = PAGE_ADDR(PAGE_11, 0x28),
+//    ISRC1_PB6_RW           = PAGE_ADDR(PAGE_11, 0x29),
+//    ISRC1_PB7_RW           = PAGE_ADDR(PAGE_11, 0x2A),
+//    ISRC1_PB8_RW           = PAGE_ADDR(PAGE_11, 0x2B),
+//    ISRC1_PB9_RW           = PAGE_ADDR(PAGE_11, 0x2C),
+//    ISRC1_PB10_RW          = PAGE_ADDR(PAGE_11, 0x2D),
+//    ISRC1_PB11_RW          = PAGE_ADDR(PAGE_11, 0x2E),
+//    ISRC1_PB12_RW          = PAGE_ADDR(PAGE_11, 0x2F),
+//    ISRC1_PB13_RW          = PAGE_ADDR(PAGE_11, 0x30),
+//    ISRC1_PB14_RW          = PAGE_ADDR(PAGE_11, 0x31),
+//    ISRC1_PB15_RW          = PAGE_ADDR(PAGE_11, 0x32),
+//    ISRC1_PB16_RW          = PAGE_ADDR(PAGE_11, 0x33),
+//    ISRC1_PB17_RW          = PAGE_ADDR(PAGE_11, 0x34),
+//    ISRC1_PB18_RW          = PAGE_ADDR(PAGE_11, 0x35),
+//    ISRC1_PB19_RW          = PAGE_ADDR(PAGE_11, 0x36),
+//    ISRC1_PB20_RW          = PAGE_ADDR(PAGE_11, 0x37),
+//    ISRC1_PB21_RW          = PAGE_ADDR(PAGE_11, 0x38),
+//    ISRC1_PB22_RW          = PAGE_ADDR(PAGE_11, 0x39),
+//    ISRC1_PB23_RW          = PAGE_ADDR(PAGE_11, 0x3A)    ,
+//    ISRC1_PB24_RW          = PAGE_ADDR(PAGE_11, 0x3B)    ,
+//    ISRC1_PB25_RW          = PAGE_ADDR(PAGE_11, 0x3C),
+//    ISRC1_PB26_RW          = PAGE_ADDR(PAGE_11, 0x3D),
+//    ISRC1_PB27_RW          = PAGE_ADDR(PAGE_11, 0x3E),
+//    ISRC2_HB0_RW           = PAGE_ADDR(PAGE_11, 0x40),
+//    ISRC2_HB1_RW           = PAGE_ADDR(PAGE_11, 0x41),
+//    ISRC2_HB2_RW           = PAGE_ADDR(PAGE_11, 0x42),
+//    ISRC2_PB0_RW           = PAGE_ADDR(PAGE_11, 0x43),
+//    ISRC2_PB1_RW           = PAGE_ADDR(PAGE_11, 0x44),
+//    ISRC2_PB2_RW           = PAGE_ADDR(PAGE_11, 0x45),
+//    ISRC2_PB3_RW           = PAGE_ADDR(PAGE_11, 0x46),
+//    ISRC2_PB4_RW           = PAGE_ADDR(PAGE_11, 0x47),
+//    ISRC2_PB5_RW           = PAGE_ADDR(PAGE_11, 0x48),
+//    ISRC2_PB6_RW           = PAGE_ADDR(PAGE_11, 0x49),
+//    ISRC2_PB7_RW           = PAGE_ADDR(PAGE_11, 0x4A),
+//    ISRC2_PB8_RW           = PAGE_ADDR(PAGE_11, 0x4B),
+//    ISRC2_PB9_RW           = PAGE_ADDR(PAGE_11, 0x4C),
+//    ISRC2_PB10_RW          = PAGE_ADDR(PAGE_11, 0x4D),
+//    ISRC2_PB11_RW          = PAGE_ADDR(PAGE_11, 0x4E),
+//    ISRC2_PB12_RW          = PAGE_ADDR(PAGE_11, 0x4F),
+//    ISRC2_PB13_RW          = PAGE_ADDR(PAGE_11, 0x50),
+//    ISRC2_PB14_RW          = PAGE_ADDR(PAGE_11, 0x51),
+//    ISRC2_PB15_RW          = PAGE_ADDR(PAGE_11, 0x52),
+//    ISRC2_PB16_RW          = PAGE_ADDR(PAGE_11, 0x53),
+//    ISRC2_PB17_RW          = PAGE_ADDR(PAGE_11, 0x54),
+//    ISRC2_PB18_RW          = PAGE_ADDR(PAGE_11, 0x55),
+//    ISRC2_PB19_RW          = PAGE_ADDR(PAGE_11, 0x56),
+//    ISRC2_PB20_RW          = PAGE_ADDR(PAGE_11, 0x57),
+//    ISRC2_PB21_RW          = PAGE_ADDR(PAGE_11, 0x58),
+//    ISRC2_PB22_RW          = PAGE_ADDR(PAGE_11, 0x59),
+//    ISRC2_PB23_RW          = PAGE_ADDR(PAGE_11, 0x5A),
+//    ISRC2_PB24_RW          = PAGE_ADDR(PAGE_11, 0x5B),
+//    ISRC2_PB25_RW          = PAGE_ADDR(PAGE_11, 0x5C),
+//    ISRC2_PB26_RW          = PAGE_ADDR(PAGE_11, 0x5D),
+//    ISRC2_PB27_RW          = PAGE_ADDR(PAGE_11, 0x5E),
+//    ACP_HB0_RW             = PAGE_ADDR(PAGE_11, 0x60),
+//    ACP_HB1_RW             = PAGE_ADDR(PAGE_11, 0x61),
+//    ACP_HB2_RW             = PAGE_ADDR(PAGE_11, 0x62),
+//    ACP_PB0_RW             = PAGE_ADDR(PAGE_11, 0x63),
+//    ACP_PB1_RW             = PAGE_ADDR(PAGE_11, 0x64),
+//    ACP_PB2_RW             = PAGE_ADDR(PAGE_11, 0x65),
+//    ACP_PB3_RW             = PAGE_ADDR(PAGE_11, 0x66),
+//    ACP_PB4_RW             = PAGE_ADDR(PAGE_11, 0x67),
+//    ACP_PB5_RW             = PAGE_ADDR(PAGE_11, 0x68),
+//    ACP_PB6_RW             = PAGE_ADDR(PAGE_11, 0x69),
+//    ACP_PB7_RW             = PAGE_ADDR(PAGE_11, 0x6A),
+//    ACP_PB8_RW             = PAGE_ADDR(PAGE_11, 0x6B),
+//    ACP_PB9_RW             = PAGE_ADDR(PAGE_11, 0x6C),
+//    ACP_PB10_RW            = PAGE_ADDR(PAGE_11, 0x6D),
+//    ACP_PB11_RW            = PAGE_ADDR(PAGE_11, 0x6E),
+//    ACP_PB12_RW            = PAGE_ADDR(PAGE_11, 0x6F),
+//    ACP_PB13_RW            = PAGE_ADDR(PAGE_11, 0x70),
+//    ACP_PB14_RW            = PAGE_ADDR(PAGE_11, 0x71),
+//    ACP_PB15_RW            = PAGE_ADDR(PAGE_11, 0x72),
+//    ACP_PB16_RW            = PAGE_ADDR(PAGE_11, 0x73),
+//    ACP_PB17_RW            = PAGE_ADDR(PAGE_11, 0x74),
+//    ACP_PB18_RW            = PAGE_ADDR(PAGE_11, 0x75),
+//    ACP_PB19_RW            = PAGE_ADDR(PAGE_11, 0x76),
+//    ACP_PB20_RW            = PAGE_ADDR(PAGE_11, 0x77),
+//    ACP_PB21_RW            = PAGE_ADDR(PAGE_11, 0x78),
+//    ACP_PB22_RW            = PAGE_ADDR(PAGE_11, 0x79),
+//    ACP_PB23_RW            = PAGE_ADDR(PAGE_11, 0x7A),
+//    ACP_PB24_RW            = PAGE_ADDR(PAGE_11, 0x7B),
+//    ACP_PB25_RW            = PAGE_ADDR(PAGE_11, 0x7C),
+//    ACP_PB26_RW            = PAGE_ADDR(PAGE_11, 0x7D),
+//    ACP_PB27_RW            = PAGE_ADDR(PAGE_11, 0x7E),
+
+	OTP_TX3			= PAGE_ADDR(PAGE_12, 0x9A),
+
+//    GMD_0_HB0_RW           = PAGE_ADDR(PAGE_13, 0x00),
+//    GMD_0_HB1_RW           = PAGE_ADDR(PAGE_13, 0x01),
+//    GMD_0_HB2_RW           = PAGE_ADDR(PAGE_13, 0x02),
+//    GMD_0_PB0_RW           = PAGE_ADDR(PAGE_13, 0x03),
+//    GMD_0_PB1_RW           = PAGE_ADDR(PAGE_13, 0x04),
+//    GMD_0_PB2_RW           = PAGE_ADDR(PAGE_13, 0x05),
+//    GMD_0_PB3_RW           = PAGE_ADDR(PAGE_13, 0x06),
+//    GMD_0_PB4_RW           = PAGE_ADDR(PAGE_13, 0x07),
+//    GMD_0_PB5_RW           = PAGE_ADDR(PAGE_13, 0x08),
+//    GMD_0_PB6_RW           = PAGE_ADDR(PAGE_13, 0x09),
+//    GMD_0_PB7_RW           = PAGE_ADDR(PAGE_13, 0x0A),
+//    GMD_0_PB8_RW           = PAGE_ADDR(PAGE_13, 0x0B),
+//    GMD_0_PB9_RW           = PAGE_ADDR(PAGE_13, 0x0C),
+//    GMD_0_PB10_RW          = PAGE_ADDR(PAGE_13, 0x0D),
+//    GMD_0_PB11_RW          = PAGE_ADDR(PAGE_13, 0x0E),
+//    GMD_0_PB12_RW          = PAGE_ADDR(PAGE_13, 0x0F),
+//    GMD_0_PB13_RW          = PAGE_ADDR(PAGE_13, 0x10),
+//    GMD_0_PB14_RW          = PAGE_ADDR(PAGE_13, 0x11),
+//    GMD_0_PB15_RW          = PAGE_ADDR(PAGE_13, 0x12),
+//    GMD_0_PB16_RW          = PAGE_ADDR(PAGE_13, 0x13),
+//    GMD_0_PB17_RW          = PAGE_ADDR(PAGE_13, 0x14),
+//    GMD_0_PB18_RW          = PAGE_ADDR(PAGE_13, 0x15),
+//    GMD_0_PB19_RW          = PAGE_ADDR(PAGE_13, 0x16),
+//    GMD_0_PB20_RW          = PAGE_ADDR(PAGE_13, 0x17),
+//    GMD_0_PB21_RW          = PAGE_ADDR(PAGE_13, 0x18),
+//    GMD_0_PB22_RW          = PAGE_ADDR(PAGE_13, 0x19),
+//    GMD_0_PB23_RW          = PAGE_ADDR(PAGE_13, 0x1A),
+//    GMD_0_PB24_RW          = PAGE_ADDR(PAGE_13, 0x1B),
+//    GMD_0_PB25_RW          = PAGE_ADDR(PAGE_13, 0x1C),
+//    GMD_0_PB26_RW          = PAGE_ADDR(PAGE_13, 0x1D),
+//    GMD_0_PB27_RW          = PAGE_ADDR(PAGE_13, 0x1E),
+//    GMD_CONTROL_RW         = PAGE_ADDR(PAGE_13, 0x1F),
+//        GMD_CONTROL_buf_sel      (1 << 1)
+//		    GMD_CONTROL_enable        (1 << 0)
+//
+//    GMD_1_HB0_RW           = PAGE_ADDR(PAGE_13, 0x20),
+//    GMD_1_HB1_RW           = PAGE_ADDR(PAGE_13, 0x21),
+//    GMD_1_HB2_RW           = PAGE_ADDR(PAGE_13, 0x22),
+//    GMD_1_PB0_RW           = PAGE_ADDR(PAGE_13, 0x23),
+//    GMD_1_PB1_RW           = PAGE_ADDR(PAGE_13, 0x24),
+//    GMD_1_PB2_RW           = PAGE_ADDR(PAGE_13, 0x25),
+//    GMD_1_PB3_RW           = PAGE_ADDR(PAGE_13, 0x26),
+//    GMD_1_PB4_RW           = PAGE_ADDR(PAGE_13, 0x27),
+//    GMD_1_PB5_RW           = PAGE_ADDR(PAGE_13, 0x28),
+//    GMD_1_PB6_RW           = PAGE_ADDR(PAGE_13, 0x29),
+//    GMD_1_PB7_RW           = PAGE_ADDR(PAGE_13, 0x2A),
+//    GMD_1_PB8_RW           = PAGE_ADDR(PAGE_13, 0x2B),
+//    GMD_1_PB9_RW           = PAGE_ADDR(PAGE_13, 0x2C),
+//    GMD_1_PB10_RW          = PAGE_ADDR(PAGE_13, 0x2D),
+//    GMD_1_PB11_RW          = PAGE_ADDR(PAGE_13, 0x2E),
+//    GMD_1_PB12_RW          = PAGE_ADDR(PAGE_13, 0x2F),
+//    GMD_1_PB13_RW          = PAGE_ADDR(PAGE_13, 0x30),
+//    GMD_1_PB14_RW          = PAGE_ADDR(PAGE_13, 0x31),
+//    GMD_1_PB15_RW          = PAGE_ADDR(PAGE_13, 0x32),
+//    GMD_1_PB16_RW          = PAGE_ADDR(PAGE_13, 0x33),
+//    GMD_1_PB17_RW          = PAGE_ADDR(PAGE_13, 0x34),
+//    GMD_1_PB18_RW          = PAGE_ADDR(PAGE_13, 0x35),
+//    GMD_1_PB19_RW          = PAGE_ADDR(PAGE_13, 0x36),
+//    GMD_1_PB20_RW          = PAGE_ADDR(PAGE_13, 0x37),
+//    GMD_1_PB21_RW          = PAGE_ADDR(PAGE_13, 0x38),
+//    GMD_1_PB22_RW          = PAGE_ADDR(PAGE_13, 0x39),
+//    GMD_1_PB23_RW          = PAGE_ADDR(PAGE_13, 0x3A),
+//    GMD_1_PB24_RW          = PAGE_ADDR(PAGE_13, 0x3B),
+//    GMD_1_PB25_RW          = PAGE_ADDR(PAGE_13, 0x3C),
+//    GMD_1_PB26_RW          = PAGE_ADDR(PAGE_13, 0x3D),
+//    GMD_1_PB27_RW          = PAGE_ADDR(PAGE_13, 0x3E)
+
+	CURPAGE			= PAGE_ADDR(PAGE_INVALID, 0xFF),
+};
+
+//};
+
+
+/**
+ * @brief	TDA998X driver configuration
+ */
+struct tda998x_cfg {
+	uint8_t				id;
+	uint16_t			hdmi_addr;
+	uint16_t			cec_addr;
+	int (*i2c_write)		(uint16_t addr, uint8_t reg, uint8_t *data);
+	int (*i2c_read)			(uint16_t addr, uint8_t reg, uint8_t *data);
+};
+
+/**
+ * @brief	TDA998X device
+ */
+struct tda998x_dev {
+	int				id;
+	struct tda998x_cfg		*cfg;
+	enum tda998x_hdmi_page		cur_page;
+};
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __TDA998X_H */
