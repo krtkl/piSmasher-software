@@ -454,7 +454,7 @@ struct tda998x_dev {
 	enum tda998x_edid_state		edid_state;
 };
 
-int tda998x_init(struct tda998x_dev *dev, struct tda998x_vidin_cfg *vin_cfg);
+int tda998x_init(struct tda998x_dev *dev, struct tda998x_cfg *cfg);
 int tda998x_set_input_output(struct tda998x_dev *dev,
 		struct tda998x_vidin_cfg *vidin_cfg,
 		struct tda998x_vidout_cfg *vidout_cfg,

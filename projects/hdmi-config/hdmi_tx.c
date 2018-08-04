@@ -64,7 +64,8 @@ static struct tda998x_cfg hdmi_tx_cfg_tab[HDMI_TX_NCONFIGS] = {
 		.hdmi_addr = HDMI_TX_HDMI_I2C_ADDR,
 		.cec_addr = HDMI_TX_CEC_I2C_ADDR,
 		.i2c_write = i2c_write_reg,
-		.i2c_read = i2c_read_reg
+		.i2c_read = i2c_read_reg,
+		.cur_page = 0xFF
 	}
 };
 
@@ -125,8 +126,6 @@ int hdmi_tx_init(void)
 		return (-1);
 	}
 
-	dev->cfg = cfg;
-
 	err = i2c_init(cfg->hdmi_addr);
 	if (err < 0) {
 		printf("[ERROR] %s() %s %d\n", __func__, __FILE__, __LINE__);
@@ -139,12 +138,11 @@ int hdmi_tx_init(void)
 		return err;
 	}
 
-	err = tda998x_init(dev, &vin_cfg);
+	err = tda998x_init(dev, cfg);
 	if (err < 0) {
 		printf("[ERROR] %s() %s %d\n", __func__, __FILE__, __LINE__);
 		return err;
 	}
-
 
 	err = tda998x_set_input_output(dev, &vin_cfg, &vout_cfg, NULL, SINK_HDMI);
 	if (err < 0)
@@ -155,8 +153,6 @@ int hdmi_tx_init(void)
 //		printf("[ERROR] %s() %s %d\n", __func__, __FILE__, __LINE__);
 //		return err;
 //	}
-
-
 
 //	err = tda998x_config_audio()
 

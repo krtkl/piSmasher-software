@@ -51,12 +51,14 @@
 
 #include "tda998x.h"
 
+#define DEBUG_PRINT	printf("[DEBUG] %s().%d\n", __func__, __LINE__)
+
 /**
  * @defgroup	TDA998X TDA998x HDMI Transmitter
  * @{
  */
 #define PAGE_ADDR(__PAGE__, __ADDR__)		(((__PAGE__) << 8) | ((__ADDR__) & 0xFFU))
-#define PAGE_OF(__REG__)			((uint8_t)(((__REG__) >> 8) & 0xFFU))
+#define PAGE_OF(__REG__)			(((__REG__) >> 8) & 0xFFU)
 
 #define ERR_BAD_PARAM				(0x009U)
 #define ERR_NOT_PERMITTED			(0x00AU)
@@ -119,17 +121,44 @@ enum tda998x_cec_reg {
 /**
  * @brief	HDMI Core Register Pages
  */
+//enum tda998x_hdmi_page {
+//	PAGE_00 = 0x00,
+//	PAGE_01 = 0x01,
+//	PAGE_02 = 0x02,
+//	PAGE_09 = 0x09,
+//	PAGE_10 = 0x10,
+//	PAGE_11 = 0x11,
+//	PAGE_12 = 0x12,
+//	PAGE_13 = 0x13,
+//	PAGE_INVALID = 0xFF
+//};
+
 enum tda998x_hdmi_page {
 	PAGE_00 = 0x00,
 	PAGE_01 = 0x01,
 	PAGE_02 = 0x02,
-	PAGE_09 = 0x09,
-	PAGE_10 = 0x10,
-	PAGE_11 = 0x11,
-	PAGE_12 = 0x12,
-	PAGE_13 = 0x13,
+	PAGE_09 = 0x03,
+	PAGE_10 = 0x04,
+	PAGE_11 = 0x05,
+	PAGE_12 = 0x06,
+	PAGE_13 = 0x07,
 	PAGE_INVALID = 0xFF
 };
+
+//enum _ePage
+//{
+//    E_PAGE_00      = 0,
+//    E_PAGE_01      = 1,
+//    E_PAGE_02      = 2,
+//    E_PAGE_09      = 3,
+//    E_PAGE_10      = 4,
+//    E_PAGE_11      = 5,
+//    E_PAGE_12      = 6,
+//    E_PAGE_13      = 7,
+//    E_PAGE_NUM     = 8,         /* Number of pages */
+//    E_PAGE_INVALID = 8          /* Index value indicating invalid page */
+//};
+
 
 #define VERSION_NOT_SCALER			(1 << 4)
 #define VERSION_NOT_HDCP			(1 << 5)
@@ -938,12 +967,12 @@ struct tda998x_vid_frm {
 };
 
 static const enum vip_cntrl_swap port_map_rgb444[] = {
-	VIP_CNTRL_VP23_20,
-	VIP_CNTRL_VP19_16,
-	VIP_CNTRL_VP15_12,
-	VIP_CNTRL_VP11_8,
+	VIP_CNTRL_VP3_0,
 	VIP_CNTRL_VP7_4,
-	VIP_CNTRL_VP3_0
+	VIP_CNTRL_VP11_8,
+	VIP_CNTRL_VP15_12,
+	VIP_CNTRL_VP19_16,
+	VIP_CNTRL_VP23_20
 };
 
 static const enum vip_cntrl_mirr mirr_map_rgb444[] = {
@@ -1142,7 +1171,7 @@ tda998x_write(struct tda998x_dev *dev,
 
 	if (dev->cfg->cur_page != page) {
 		/* Change the page */
-		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)CURPAGE, &page);
+		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t) CURPAGE, &page);
 		if (err < 0)
 			return err;
 
@@ -1214,7 +1243,7 @@ tda998x_read(struct tda998x_dev *dev,
 
 	if (dev->cfg->cur_page != page) {
 		/* Change the page */
-		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)CURPAGE, &page);
+		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t) CURPAGE, &page);
 		if (err < 0)
 			return err;
 
@@ -1222,7 +1251,7 @@ tda998x_read(struct tda998x_dev *dev,
 	}
 
 	for (i = 0; i < len; i++, data++) {
-		err = cfg->i2c_read(cfg->hdmi_addr, (uint8_t)reg + i, data);
+		err = cfg->i2c_read(cfg->hdmi_addr, (uint8_t) reg + i, data);
 		if (err < 0)
 			return err;
 	}
@@ -1453,6 +1482,12 @@ set_pix_clk(enum tda998x_vid_fmt fmt, enum tda998x_vert_freq freq, uint8_t *pclk
 //	}
 //
 //	return ((*pclk) == REGVFMT_INVALID);
+
+	if ((fmt >= VFMT_01_640x480p_60Hz) &&
+			(fmt <= VFMT_62_1280x720p_30Hz)) {
+//		*pck =
+	}
+
 	return 0;
 }
 
@@ -1628,8 +1663,7 @@ chksum(uint8_t *data, int len)
  * @defgroup	TDA998X_Functions_Audio TDA998x Audio
  * @{
  */
-
-/**
+/**
  * @brief	Set Audio Port Enable
  *
  * @param	dev:	TDA998x device structure pointer
@@ -1684,68 +1718,39 @@ tda998x_aud_set_clk_enable(struct tda998x_dev *dev, uint8_t en)
  */ 
 int
 tda998x_aud_reset_cts(struct tda998x_dev *dev)
-{
-	/* Reset and release the CTS generator */
+{	/* Reset and release the CTS generator */
 	/**
 	 * @todo Define reset register table
 	 */
 //	return write_reg_mask_table(dev, &kResetCtsGenerator[0]);
-	return 0;
-}
+	return 0;}
  
 /**
  * @brief	Set Audio Input Configuration
  *
  * @param	dev:	TDA998x device structure pointer
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_aud_set_config(struct tda998x_dev *dev,
-		enum tda998x_aud_fmt aud_fmt,
-		enum tda998x_aud_i2s_fmt i2s_fmt,
-		uint8_t i2s_chan,
-		uint8_t dsd_chan,
-		enum tda998x_clkpol_dsd dsd_clkpol,
-		enum tda998x_swap_dsd dsd_swap,
-		uint8_t layout,
-		uint16_t latency,
-		enum tda998x_dst_rate dst_rate)
-{
-	int ret;
+ */static int
+tda998x_aud_set_config(struct tda998x_dev *dev,		enum tda998x_aud_fmt aud_fmt,		enum tda998x_aud_i2s_fmt i2s_fmt,		uint8_t i2s_chan,		uint8_t dsd_chan,		enum tda998x_clkpol_dsd dsd_clkpol,		enum tda998x_swap_dsd dsd_swap,		uint8_t layout,		uint16_t latency,		enum tda998x_dst_rate dst_rate)
+{	int ret;
 	uint8_t reg_val;
-
-	switch (aud_fmt) {
-	case AFMT_SPDIF:
-		reg_val = (uint8_t) REG_VAL_SEL_AIP_SPDIF;
+	switch (aud_fmt) {	case AFMT_SPDIF:		reg_val = (uint8_t) REG_VAL_SEL_AIP_SPDIF;
 
 		/* configure MUX_AP */
-		ret = write_reg(dev, MUX_AP, MUX_AP_SELECT_SPDIF);
-		if (ret < 0)
+		ret = write_reg(dev, MUX_AP, MUX_AP_SELECT_SPDIF);		if (ret < 0)
 			return ret;
-
-		break;
-
-	case AFMT_I2S:
+		break;	case AFMT_I2S:
 		reg_val = (uint8_t) REG_VAL_SEL_AIP_I2S;
     
 		/* configure MUX_AP */
-		ret = write_reg(dev, MUX_AP, MUX_AP_SELECT_I2S);
-		if (ret < 0)
+		ret = write_reg(dev, MUX_AP, MUX_AP_SELECT_I2S);		if (ret < 0)
 			return ret;
-    
-		break;
- 
-	case AFMT_OBA:
+    		break; 	case AFMT_OBA:
 		reg_val = (uint8_t) REG_VAL_SEL_AIP_OBA;
 		break;
- 
-	case AFMT_HBR:
+ 	case AFMT_HBR:
 		reg_val = (uint8_t) REG_VAL_SEL_AIP_HBR;
-		break;
- 
-	default:
-		return ERR_BAD_PARAM;
-	}
+		break; 	default:		return ERR_BAD_PARAM;	}
 
 	/* Set the audio input processor format to aud_fmt. AIP_CLKSEL_sel_aip */
 	ret = write_reg_mask(dev, AIP_CLKSEL, 0x38U, reg_val << 3);
@@ -1753,61 +1758,35 @@ tda998x_aud_set_config(struct tda998x_dev *dev,
 		return ret;
   
 	/* Channel status on 1 channel  */
-	ret = write_reg_mask(dev, CA_I2S, CA_I2S_HBR_CHSTAT_4, 0);
-	if (ret < 0)
+	ret = write_reg_mask(dev, CA_I2S, CA_I2S_HBR_CHSTAT_4, 0);	if (ret < 0)
 		return ret;
   
 	/* Select the audio format */
 	if (aud_fmt == AFMT_I2S) {
 		if (i2s_chan != 32) {
-			ret = write_reg_mask(dev,
-					CA_I2S,
+			ret = write_reg_mask(dev,					CA_I2S,
 					CA_I2S_CA_I2S_MASK,
-					(uint8_t) i2s_chan);
-		}
-    
-		/* Select the I2S format */
-		ret = write_reg_mask(dev,
-				I2S_FORMAT,
+					(uint8_t) i2s_chan);		}
+    		/* Select the I2S format */
+		ret = write_reg_mask(dev,				I2S_FORMAT,
 				I2S_FORMAT_I2S_FORMAT_MASK,
 				(uint8_t) i2s_fmt);
 		if (ret < 0)
 			return ret;
-  
-	} else if (aud_fmt == AFMT_OBA) {
-		ret = write_reg(dev, CA_DSD, dsd_chan);
-		if (ret < 0)
-			return ret;
- 
-		ret = write_reg_mask(dev,
-				AIP_CLKSEL,
+  	} else if (aud_fmt == AFMT_OBA) {		ret = write_reg(dev, CA_DSD, dsd_chan);		if (ret < 0)
+			return ret; 
+		ret = write_reg_mask(dev,				AIP_CLKSEL,
 				AIP_CLKSEL_SEL_POL_CLK,
 				(uint8_t) dsd_clkpol);
 			if (ret < 0)
 				return ret;
-
-		ret = write_reg_mask(dev,
-				AIP_CNTRL_0,
-				AIP_CNTRL_0_SWAP,
-				(uint8_t) dsd_swap);
-		if (ret < 0)
-			return ret;
-	}
- 
-	/* Set layout and latency */
-	ret = write_reg_mask(dev,
-			AIP_CNTRL_0,
-			AIP_CNTRL_0_LAYOUT,
-			layout << 2);
-	if (ret < 0)
+		ret = write_reg_mask(dev,				AIP_CNTRL_0,
+				AIP_CNTRL_0_SWAP,				(uint8_t) dsd_swap);		if (ret < 0)
+			return ret;	} 
+	/* Set layout and latency */	ret = write_reg_mask(dev,			AIP_CNTRL_0,			AIP_CNTRL_0_LAYOUT,			layout << 2);	if (ret < 0)
 		return ret;
-
-	ret = write_reg(dev, LATENCY_RD, (uint8_t) latency);
-	if (ret < 0)
-		return ret;
-
-	return 0;
-}
+	ret = write_reg(dev, LATENCY_RD, (uint8_t) latency);	if (ret < 0)
+		return ret;	return 0;}
 
 /**
  * @brief	Set Audio CTS
@@ -1816,94 +1795,52 @@ tda998x_aud_set_config(struct tda998x_dev *dev,
  * @return	0 on success, non-zero error status otherwise
  */ 
 static int
-tda998x_aud_set_cts(struct tda998x_dev *dev,
-		enum tda998x_cts_ref cts_ref,
-		enum tda998x_aud_rate afs,
-		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_vert_freq vout_freq,
-		uint32_t cts,
-		uint16_t ctsX,
-		enum tda998x_ctsk ctsK,
-		enum tda998x_ctsm ctsM,
-		enum tda998x_dst_rate dst_rate)
-{
-	int ret;
+tda998x_aud_set_cts(struct tda998x_dev *dev,		enum tda998x_cts_ref cts_ref,
+		enum tda998x_aud_rate afs,		enum tda998x_vid_fmt vout_fmt,
+		enum tda998x_vert_freq vout_freq,		uint32_t cts,
+		uint16_t ctsX,		enum tda998x_ctsk ctsK,		enum tda998x_ctsm ctsM,		enum tda998x_dst_rate dst_rate)
+{	int ret;
 	uint8_t reg_val;
 	uint8_t pixClk;			/* Pixel clock index */
-	uint32_t acrN;			/* Audio clock recovery N */
- 
+	uint32_t acrN;			/* Audio clock recovery N */ 
 	/* Return if sink is not an HDMI device */
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
- 
-	if ((vout_fmt >= VFMT_01_640x480p_60Hz) &&
-			(vout_fmt <= VFMT_62_1280x720p_30Hz)) {
-		if (vout_freq == VFREQ_50Hz) {
+		return ERR_NOT_PERMITTED; 	if ((vout_fmt >= VFMT_01_640x480p_60Hz) &&
+			(vout_fmt <= VFMT_62_1280x720p_30Hz)) {		if (vout_freq == VFREQ_50Hz) {
 			if ((vout_fmt < VFMT_17_720x576p_50Hz) ||
-					(vout_fmt > VFMT_31_1920x1080p_50Hz))
-				return ERR_ILLEGAL_PARAMS;
-    
-		} else if (vout_freq == VFREQ_24Hz) {
+					(vout_fmt > VFMT_31_1920x1080p_50Hz))				return ERR_ILLEGAL_PARAMS;
+    		} else if (vout_freq == VFREQ_24Hz) {
 			if ((vout_fmt != VFMT_32_1920x1080p_24Hz) &&
-					(vout_fmt != VFMT_60_1280x720p_24Hz))
-				return ERR_ILLEGAL_PARAMS;
-		} else if (vout_freq == VFREQ_25Hz) {
-			if ((vout_fmt != VFMT_33_1920x1080p_25Hz) &&
+					(vout_fmt != VFMT_60_1280x720p_24Hz))				return ERR_ILLEGAL_PARAMS;
+		} else if (vout_freq == VFREQ_25Hz) {			if ((vout_fmt != VFMT_33_1920x1080p_25Hz) &&
 					(vout_fmt != VFMT_20_1920x1080i_50Hz) &&
-					(vout_fmt != VFMT_61_1280x720p_25Hz))
-				return ERR_ILLEGAL_PARAMS;
-		} else if (vout_freq == VFREQ_30Hz) {
+					(vout_fmt != VFMT_61_1280x720p_25Hz))				return ERR_ILLEGAL_PARAMS;		} else if (vout_freq == VFREQ_30Hz) {
 			if ((vout_fmt != VFMT_34_1920x1080p_30Hz) &&
 					(vout_fmt != VFMT_05_1920x1080i_60Hz) &&
 					(vout_fmt != VFMT_62_1280x720p_30Hz))
 				return ERR_ILLEGAL_PARAMS;
-		} else {
-			if (vout_fmt >= VFMT_17_720x576p_50Hz)
-				return ERR_ILLEGAL_PARAMS;
-		}
-	}
+		} else {			if (vout_fmt >= VFMT_17_720x576p_50Hz)				return ERR_ILLEGAL_PARAMS;		}	}
   
 	/* Check for auto or manual CTS */
 	if (cts == 0) {
 		/* Auto */
-		ret = write_reg_mask(dev, AIP_CNTRL_0, AIP_CNTRL_0_ACR_MAN, 0);
-		if (ret < 0)
-			return ret;
-	} else {
+		ret = write_reg_mask(dev, AIP_CNTRL_0, AIP_CNTRL_0_ACR_MAN, 0);		if (ret < 0)
+			return ret;	} else {
 		/* Manual */
-		ret = write_reg_mask(dev,
-				AIP_CNTRL_0,
-				AIP_CNTRL_0_ACR_MAN,
-				AIP_CNTRL_0_ACR_MAN);
-		if (ret < 0)
-			return ret;
-	}
- 
+		ret = write_reg_mask(dev,				AIP_CNTRL_0,				AIP_CNTRL_0_ACR_MAN,				AIP_CNTRL_0_ACR_MAN);		if (ret < 0)
+			return ret;	} 
 	/* Derive M and K from X? */
 	if ((ctsM == CTSMTS_USE_CTSX) ||
 			(ctsK == CTSK_USE_CTSX)) {
 		/**
 		 * @todo Define CTS values
-		 */
-//		ctsM = (enum tda998x_ctsm) kCtsXToMK[ctsX][0];
-//		ctsK = (enum tda998x_ctsk) kCtsXToMK[ctsX][1];
-	}
+		 *///		ctsM = (enum tda998x_ctsm) kCtsXToMK[ctsX][0];//		ctsK = (enum tda998x_ctsk) kCtsXToMK[ctsX][1];	}
  
 	/* Set the Post-divider measured timestamp factor */
-	reg_val = (uint8_t) ctsM;
-	ret = write_reg_mask(dev,
-			CTS_N_RW,
-			CTS_N_M_SEL_MASK,
-			reg_val << 4);
-	if (ret < 0)
-		return ret;
- 
-	/* Set the predivider scale */
-	ret = write_reg_mask (dev,
-			CTS_N_RW,
-			CTS_N_K_SEL_MASK,
-			(uint8_t) ctsK);
-	if (ret < 0)
+	reg_val = (uint8_t) ctsM;	ret = write_reg_mask(dev,			CTS_N_RW,			CTS_N_M_SEL_MASK,			reg_val << 4);	if (ret < 0)
+		return ret; 
+	/* Set the predivider scale */	ret = write_reg_mask (dev,			CTS_N_RW,
+			CTS_N_K_SEL_MASK,			(uint8_t) ctsK);	if (ret < 0)
 		return ret;
 
 	/*
@@ -1911,96 +1848,64 @@ tda998x_aud_set_cts(struct tda998x_dev *dev,
 	 * the current pixel clock value.
 	 */
 	set_pix_clk(vout_fmt, vout_freq, &pixClk);
-
-	/*
+	/*
 	 * Set the Audio Clock Recovery N multiplier based on the audio sample
 	 * frequency afs and current pixel clock.
 	 */
 //	acrN = kPixClkToAcrN[pixClk][afs];
 
 	/* Set ACR N multiplier [19 to 16] */
-	reg_val = (uint8_t) (acrN >> 16);
-	ret = write_reg (dev, ACR_N_2, reg_val);
-	if (ret < 0)
+	reg_val = (uint8_t) (acrN >> 16);	ret = write_reg (dev, ACR_N_2, reg_val);	if (ret < 0)
 		return ret;
-
-	/* Set ACR N multiplier [15 to 8] */
-	reg_val = (uint8_t) (acrN >> 8);
-	ret = write_reg (dev, ACR_N_1, reg_val);
-	if (ret < 0)
-		return ret;
-
+	/* Set ACR N multiplier [15 to 8] */
+	reg_val = (uint8_t) (acrN >> 8);	ret = write_reg (dev, ACR_N_1, reg_val);	if (ret < 0)
+		return ret;
 	/* Set ACR N multiplier [7 to 0] */
-	reg_val = (uint8_t) acrN;
-	ret = write_reg (dev, ACR_N_0, reg_val);
-	if (ret < 0)
-		return ret;
-
+	reg_val = (uint8_t) acrN;	ret = write_reg (dev, ACR_N_0, reg_val);	if (ret < 0)
+		return ret;
 	/*
 	 * Set the CDC Audio Divider register based on the audio sample frequency
 	 * afs and current pixel clock.
 	 */
-//	reg_val = kPixClkToAdiv[pixClk][afs];
-	ret = write_reg (dev, AUDIO_DIV, reg_val);
-	if (ret < 0)
+//	reg_val = kPixClkToAdiv[pixClk][afs];	ret = write_reg (dev, AUDIO_DIV, reg_val);	if (ret < 0)
 		return ret;
 
 	/*
 	 * If auto CTS, get CTS value based on the audio sample
 	 * frequency afs and current pixel clock.
 	 */
-//	if (cts == 0)
-//		cts = kPixClkToAcrCts[pixClk][afs];
- 
+//	if (cts == 0)//		cts = kPixClkToAcrCts[pixClk][afs]; 
 	/* Set manual or pixel clock CTS */
 	if (cts != 0) {
 		/* Set manual ACR CTS [19 to 16 */
-		reg_val = (uint8_t) (cts >> 16);
-		ret = write_reg (dev, ACR_CTS_2, reg_val);
-		if (ret < 0)
-			return ret;
-
+		reg_val = (uint8_t) (cts >> 16);		ret = write_reg (dev, ACR_CTS_2, reg_val);		if (ret < 0)
+			return ret;
 		/* Set manual ACR CTS [15 to 8] */
 		reg_val = (uint8_t) (cts >> 8);
-		ret = write_reg (dev, ACR_CTS_1, reg_val);
-		if (ret < 0)
-			return ret;
- 
+		ret = write_reg (dev, ACR_CTS_1, reg_val);		if (ret < 0)
+			return ret; 
 		/* Set manual ACR CTS [7 to 0] */
-		reg_val = (uint8_t) cts;
-		ret = write_reg (dev, ACR_CTS_0, reg_val);
-		if (ret < 0)
-			return ret;
-	}
+		reg_val = (uint8_t) cts;		ret = write_reg (dev, ACR_CTS_0, reg_val);		if (ret < 0)
+			return ret;	}
 
 	/* Set the CTS clock reference register according to cts_ref */
-	reg_val = (uint8_t) cts_ref;
-	ret = write_reg_mask(dev,
-			AIP_CLKSEL,
-			AIP_CLKSEL_SEL_FS_MASK,
-			reg_val);
+	reg_val = (uint8_t) cts_ref;	ret = write_reg_mask(dev,			AIP_CLKSEL,			AIP_CLKSEL_SEL_FS_MASK,			reg_val);
 	if (ret < 0)
-		return ret;
-
+		return ret;
 	/**
 	 * @todo Reset and release the CTS generator
 	 */
 //	ret = write_reg_mask_table(dev, &kResetCtsGenerator[0]);
-  
-	return ret;
-}
+  	return ret;}
 
 /**
  * @brief	Set Audio Output Channel Status
  *
  * @param	dev:	TDA998x device structure pointer
  * @return	0 on success, non-zero error status otherwise
- */
-static int
+ */static int
 tda998x_aud_set_chan_status(struct tda998x_dev *dev,
-		uint8_t pcm_id,
-		uint8_t fmt_info,
-		uint8_t copyright,
+		uint8_t pcm_id,		uint8_t fmt_info,		uint8_t copyright,
 		uint8_t categoryCode,
 		enum tda998x_aud_rate samp_freq,
 		uint8_t clk_acc,
@@ -2024,24 +1929,21 @@ tda998x_aud_set_chan_status(struct tda998x_dev *dev,
 
 	/* Return if sink is not an HDMI device */
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-
+		return ERR_NOT_PERMITTED;
 	buf[0] = ((uint8_t) fmt_info << 3) |
 			((uint8_t) copyright << 2) |
 			((uint8_t) pcm_id << 1);
 	buf[1] = categoryCode;
 	buf[2] = ((uint8_t) clk_acc << 4) | freq[samp_freq];
 	buf[3] = ((uint8_t) origsamp_freq << 4) |
-			((uint8_t) word_len << 1) |
-			(uint8_t) maxword_len;
+			((uint8_t) word_len << 1) |			(uint8_t) maxword_len;
 
 	/* Write 4 Channel Status bytes */
 	ret = tda998x_write(dev, CH_STAT_B_0, 4, &buf[0]);
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @brief	Set Audio Channel Status Mapping
@@ -2052,11 +1954,9 @@ tda998x_aud_set_chan_status(struct tda998x_dev *dev,
  * @param	src_right:	Right channel source
  * @param	chan_right:	Right channel output
  * @return	0 on success, non-zero error status otherwise
- */
-static int
+ */static int
 tda998x_aud_set_chan_status_mapping(struct tda998x_dev *dev,
-		uint8_t src_left[4],
-		uint8_t chan_left[4],
+		uint8_t src_left[4],		uint8_t chan_left[4],
 		uint8_t src_right[4],
 		uint8_t chan_right[4])
 {
@@ -2072,9 +1972,7 @@ tda998x_aud_set_chan_status_mapping(struct tda998x_dev *dev,
 	ret = tda998x_write(dev, CH_STAT_B_2_AP0_L, 2, &buf[0]);
 	if (ret < 0)
 		return ret;
-  
-	return 0;
-}
+  	return 0;}
 
 /**
  * @brief	Set Audio Mute
@@ -2082,18 +1980,14 @@ tda998x_aud_set_chan_status_mapping(struct tda998x_dev *dev,
  * @param	dev:	TDA998x device structure pointer
  * @param	mute:	Mute enable value
  * @return	0 on success, non-zero error status otherwise
- */
-static int
+ */static int
 tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
 {
-	int ret;
-
+	int ret;
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
- 
+		return ERR_NOT_PERMITTED; 
 	if (mute) {
-		ret = write_reg_mask(dev,
-				SR_REG,
+		ret = write_reg_mask(dev,				SR_REG,
 				SR_REG_SR_AUDIO,
 				SR_REG_SR_AUDIO);
 		if (ret < 0)
@@ -2101,17 +1995,14 @@ tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
 
 		ret = write_reg_mask(dev, SR_REG, SR_REG_SR_AUDIO, 0);
 		if (ret < 0)
-			return ret;
-	}
+			return ret;	}
  
-	ret = write_reg_mask(dev,
-			AIP_CNTRL_0,
+	ret = write_reg_mask(dev,			AIP_CNTRL_0,
 			AIP_CNTRL_0_RST_FIFO,
 			mute ? AIP_CNTRL_0_RST_FIFO : 0);
 	if (ret < 0)
 		return ret;
- 
-	return 0;
+ 	return 0;
 }
 /**
  * @}
@@ -2123,11 +2014,10 @@ tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
  * @param	dev:	TDA998x device structure pointer
  * @param	tmds:	TMDS serializer output selection
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_set_tmds_output(struct tda998x_dev *dev, enum buffer_out_srl_force tmds)
-{
+ */static inttda998x_set_tmds_output(struct tda998x_dev *dev, enum buffer_out_srl_force tmds){
 	int ret;
+
+
 
 	/* Set the TMDS output mode */
 	ret = write_reg_mask(dev,
@@ -2137,8 +2027,7 @@ tda998x_set_tmds_output(struct tda998x_dev *dev, enum buffer_out_srl_force tmds)
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @defgroup	TDA998X_Functions_Video_Input TDA998x Video Input
@@ -2152,135 +2041,129 @@ tda998x_set_tmds_output(struct tda998x_dev *dev, enum buffer_out_srl_force tmds)
  * @param	src:	Blanking source
  * @param	code:	Blanking code
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_vidin_set_blanking(struct tda998x_dev *dev,
-		enum vip_cntrl_4_blnkit src,
-		enum vip_cntrl_4_blc code)
-{
+ */static inttda998x_vidin_set_blanking(struct tda998x_dev *dev,		enum vip_cntrl_4_blnkit src,
+		enum vip_cntrl_4_blc code){
 	int ret;
 
-	ret = write_reg_mask(dev,
-			VIP_CNTRL_4,
+	ret = write_reg_mask(dev,			VIP_CNTRL_4,
 			VIP_CNTRL_4_BLNKIT_MASK | VIP_CNTRL_4_BLC_MASK,
 			(uint8_t) src | (uint8_t) code);
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
-
-static int
-tda998x_vidin_set_config(struct tda998x_dev *dev,
-		enum tda998x_vidin_mode vin_mode,
-		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_format_3d format_3d,
-		enum tda998x_pix_edge edge,
-		enum tda998x_pix_rate pix_rate,
-		enum tda998x_upsample upsampleMode)
-{
+	return 0;}
+static inttda998x_vidin_set_config(struct tda998x_dev *dev,		enum tda998x_vidin_mode vin_mode,
+		enum tda998x_vid_fmt vout_fmt,		enum tda998x_format_3d format_3d,
+		enum tda998x_pix_edge edge,		enum tda998x_pix_rate pix_rate,
+		enum tda998x_upsample upsampleMode){
 	int ret;
 	uint8_t ssd = 0;
 	uint8_t vip_cntrl_4, hvf_cntrl_1, pll_serial_3, sel_clk;
 	struct tda998x_vidin_cfg *vidin_cfg;
 	const struct vidfmt_desc *desc;
 
+	if ((dev == NULL) || (dev->vin_cfg == NULL))
+		return ERR_NULL_PARAM;
+
+	vidin_cfg = dev->vin_cfg;
+
+
+
 	desc = get_vidfmt_desc(vout_fmt);
 	if (desc == NULL)
 		return ERR_NOT_FOUND;
 
-//	if (edge != PIXEDGE_NO_CHANGE) {
-//		ret = write_reg_mask(dev,
-//				VIP_CNTRL_3,
-//				VIP_CNTRL_3_EDGE,
-//				(uint8_t) edge);
-//		if (ret < 0)
-//			return ret;
-//	}
-//
-//	if (pix_rate != PIXRATE_NO_CHANGE) {
-//		vidin_cfg->pix_rate = pix_rate;
-//	}
 
-//	if ((pix_rate != PIXRATE_NO_CHANGE) ||
-//			(vin_mode != VINMODE_NO_CHANGE)) {
+	ret = write_reg_mask(dev,
+			VIP_CNTRL_3,
+			VIP_CNTRL_3_EDGE,
+			(uint8_t) edge);
+	if (ret < 0)
+		return ret;
 
-		ret = read_reg(dev, VIP_CNTRL_4, &vip_cntrl_4);
-		if (ret < 0)
-			return ret;
+	vidin_cfg->pix_rate = pix_rate;
 
-		ret = read_reg(dev, HVF_CNTRL_1, &hvf_cntrl_1);
-		if (ret < 0)
-			return ret;
 
-		ret = read_reg(dev, PLL_SERIAL_3, &pll_serial_3);
-		if (ret < 0)
-			return ret;
 
-		ret = read_reg(dev, SEL_CLK, &sel_clk);
-		if (ret < 0)
-			return ret;
+	ret = read_reg(dev, VIP_CNTRL_4, &vip_cntrl_4);
+	if (ret < 0)
+		return ret;
 
-		if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
-				(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
 
-			switch (vidin_cfg->mode) {
-			case VINMODE_RGB444:
-			case VINMODE_YUV444:
-				vip_cntrl_4	&= ~VIP_CNTRL_4_CCIR656;
-				hvf_cntrl_1	&= ~HVF_CNTRL_1_SEMI_PLANAR;
-				pll_serial_3	&= ~PLL_SERIAL_3_SRL_CCIR;
-				sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
-				vip_cntrl_4	&= ~VIP_CNTRL_4_656_ALT;
-				break;
 
-			case VINMODE_CCIR656:
-				vip_cntrl_4	|= VIP_CNTRL_4_CCIR656;
-				hvf_cntrl_1	|= HVF_CNTRL_1_SEMI_PLANAR;
-				pll_serial_3	|= PLL_SERIAL_3_SRL_CCIR;
-				sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
-				sel_clk		|= 0x02;
-				vip_cntrl_4	&= ~VIP_CNTRL_4_656_ALT;
-				break;
+	ret = read_reg(dev, HVF_CNTRL_1, &hvf_cntrl_1);
+	if (ret < 0)
+		return ret;
 
-			default:
-				return ERR_BAD_PARAM;
-			}
+	ret = read_reg(dev, PLL_SERIAL_3, &pll_serial_3);
+	if (ret < 0)
+		return ret;
 
-		} else if (vidin_cfg->pix_rate == PIXRATE_DOUBLE) {
+	ret = read_reg(dev, SEL_CLK, &sel_clk);
+	if (ret < 0)
+		return ret;
 
-			switch (vidin_cfg->mode) {
-			case VINMODE_CCIR656:
-				vip_cntrl_4	|= VIP_CNTRL_4_CCIR656;
-				hvf_cntrl_1	|= HVF_CNTRL_1_SEMI_PLANAR;
-				pll_serial_3	&= ~PLL_SERIAL_3_SRL_CCIR;
-				sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
-				vip_cntrl_4	|= VIP_CNTRL_4_656_ALT;
-				break;
+	if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
+			(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
 
-			case VINMODE_RGB444:
-			case VINMODE_YUV444:
-			default:
-				return ERR_BAD_PARAM;
-			}
+		switch (vidin_cfg->mode) {
+		case VINMODE_RGB444:
+		case VINMODE_YUV444:
+			vip_cntrl_4	&= ~VIP_CNTRL_4_CCIR656;
+			hvf_cntrl_1	&= ~HVF_CNTRL_1_SEMI_PLANAR;
+			pll_serial_3	&= ~PLL_SERIAL_3_SRL_CCIR;
+			sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
+			vip_cntrl_4	&= ~VIP_CNTRL_4_656_ALT;
+			break;
+
+		case VINMODE_CCIR656:
+			vip_cntrl_4	|= VIP_CNTRL_4_CCIR656;
+			hvf_cntrl_1	|= HVF_CNTRL_1_SEMI_PLANAR;
+			pll_serial_3	|= PLL_SERIAL_3_SRL_CCIR;
+			sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
+			sel_clk		|= 0x02;
+			vip_cntrl_4	&= ~VIP_CNTRL_4_656_ALT;
+			break;
+
+		default:
+			return ERR_BAD_PARAM;
 		}
 
-		ret = write_reg(dev, HVF_CNTRL_1, hvf_cntrl_1);
-		if (ret < 0)
-			return ret;
+	} else if (vidin_cfg->pix_rate == PIXRATE_DOUBLE) {
 
-		ret = write_reg(dev, PLL_SERIAL_3, pll_serial_3);
-		if (ret < 0)
-			return ret;
+		switch (vidin_cfg->mode) {
+		case VINMODE_CCIR656:
+			vip_cntrl_4	|= VIP_CNTRL_4_CCIR656;
+			hvf_cntrl_1	|= HVF_CNTRL_1_SEMI_PLANAR;
+			pll_serial_3	&= ~PLL_SERIAL_3_SRL_CCIR;
+			sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
+			vip_cntrl_4	|= VIP_CNTRL_4_656_ALT;
+			break;
 
-		ret = write_reg(dev, SEL_CLK, sel_clk);
-		if (ret < 0)
-			return ret;
+		case VINMODE_RGB444:
+		case VINMODE_YUV444:
+		default:
+			return ERR_BAD_PARAM;
+		}
+	}
 
-		ret = write_reg(dev, VIP_CNTRL_4, vip_cntrl_4);
-		if (ret < 0)
-			return ret;
-//	}
+	ret = write_reg(dev, HVF_CNTRL_1, hvf_cntrl_1);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SERIAL_3, pll_serial_3);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, SEL_CLK, sel_clk);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, VIP_CNTRL_4, vip_cntrl_4);
+	if (ret < 0)
+		return ret;
+
+
 
 	ssd = desc->pll_sc;
 	if (ssd < SSD_UNUSED_VALUE) {
@@ -2308,8 +2191,7 @@ tda998x_vidin_set_config(struct tda998x_dev *dev,
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @brief	Set Video Input Fine
@@ -2319,57 +2201,35 @@ tda998x_vidin_set_config(struct tda998x_dev *dev,
  * @param	sp_cnt:		Subpacket count
  * @param	clkpol:		Clock polarity
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_vidin_set_fine(struct tda998x_dev *dev,
-		enum vip_cntrl_3_sp_sync sp_sync,
-		uint8_t sp_cnt,
-		enum vip_cntrl_5_clkpol clkpol)
-{
+ */static inttda998x_vidin_set_fine(struct tda998x_dev *dev,		enum vip_cntrl_3_sp_sync sp_sync,
+		uint8_t sp_cnt,		enum vip_cntrl_5_clkpol clkpol){
 	int ret;
 
 	if (dev == NULL)
-		return ERR_NULL_PARAM;
- 
-	if (sp_sync == SPSYNC_FIXED) {
-		ret = write_reg_mask(dev,
-				VIP_CNTRL_5,
+		return ERR_NULL_PARAM; 
+	if (sp_sync == SPSYNC_FIXED) {		ret = write_reg_mask(dev,				VIP_CNTRL_5,
 				VIP_CNTRL_5_SP_CNT_MASK,
 				sp_cnt << 1);
 		if (ret < 0)
 			return ret;
-    
-		ret = write_reg_mask(dev,
-				VIP_CNTRL_3,
+    		ret = write_reg_mask(dev,				VIP_CNTRL_3,
 				VIP_CNTRL_3_SP_SYNC_MASK,
 				(uint8_t) SPSYNC_FIXED);
 		if (ret < 0)
-			return ret;
-	} else {
-		ret = write_reg_mask(dev,
+			return ret;	} else {		ret = write_reg_mask(dev,
 				VIP_CNTRL_5,
 				VIP_CNTRL_5_SP_CNT_MASK,
-				0);
-		if (ret < 0)
+				0);		if (ret < 0)
 			return ret;
-
-		ret = write_reg_mask(dev,
-				VIP_CNTRL_3,
-				VIP_CNTRL_3_SP_SYNC_MASK,
-				(uint8_t) sp_sync);
-		if (ret < 0)
+		ret = write_reg_mask(dev,				VIP_CNTRL_3,				VIP_CNTRL_3_SP_SYNC_MASK,				(uint8_t) sp_sync);		if (ret < 0)
 			return ret;
-	}
- 
-	ret = write_reg_mask(dev,
-			VIP_CNTRL_5,
+	} 
+	ret = write_reg_mask(dev,			VIP_CNTRL_5,
 			VIP_CNTRL_5_CLKPOL,
 			(uint8_t) clkpol);
 	if (ret < 0)
 		return ret;
-  
-	return 0;
-}
+  	return 0;}
 
 /**
  * @brief	Set Video Input Port Mapping
@@ -2378,12 +2238,7 @@ tda998x_vidin_set_fine(struct tda998x_dev *dev,
  * @param	swap:	Port swap mapping table pointer
  * @param	mirr:	Port mirroring table pointer
  * @return	0 on success, non-zero error code otherwise
- */
-static int
-tda998x_vidin_set_mapping(struct tda998x_dev *dev,
-		const enum vip_cntrl_swap *swap,
-		const enum vip_cntrl_mirr *mirr)
-{
+ */static inttda998x_vidin_set_mapping(struct tda998x_dev *dev,		const enum vip_cntrl_swap *swap,		const enum vip_cntrl_mirr *mirr){
 	int i, ret;
 	uint8_t buf[3];
 
@@ -2395,25 +2250,20 @@ tda998x_vidin_set_mapping(struct tda998x_dev *dev,
 		buf[i] = (uint8_t) swap[2 * i];
 		buf[i] |= (uint8_t) swap[(2 * i) + 1] << 4;
 		buf[i] |= (uint8_t) mirr[2 * i] << 3;
-		buf[i] |= (uint8_t) mirr[(2 * i) + 1] << 7;
-	}
+		buf[i] |= (uint8_t) mirr[(2 * i) + 1] << 7;	}
 
 	ret = tda998x_write(dev, VIP_CNTRL_0, VIP_CNTRL_LEN, buf);
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @brief	Set Video Input Port Pin Enable
  *
  * @param	dev:	TDA998x device structure pointer
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_vidin_set_port_enable(struct tda998x_dev *dev)
-{
+ */static inttda998x_vidin_set_port_enable(struct tda998x_dev *dev){
 	int ret;
 	uint8_t buf[3] = { 0xFF, 0xFF, 0xFF };
 
@@ -2425,8 +2275,7 @@ tda998x_vidin_set_port_enable(struct tda998x_dev *dev)
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @brief	Set Video Input Synchronization
@@ -2471,12 +2320,15 @@ tda998x_vidin_set_sync(struct tda998x_dev *dev,
 	reg_val = tgl_v ? VIP_CNTRL_3_V_TGL : 0;
 	reg_val |= tgl_h ? VIP_CNTRL_3_H_TGL : 0;
 	reg_val |= tgl_x ? VIP_CNTRL_3_X_TGL : 0;
+
 	ret = write_reg_mask(dev,
 			VIP_CNTRL_3,
 			VIP_CNTRL_3_V_TGL | VIP_CNTRL_3_H_TGL | VIP_CNTRL_3_X_TGL,
 			reg_val);
 	if (ret < 0)
 		return ret;
+
+//	set_video_config(dev, struct tda998x_vid_frm *vid)
 
 	if ((ref_pix >= REFPIX_MIN) &&
 			(ref_pix <= REFPIX_MAX)) {
@@ -2504,11 +2356,9 @@ tda998x_vidin_set_sync(struct tda998x_dev *dev,
  * @param	dev:	TDA998x device structure pointer
  * @param	vid:	Video frame structure pointer
  * @return	0 on success, non-zero error status otherwise
- */
-static int
+ */static int
 set_video_config(struct tda998x_dev *dev,
-		  struct tda998x_vid_frm *vid)
-{
+		  struct tda998x_vid_frm *vid){
 	int ret;
 
 	ret = write_reg(dev, VIDFORMAT, 0x1F);
@@ -2566,9 +2416,7 @@ set_video_config(struct tda998x_dev *dev,
 	ret = write_reg16(dev, DE_STOP_MSB, vid->de_end);
 	if (ret < 0)
 		return ret;
-
-	return 0;
-}
+	return 0;}
 
 /**
  * @defgroup	TDA998X_VideoOut TDA998x Video Output
@@ -2581,21 +2429,16 @@ set_video_config(struct tda998x_dev *dev,
  * @param	dev:	TDA998x device structure pointer
  * @param	en:	Enable video selection
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_vidout_enable(struct tda998x_dev *dev, bool en)
-{
+ */static inttda998x_vidout_enable(struct tda998x_dev *dev, bool en){
 	int ret;
 
-	ret = write_reg_mask(dev,
-			TBG_CNTRL_0,
+	ret = write_reg_mask(dev,			TBG_CNTRL_0,
 			TBG_CNTRL_0_FRAME_DIS,
 			en ? 0 : TBG_CNTRL_0_FRAME_DIS);
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @brief	Set Video Output Configuration
@@ -2607,18 +2450,15 @@ tda998x_vidout_enable(struct tda998x_dev *dev, bool en)
  * @param	yuv_blk:
  * @param	vqr:	Video quantization range
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_vidout_set_config(struct tda998x_dev *dev,
-		enum tda998x_sink sink,
-		enum tda998x_vidout_mode vout_mode,
-		enum hvf_cntrl_0_prefil prefil,
+ */static inttda998x_vidout_set_config(struct tda998x_dev *dev,		enum tda998x_sink sink,
+		enum tda998x_vidout_mode vout_mode,		enum hvf_cntrl_0_prefil prefil,
 		enum hvf_cntrl_1_yuv_blk yuv_blk,
-		enum hvf_cntrl_1_vqr vqr)
-{
+		enum hvf_cntrl_1_vqr vqr){
 	int ret;
 
-	if (sink == SINK_EDID) {
+	if (dev == NULL)
+		return ERR_NULL_PARAM;
+	if (sink == SINK_EDID) {
 		if (dev->edid_state == EDID_NOT_READ)
 			dev->sink = SINK_DVI;		/* Assume simplest sink */
 		else
@@ -2626,18 +2466,14 @@ tda998x_vidout_set_config(struct tda998x_dev *dev,
 	} else {
 		/* Set demanded sink type */
 		dev->sink = sink;
-	}
- 
+	} 
 	if (dev->sink == SINK_DVI) {
-		ret = write_reg_mask(dev,
-				AIP_CNTRL_0,
-				AIP_CNTRL_0_RST_FIFO,
-				AIP_CNTRL_0_RST_FIFO);
+		ret = write_reg_mask(dev,				AIP_CNTRL_0,
+				AIP_CNTRL_0_RST_FIFO,				AIP_CNTRL_0_RST_FIFO);
 		if (ret < 0)
 			return ret;
 
-		vout_mode = VOUTMODE_RGB444;
- 
+		vout_mode = VOUTMODE_RGB444; 
 		ret = write_reg_mask(dev, TBG_CNTRL_1, TBG_CNTRL_1_DWIN_DIS, TBG_CNTRL_1_DWIN_DIS);
 		if (ret < 0)
 			return ret;
@@ -2645,8 +2481,7 @@ tda998x_vidout_set_config(struct tda998x_dev *dev,
 		ret = write_reg_mask(dev, OTP_TX33, OTP_TX33_HDMI, 0);
 		if (ret < 0)
 			return ret;
-
-		ret = write_reg_mask(dev, ENC_CNTRL, ENC_CNTRL_CTL_CODE_MASK, 0);
+		ret = write_reg_mask(dev, ENC_CNTRL, ENC_CNTRL_CTL_CODE_MASK, 0);
 		if (ret < 0)
 			return ret;
 	} else {
@@ -2664,27 +2499,23 @@ tda998x_vidout_set_config(struct tda998x_dev *dev,
 
 		ret = write_reg_mask(dev, OTP_TX33, OTP_TX33_HDMI, OTP_TX33_HDMI);
 		if (ret < 0)
-			return ret;
-	}
+			return ret;	}
 
 	dev->vout_cfg->mode = vout_mode;
 
-	ret = write_reg_mask(dev,
-			HVF_CNTRL_0,
+	ret = write_reg_mask(dev,			HVF_CNTRL_0,
 			HVF_CNTRL_0_PREFIL_MASK,
 			(uint8_t) prefil);
 	if (ret < 0)
 		return ret;
 
-	ret = write_reg_mask(dev,
-			HVF_CNTRL_1,
+	ret = write_reg_mask(dev,			HVF_CNTRL_1,
 			HVF_CNTRL_1_YUVBLK,
 			(uint8_t) yuv_blk);
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @brief	Set Video Output Synchronization
@@ -2695,15 +2526,9 @@ tda998x_vidout_set_config(struct tda998x_dev *dev,
  * @param	x_ext:	Is DE/FREF external?
  *
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_vidout_set_sync(struct tda998x_dev *dev,
-		bool h_ext,
-		bool v_ext,
-		bool de_ext,
-		uint8_t tgl,
-		enum tbg_cntrl_0_sync sync)
-{
+ */static inttda998x_vidout_set_sync(struct tda998x_dev *dev,		bool h_ext,
+		bool v_ext,		bool de_ext,
+		uint8_t tgl,		enum tbg_cntrl_0_sync sync){
 	int ret;
 	uint8_t reg_val = 0;
  
@@ -2717,15 +2542,13 @@ tda998x_vidout_set_sync(struct tda998x_dev *dev,
 	if (de_ext)
 		reg_val |= TBG_CNTRL_1_VHX_EXT_DE;
 
-	ret = write_reg_mask (dev,
-			TBG_CNTRL_1,
+	ret = write_reg_mask (dev,			TBG_CNTRL_1,
 			TBG_CNTRL_1_VHX_EXT_MASK,
 			reg_val);
 	if (ret < 0)
 		return ret;
  
-	ret = write_reg_mask(dev,
-			TBG_CNTRL_1,
+	ret = write_reg_mask(dev,			TBG_CNTRL_1,
 			TBG_CNTRL_1_VH_TGL_MASK,
 			tgl);
 
@@ -2733,59 +2556,43 @@ tda998x_vidout_set_sync(struct tda998x_dev *dev,
 		return ret;
   
 	/* Must be last register set */
-	ret = write_reg_mask(dev,
-			TBG_CNTRL_0,
+	ret = write_reg_mask(dev,			TBG_CNTRL_0,
 			TBG_CNTRL_0_SYNC,
 			(uint8_t) sync);
 	if (ret < 0)
 		return ret;
 
 	/* Toggle TMDS serialiser */
-	ret = write_reg_mask(dev,
-			BUFFER_OUT,
+	ret = write_reg_mask(dev,			BUFFER_OUT,
 			BUFFER_OUT_SRL_FORCE_MASK,
 			(uint8_t) TMDSOUT_FORCED0);
 	if (ret < 0)
 		return ret;
 
-	ret = write_reg_mask(dev,
-			BUFFER_OUT,
+	ret = write_reg_mask(dev,			BUFFER_OUT,
 			BUFFER_OUT_SRL_FORCE_MASK,
 			(uint8_t) TMDSOUT_NORMAL);
 	if (ret < 0)
 		return ret;
- 
-	if (sync == SYNC_ONCE) {
+ 	if (sync == SYNC_ONCE) {
 		/* Toggle output Sync Once flag for settings to take effect */
-		ret = write_reg_mask(dev,
-				TBG_CNTRL_0,
-				TBG_CNTRL_0_SYNC,
-				(uint8_t) SYNC_EACH_FRAME);
+		ret = write_reg_mask(dev,				TBG_CNTRL_0,
+				TBG_CNTRL_0_SYNC,				(uint8_t) SYNC_EACH_FRAME);
 		if (ret < 0)
 			return ret;
-
-		ret = write_reg_mask(dev,
-				TBG_CNTRL_0,
+		ret = write_reg_mask(dev,				TBG_CNTRL_0,
 				TBG_CNTRL_0_SYNC,
 				(uint8_t) SYNC_ONCE);
 		if (ret < 0)
 			return ret;
 	}
-  
-	return 0;
-}
+  	return 0;}
 
-static int
-tda998x_video_set_inout(struct tda998x_dev *dev,
-		enum tda998x_vid_fmt vin_fmt,
+static inttda998x_video_set_inout(struct tda998x_dev *dev,		enum tda998x_vid_fmt vin_fmt,
 		enum tda998x_format_3d format_3d,
-		enum tda998x_scaler_mode sca_mod_req,
-		enum tda998x_vid_fmt vout_fmt,
-		uint8_t pix_rpt,
-		enum tda998x_mtx_mode mtx_mode,
-		enum tda998x_dwidth dwidth,
-		enum tda998x_vqr vqr)
-{
+		enum tda998x_scaler_mode sca_mod_req,		enum tda998x_vid_fmt vout_fmt,
+		uint8_t pix_rpt,		enum tda998x_mtx_mode mtx_mode,
+		enum tda998x_dwidth dwidth,		enum tda998x_vqr vqr){
 	int ret;
 	enum tda998x_scaler_mode sca_mode;
 	uint8_t reg_idx;
@@ -2798,31 +2605,23 @@ tda998x_video_set_inout(struct tda998x_dev *dev,
 			if (vqr == VQR_RGB_FULL) {
 				ret = write_reg_mask(dev,
 						HVF_CNTRL_1,
-						HVF_CNTRL_1_VQR_MASK,
-						(uint8_t) QRANGE_FS);
-				if (ret < 0)
+						HVF_CNTRL_1_VQR_MASK,						(uint8_t) QRANGE_FS);				if (ret < 0)
 					return ret;
 			} else {
 				ret = write_reg_mask(dev,
 						HVF_CNTRL_1,
-						HVF_CNTRL_1_VQR_MASK,
-						(uint8_t) QRANGE_RGB_YUV);
+						HVF_CNTRL_1_VQR_MASK,						(uint8_t) QRANGE_RGB_YUV);
 				if (ret < 0)
-					return ret;
-			}
-		} else {
-			/*Format PC or VGA */
-			ret = write_reg_mask(dev,
+					return ret;			}		} else {
+			/*Format PC or VGA */			ret = write_reg_mask(dev,
 					HVF_CNTRL_1,
-					HVF_CNTRL_1_VQR_MASK,
-					(uint8_t) QRANGE_FS);
+					HVF_CNTRL_1_VQR_MASK,					(uint8_t) QRANGE_FS);
 			if (ret < 0)
 				return ret;
 		}
 	} else {
 
-		ret = write_reg_mask(dev,
-				HVF_CNTRL_1,
+		ret = write_reg_mask(dev,				HVF_CNTRL_1,
 				HVF_CNTRL_1_VQR_MASK,
 				(uint8_t) QRANGE_YUV);
 		if (ret < 0)
@@ -2830,8 +2629,7 @@ tda998x_video_set_inout(struct tda998x_dev *dev,
 	}
  
 	/* Set pixel repetition - sets pixelRepeatCount, used by setScalerFormat */
-	ret = set_pix_repeat(dev, vout_fmt, pix_rpt, format_3d);
-	if (ret < 0)
+	ret = set_pix_repeat(dev, vout_fmt, pix_rpt, format_3d);	if (ret < 0)
 		return ret;
  
 	/* Set scaler clock */
@@ -2841,15 +2639,12 @@ tda998x_video_set_inout(struct tda998x_dev *dev,
 //		reg_val = 2;
 //	} else if (dev->vin_in_cfg->mode == VINMODE_CCIR656) {
 //		reg_val = (uint8_t) ((dev->sca_mode == SCAMODE_ON) ? 0 : 1);
-//
-//		if (dev->vid_in_cfg->pix_rate == PIXRATE_DOUBLE) {
+////		if (dev->vid_in_cfg->pix_rate == PIXRATE_DOUBLE) {
 //			reg_val = 0;
 //		}
 //	}
 
-	reg_val = 0x02;
-	ret = write_reg_mask(dev,
-			SEL_CLK,
+	reg_val = 0x00;	ret = write_reg_mask(dev,			SEL_CLK,
 			SEL_CLK_SEL_VRF_CLK_MASK,
 			reg_val << 1);
 	if (ret < 0)
@@ -2867,72 +2662,57 @@ tda998x_video_set_inout(struct tda998x_dev *dev,
 	if (ret < 0)
 		return ret;
 
-	ret = write_reg(dev, VIDFORMAT, reg_idx);
-	if (ret < 0)
+	ret = write_reg(dev, VIDFORMAT, VIDFORMAT_1280x720p_60Hz);	if (ret < 0)
 		return ret;
 
 	/* Set VS and optional DE */
-	ret = set_de_vs(dev, vout_fmt, format_3d);
-	if (ret < 0)
+	ret = set_de_vs(dev, vout_fmt, format_3d);	if (ret < 0)
 		return ret;
 
-	/* If matrix mode is auto then set mode based on input and output format */
-//	if (mtx_mode != HDMITX_MATMODE_NO_CHANGE) {
-		if (mtx_mode == MTX_MODE_AUTO) {
-			ret = tda998x_mtx_set_conv(dev,
-					vin_fmt,
-					dev->vin_cfg->mode,
-					vout_fmt,
-					dev->vout_cfg->mode,
-					dev->vout_cfg->vqr);
-		} else {
-			ret = tda998x_mtx_set_mode(dev,
-					MTXBYPASS_ON,
-					MTXSCALE_256);	// HDMITX_MSCALE_NO_CHANGE
-		}
+	if (mtx_mode == MTX_MODE_AUTO) {
+		ret = tda998x_mtx_set_conv(dev,
+				vin_fmt,
+				dev->vin_cfg->mode,
+				vout_fmt,
+				dev->vout_cfg->mode,
+				dev->vout_cfg->vqr);	} else {
+		ret = tda998x_mtx_set_mode(dev,
+				MTXBYPASS_ON,
+				MTXSCALE_256);	// HDMITX_MSCALE_NO_CHANGE
+	}
 
-		if (ret < 0)
-			return ret;
-//	}
+	if (ret < 0)
+		return ret;
 
 	/* Set upsampler and downsampler */
 	ret = set_sampling(dev);
 	if (ret < 0)
 		return ret;
 
-	/* Set colour component bit depth */
-//	if (dwidth != HDMITX_VOUT_DBITS_NO_CHANGE) {
-	ret = write_reg_mask(dev,
-			HVF_CNTRL_1,
+	/* Set color component bit depth */
+	ret = write_reg_mask(dev,			HVF_CNTRL_1,
 			HVF_CNTRL_1_PAD_MASK,
 			(uint8_t) dwidth);
 	if (ret < 0)
 		return ret;
-//	}
   
 	/* Save kBypassColourProc registers before pattern goes on */
 //	read_reg(dev, MTX_CNTRL, &gMatContrl[txUnit]);
 //	read_reg(dev, HVF_CNTRL_0, &gHvfCntrl0[txUnit]);
 //	read_reg(dev, HVF_CNTRL_1, &gHvfCntrl1[txUnit]);
-  
-	return 0;
-}
+  	return 0;}
 
 /**
  * @defgroup	TDA998X_Functions_Matrix Color Conversion Matrix
  * @{
  */
-
-/**
+/**
  * @brief	Set Matrix Coefficients
  *
  * @param	dev:	TDA998x device structure pointer
  * @param	mtx:	Pointer to matrix coefficients structure
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_mtx_set_coeffs(struct tda998x_dev *dev, struct tda998x_mtx_coeff *mtx)
-{
+ */static inttda998x_mtx_set_coeffs(struct tda998x_dev *dev, struct tda998x_mtx_coeff *mtx){
 	int i, ret;
 	uint8_t buf[MTX_COEFF_LEN * 2];
 
@@ -2944,10 +2724,7 @@ tda998x_mtx_set_coeffs(struct tda998x_dev *dev, struct tda998x_mtx_coeff *mtx)
 	ret = tda998x_write(dev, MTX_P11_MSB, MTX_COEFF_LEN * 2, &buf[0]);
 	if (ret < 0)
 		return ret;
-
-	return 0;
-}
-
+	return 0;}
 /**
  * @brief	Set Matrix Conversion
  *
@@ -2957,20 +2734,13 @@ tda998x_mtx_set_coeffs(struct tda998x_dev *dev, struct tda998x_mtx_coeff *mtx)
  * @param	vout_mode:	Video output mode
  * @param	vqr:		Video quantization range
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_mtx_set_conv(struct tda998x_dev *dev,
-		enum tda998x_vid_fmt vin_fmt,
-		enum tda998x_vidin_mode vin_mode,
-		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_vidout_mode vout_mode,
-		enum tda998x_vqr vqr)
-{
+ */static inttda998x_mtx_set_conv(struct tda998x_dev *dev,		enum tda998x_vid_fmt vin_fmt,
+		enum tda998x_vidin_mode vin_mode,		enum tda998x_vid_fmt vout_fmt,
+		enum tda998x_vidout_mode vout_mode,		enum tda998x_vqr vqr){
 	int i, ret;
 	enum tda998x_color_space cs_in;
 	enum tda998x_color_space cs_out;
-	int mtx_idx;
-	uint8_t buf[31];
+	int mtx_idx;	uint8_t buf[31];
 
 	/* Compute input color space */
 	switch (vin_fmt) {
@@ -2986,27 +2756,16 @@ tda998x_mtx_set_conv(struct tda998x_dev *dev,
 	case VFMT_60_1280x720p_24Hz:
 	case VFMT_61_1280x720p_25Hz:
 	case VFMT_62_1280x720p_30Hz:
-		/* HD modes */
-		if (vin_mode == VINMODE_RGB444)
-			cs_in = CS_RGB_LIMITED;
-		else
-			cs_in = CS_YUV_ITU_BT709;	/* CCIR656, YUV444, YU422 */
-    
-		break;
-  
-	default:
-		/* SD modes */
-		if (vin_mode == VINMODE_RGB444)
-			cs_in = CS_RGB_LIMITED;
+		/* HD modes */		if (vin_mode == VINMODE_RGB444)			cs_in = CS_RGB_LIMITED;		else			cs_in = CS_YUV_ITU_BT709;	/* CCIR656, YUV444, YU422 */
+    		break;
+  	default:
+		/* SD modes */		if (vin_mode == VINMODE_RGB444)			cs_in = CS_RGB_LIMITED;
 		else
 			cs_in = CS_YUV_ITU_BT601;	/* CCIR656, YUV444, YU422 */
-
-		break;
-	}
+		break;	}
     
 	/* Compute output color space */
-	switch (vout_fmt) {
-	case VFMT_04_1280x720p_60Hz:
+	switch (vout_fmt) {	case VFMT_04_1280x720p_60Hz:
 	case VFMT_05_1920x1080i_60Hz:
 	case VFMT_16_1920x1080p_60Hz:
 	case VFMT_19_1280x720p_50Hz:
@@ -3020,40 +2779,27 @@ tda998x_mtx_set_conv(struct tda998x_dev *dev,
 	case VFMT_62_1280x720p_30Hz:
 		/* Catch the HD modes */
 		if (vout_mode == VOUTMODE_RGB444) {
-			cs_out = CS_RGB_LIMITED;
-		} else {
-			cs_out = CS_YUV_ITU_BT709;	/* YUV444 or YUV422 */
-		}
-    
-		break;
-  
-	default:
+			cs_out = CS_RGB_LIMITED;		} else {
+			cs_out = CS_YUV_ITU_BT709;	/* YUV444 or YUV422 */		}
+    		break;
+  	default:
 		/* SD modes */
-		if (vout_mode == VOUTMODE_RGB444) {
-			cs_out = CS_RGB_LIMITED;
-		} else {
-			cs_out = CS_YUV_ITU_BT601;	/* YUV444 or YUV422 */
+		if (vout_mode == VOUTMODE_RGB444) {			cs_out = CS_RGB_LIMITED;
+		} else {			cs_out = CS_YUV_ITU_BT601;	/* YUV444 or YUV422 */
 		}
-    
-		break;
-	}
-  
-	if (cs_in == cs_out) {
-		ret = write_reg_mask(dev,
-				MTX_CNTRL,
-				MTX_CNTRL_MTX_BP,
-				MTX_CNTRL_MTX_BP);
+    		break;	}
+  	if (cs_in == cs_out) {
+		ret = write_reg_mask(dev,				MTX_CNTRL,
+				MTX_CNTRL_MTX_BP,				MTX_CNTRL_MTX_BP);
 		if (ret < 0)
-			return ret;
-	} else {
+			return ret;	} else {
 		ret = write_reg_mask(dev,
 				MTX_CNTRL,
 				MTX_CNTRL_MTX_BP,
 				0);
 		if (ret < 0)
 			return ret;
-
-		for (i = 0; i < 31; i++)
+		for (i = 0; i < 31; i++)
 			buf[i] = mtx_cfg_preset[mtx_idx][i];
 
 		ret = write_reg_mask (dev,
@@ -3065,11 +2811,8 @@ tda998x_mtx_set_conv(struct tda998x_dev *dev,
 
 		ret = tda998x_write(dev, MTX_OI1_MSB, 30, &buf[1]);
 		if (ret < 0)
-			return ret;
-	}
-  
-	return 0;
-}
+			return ret;	}
+  	return 0;}
 
 /**
  * @brief	Set Matrix Input Offset
@@ -3077,38 +2820,27 @@ tda998x_mtx_set_conv(struct tda998x_dev *dev,
  * @param	dev:	TDA998x device structure pointer
  * @param	offset:	Matrix offset data structure pointer
  * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_mtx_set_inoffset(struct tda998x_dev *dev, struct mtx_offset *offset)
-{
+ */static inttda998x_mtx_set_inoffset(struct tda998x_dev *dev, struct mtx_offset *offset){
 	int i, ret;
 	uint8_t buf[MTX_OFFSET_LEN * 2];
 
 	for (i = 0; i < MTX_OFFSET_LEN; i++) {
 		buf[i * 2] = (uint8_t) (((uint16_t) offset->offset[i] & 0x0700) >> 8);
-		buf[(i * 2) + 1] = (uint8_t) ((uint16_t) offset->offset[i] & 0x00FF);
-	}
-  
-	ret = tda998x_write(dev,
-			MTX_OI1_MSB,
-			MTX_OFFSET_LEN * 2,
+		buf[(i * 2) + 1] = (uint8_t) ((uint16_t) offset->offset[i] & 0x00FF);	}
+  	ret = tda998x_write(dev,			MTX_OI1_MSB,			MTX_OFFSET_LEN * 2,
 			&buf[0]);
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
-
-/**
+	return 0;}
+/**
  * @brief	Set Matrix Output Offset
  *
  * @param	dev:	TDA998x device structure pointer
  * @param	offset:	Matrix offset data structure pointer
  * @return	0 on success, non-zero error status otherwise
  */
-static int
-tda998x_mtx_set_outoffset(struct tda998x_dev *dev, struct mtx_offset *offset)
-{
+static inttda998x_mtx_set_outoffset(struct tda998x_dev *dev, struct mtx_offset *offset){
 	int i, ret;
 	uint8_t buf[MTX_OFFSET_LEN * 2];
   
@@ -3119,16 +2851,12 @@ tda998x_mtx_set_outoffset(struct tda998x_dev *dev, struct mtx_offset *offset)
 		buf[i * 2] = (uint8_t) (((uint16_t) offset->offset[i] & 0x0700) >> 8);
 		buf[(i * 2) + 1] = (uint8_t) ((uint16_t) offset->offset[i] & 0x00FF);
 	}
-  
-	ret = tda998x_write(dev,
-			MTX_OO1_MSB,
-			MTX_OFFSET_LEN * 2,
+  	ret = tda998x_write(dev,			MTX_OO1_MSB,			MTX_OFFSET_LEN * 2,
 			&buf[0]);
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
+	return 0;}
 
 /**
  * @brief	Set Matrix Mode
@@ -3160,42 +2888,27 @@ tda998x_mtx_set_mode(struct tda998x_dev *dev,
 
 /**
  * @brief	Set Audio Clock Packet Recovery
- */
-static int
-tda998x_set_aud_pkt_enable(struct tda998x_dev *dev, bool en)
-{
+ */static inttda998x_set_aud_pkt_enable(struct tda998x_dev *dev, bool en){
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
- 
-	return write_reg_mask(dev,
-			DIP_FLAGS,
-			DIP_FLAGS_ACR,
-			en ? DIP_FLAGS_ACR : 0);
-}
+		return ERR_NOT_PERMITTED; 
+	return write_reg_mask(dev,			DIP_FLAGS,
+			DIP_FLAGS_ACR,			en ? DIP_FLAGS_ACR : 0);}
 
 /**
  * @brief
  */
-static int
-tda998x_set_pkt_acp(struct tda998x_dev *dev,
-		struct tda998x_pkt *pkt,
-		unsigned int len,
-		uint8_t uAcpType,
-		bool en)
-{
+static inttda998x_set_pkt_acp(struct tda998x_dev *dev,
+		struct tda998x_pkt *pkt,		unsigned int len,
+		uint8_t uAcpType,		bool en){
 	int ret;
 	uint8_t buf[3];			/* Temp buffer to hold header bytes */
  
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-    
-//	if (pkt != Null) {
+		return ERR_NOT_PERMITTED;    //	if (pkt != Null) {
 
 		/* Data to change, start by clearing ACP packet insertion flag */
-		ret = write_reg_mask(dev,
-				DIP_FLAGS,
-				DIP_FLAGS_ACP,
-				0x00);
+		ret = write_reg_mask(dev,				DIP_FLAGS,
+				DIP_FLAGS_ACP,				0x00);
 		if (ret < 0)
 			return ret;
  
@@ -3210,15 +2923,12 @@ tda998x_set_pkt_acp(struct tda998x_dev *dev,
 		ret = tda998x_write(dev, ACP_PB0, len, &pkt->data[0]);
 		if (ret < 0)
 			return ret;
-    
-//	}
+    //	}
   
 	ret = write_reg_mask(dev, DIP_FLAGS, DIP_FLAGS_ACP, en ? DIP_FLAGS_ACP : 0);
 	if (ret < 0)
 		return ret;
-  
-	return 0;
-}
+  	return 0;}
 
 /**
  * @brief	Set Audio Infoframe Packet
@@ -3228,25 +2938,16 @@ tda998x_set_pkt_acp(struct tda998x_dev *dev,
  * @param	en:	Enable infoframe insertion
  * @return	0 on success, non-zero error status otherwise
  */
-static int
-tda998x_aud_set_pkt_infoframe(struct tda998x_dev *dev,
-		struct tda998x_aud_if_pkt *pkt,
-		bool en)
-{
-	int ret;
+static inttda998x_aud_set_pkt_infoframe(struct tda998x_dev *dev,		struct tda998x_aud_if_pkt *pkt,		bool en){	int ret;
 	uint8_t buf[9];			/* Temp buffer to hold header/packet bytes */
 	uint16_t buf_reg;		/* Base register used for writing InfoFrame */
 	uint16_t flag_reg;		/* Flag register to be used */
 	uint8_t flag_mask;		/* Mask used for writing flag register */
   
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-    
-	buf_reg = IF4_HB0;
-	flag_reg = DIP_IF_FLAGS;
-	flag_mask = DIP_IF_FLAGS_IF4;
- 
-//	if (pkt != Null) {
+		return ERR_NOT_PERMITTED;    
+	buf_reg = IF4_HB0;	flag_reg = DIP_IF_FLAGS;	flag_mask = DIP_IF_FLAGS_IF4;
+ //	if (pkt != Null) {
 		/* Data to change, start by clearing AIF packet insertion flag */
 		ret = write_reg_mask(dev, flag_reg, flag_mask, 0);
 		if (ret < 0)
@@ -3259,77 +2960,42 @@ tda998x_aud_set_pkt_infoframe(struct tda998x_dev *dev,
  
 		/* Prepare AIF packet (byte numbers offset by 3) */
 		buf[3] = 0;		/* Preset checksum to zero */
-    
-		buf[4] = ((pkt->type & 0x0F) << 4) |
-				(pkt->nchan & 0x07);	/* CT3-0, CC2-0 */
-    
-		buf[5] = ((pkt->samp_freq & 0x07) << 2) |
-				(pkt->samp_size & 0x03);	/* SF2-0, SS1-0 */
-    
-		buf[6] = 0;			/* [HDMI 1.2] */
-		buf[7] = pkt->chan_alloc;	/* CA7-0 */
-		buf[8] = ((pkt->lvl_shift & 0x0F) << 3);	/* LS3-0 */
-    
-		if (pkt->dmix_inhib)
-			buf[8] |= (1 << 7);
- 
+    		buf[4] = ((pkt->type & 0x0F) << 4) |				(pkt->nchan & 0x07);	/* CT3-0, CC2-0 */
+    		buf[5] = ((pkt->samp_freq & 0x07) << 2) |				(pkt->samp_size & 0x03);	/* SF2-0, SS1-0 */
+    		buf[6] = 0;			/* [HDMI 1.2] */		buf[7] = pkt->chan_alloc;	/* CA7-0 */		buf[8] = ((pkt->lvl_shift & 0x0F) << 3);	/* LS3-0 */
+    		if (pkt->dmix_inhib)
+			buf[8] |= (1 << 7); 
 		/* Calculate checksum - this is worked out on "Length" bytes of the
 		 * packet, the checksum (which we've preset to zero), and the three
 		 * header bytes.  We exclude bytes PB6 to PB10 (which we
 		 * are not writing) since they are zero.
 		 */
 		buf[3] = chksum(&buf[0], 9);
-    
- 
+     
 		/* Write header and packet bytes in one operation */
 		ret = tda998x_write(dev, buf_reg, 9, &buf[0]);
 		if (ret < 0)
-			return ret;
-//	}
- 
+			return ret;//	} 
 	/* Write AIF packet insertion flag */
-	ret = write_reg_mask(dev,
-			flag_reg,
-			flag_mask,
+	ret = write_reg_mask(dev,			flag_reg,			flag_mask,
 			(uint8_t) en);
-  
-	return ret;
-}
+  	return ret;}
 
-static int
-tda998x_PktSetGeneralCntrl(struct tda998x_dev *dev,
-		bool mute,
-		bool en)
-{
+static inttda998x_PktSetGeneralCntrl(struct tda998x_dev *dev,		bool mute,		bool en){
 	int ret;
  
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-    
-	ret = write_reg(dev, GC_AVMUTE, mute ? 0x02 : 0x01);
-	if (ret < 0)
+		return ERR_NOT_PERMITTED;    	ret = write_reg(dev, GC_AVMUTE, mute ? 0x02 : 0x01);	if (ret < 0)
 		return ret;
  
 	/* Set or clear GC packet insertion flag */
-	ret = write_reg_mask(dev,
-			DIP_FLAGS,
-			DIP_FLAGS_GC,
-			en ? DIP_FLAGS_GC : 0);
+	ret = write_reg_mask(dev,			DIP_FLAGS,
+			DIP_FLAGS_GC,			en ? DIP_FLAGS_GC : 0);
 	if (ret < 0)
 		return ret;
+	return 0;}
 
-	return 0;
-}
-
-static int
-tda998x_PktSetIsrc1(struct tda998x_dev *dev,
-		struct tda998x_pkt *pkt,
-		unsigned int len,
-		bool bIsrcCont,
-		bool bIsrcValid,
-		uint8_t uIsrcStatus,
-		bool en)
-{
+static inttda998x_PktSetIsrc1(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		unsigned int len,		bool bIsrcCont,		bool bIsrcValid,		uint8_t uIsrcStatus,		bool en){
 	int ret;
 	uint8_t buf[3];
  
@@ -3337,33 +3003,24 @@ tda998x_PktSetIsrc1(struct tda998x_dev *dev,
 	 * sinkType is not HDMI
 	 */
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-
+		return ERR_NOT_PERMITTED;
 		/* Data to change, start by clearing ISRC1 packet insertion flag */
-		ret = write_reg_mask(dev,
-				DIP_FLAGS,
-				DIP_FLAGS_ISRC1,
-				0);
+		ret = write_reg_mask(dev,				DIP_FLAGS,
+				DIP_FLAGS_ISRC1,				0);
 		if (ret < 0)
 			return ret;
-    
-		/* Prepare ISRC1 header */
+    		/* Prepare ISRC1 header */
 		buf[0] = 0x05;		/* ISRC1 packet */
 		buf[1] = (uIsrcStatus & 0x07);
 
 		if (bIsrcValid)
 			buf[1] |= (1 << 6);
-    
-		if (bIsrcCont)
-			buf[1] |= (1 << 7);
-    
-		buf[2] = 0;		/* Reserved [HDMI 1.2] */
+    		if (bIsrcCont)			buf[1] |= (1 << 7);
+    		buf[2] = 0;		/* Reserved [HDMI 1.2] */
     
 		/* Write 3 header bytes to registers */
-		ret = tda998x_write(dev, ISRC1_HB0, 3, &buf[0]);
-		if (ret < 0)
-			return ret;
- 
+		ret = tda998x_write(dev, ISRC1_HB0, 3, &buf[0]);		if (ret < 0)
+			return ret; 
 		/* Write "len" bytes of data to registers */
 		ret = tda998x_write(dev, ISRC1_PB0, len, &pkt->data[0]);
 		if (ret < 0)
@@ -3371,41 +3028,28 @@ tda998x_PktSetIsrc1(struct tda998x_dev *dev,
 //	}
  
 	/* Write the ISRC1 packet insertion flag */
-	ret = write_reg_mask(dev,
-			DIP_FLAGS,
+	ret = write_reg_mask(dev,			DIP_FLAGS,
 			DIP_FLAGS_ISRC1,
 			en ? DIP_FLAGS_ISRC1 : 0);
 	if (ret < 0)
 		return ret;
+	return 0;}
 
-	return 0;
-}
-
-static int
-tda998x_PktSetIsrc2(struct tda998x_dev *dev,
-		struct tda998x_pkt *pkt,
-		unsigned int len,
-		bool en)
-{
+static inttda998x_PktSetIsrc2(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		unsigned int len,
+		bool en){
 	int ret;
 	uint8_t buf[3];
  
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-
-	if (pkt != NULL) {
+		return ERR_NOT_PERMITTED;	if (pkt != NULL) {
 		/* Data to change, start by clearing ISRC2 packet insertion flag */
-		ret = write_reg_mask(dev,
-				DIP_FLAGS,
-				DIP_FLAGS_ISRC2,
-				0);
+		ret = write_reg_mask(dev,				DIP_FLAGS,
+				DIP_FLAGS_ISRC2,				0);
 		if (ret < 0)
-			return ret;
-
+			return ret;
 		/* Prepare ISRC2 header */
 		buf[0] = 0x06;		/* ISRC2 packet */
-		buf[1] = 0;		/* Reserved [HDMI 1.2] */
-		buf[2] = 0;		/* Reserved [HDMI 1.2] */
+		buf[1] = 0;		/* Reserved [HDMI 1.2] */		buf[2] = 0;		/* Reserved [HDMI 1.2] */
 
 		/* Write 3 header bytes to registers */
 		ret = tda998x_write(dev, ISRC2_HB0, 3, &buf[0]);
@@ -3414,30 +3058,18 @@ tda998x_PktSetIsrc2(struct tda998x_dev *dev,
 
 		ret = tda998x_write(dev, ISRC2_PB0, len, &pkt->data[0]);
 		if (ret < 0)
-			return ret;
-	}
-  
-	/* Write the ISRC2 packet insertion flag */
-	ret = write_reg_mask(dev,
-			DIP_FLAGS,
+			return ret;	}
+  	/* Write the ISRC2 packet insertion flag */
+	ret = write_reg_mask(dev,			DIP_FLAGS,
 			DIP_FLAGS_ISRC2,
 			en ? DIP_FLAGS_ISRC2 : 0);
-  
-	return ret;
-}
+  	return ret;}
 
-static int
-tda998x_PktSetMpegInfoframe(struct tda998x_dev *dev,
-		struct tda998x_mpeg_pkt *pkt,
-		bool en)
-{
+static inttda998x_PktSetMpegInfoframe(struct tda998x_dev *dev,		struct tda998x_mpeg_pkt *pkt,		bool en){
 	int ret;
-	uint8_t buf[9];
-
+	uint8_t buf[9];
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-    
-	if (pkt != NULL) {
+		return ERR_NOT_PERMITTED;    	if (pkt != NULL) {
 		/* Data to change, start by clearing MPEG packet insertion flag */
 		ret = write_reg_mask(dev, DIP_IF_FLAGS, DIP_IF_FLAGS_IF5, 0);
 		if (ret < 0)
@@ -3455,10 +3087,8 @@ tda998x_PktSetMpegInfoframe(struct tda998x_dev *dev,
 		buf[6] = (uint8_t) ((pkt->bitrate & 0x00FF0000) >> 16);
 		buf[7] = (uint8_t) ((pkt->bitrate & 0xFF000000) >> 24);
 		buf[8] = pkt->frame;	/* MF1-0 */
-    
-		if (pkt->repeat) {
-			buf[8] += 0x10;	/* FR0 bit */
-		}
+    		if (pkt->repeat) {
+			buf[8] += 0x10;	/* FR0 bit */		}
 
 		buf[4] = chksum(&buf[0], 9);
  
@@ -3467,15 +3097,12 @@ tda998x_PktSetMpegInfoframe(struct tda998x_dev *dev,
 		if (ret < 0)
 			return ret;
 	}
-
-	/* Write the MPEG packet insertion flag */
-	ret = write_reg_mask(dev,
-			DIP_IF_FLAGS,
+	/* Write the MPEG packet insertion flag */
+	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
 			DIP_IF_FLAGS_IF5,
 			en ? DIP_IF_FLAGS_IF5 : 0);
 
-	return ret;
-}
+	return ret;}
 
 
 /**
@@ -3485,63 +3112,41 @@ tda998x_PktSetMpegInfoframe(struct tda998x_dev *dev,
  * @param	en:	Set or clear null packet insertion
  * @return	0 on success, non-zero error status otherwise
  */
-static int
-tda998x_pkt_set_null_insert(struct tda998x_dev *dev, bool en)
-{
-	int ret;
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
- 
+static inttda998x_pkt_set_null_insert(struct tda998x_dev *dev, bool en){
+	int ret;	if (dev->sink != SINK_HDMI)
+		return ERR_NOT_PERMITTED; 
 	/* Set or clear FORCE_NULL packet insertion flag */
-	ret = write_reg_mask(dev,
-			DIP_FLAGS,
+	ret = write_reg_mask(dev,			DIP_FLAGS,
 			DIP_FLAGS_FORCE_NULL,
 			en ? DIP_FLAGS_FORCE_NULL : 0);
 	if (ret < 0)
 		return ret;
-  
-	return 0;
-}
-
-static int
-tda998x_pkt_set_null(struct tda998x_dev *dev)
-{
+  	return 0;}
+static inttda998x_pkt_set_null(struct tda998x_dev *dev){
 	int ret;
 
 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-
+		return ERR_NOT_PERMITTED;
 	/* Set NULL packet insertion flag */
-	ret = write_reg_mask(dev,
-			DIP_FLAGS,
-			DIP_FLAGS_NULL,
-			DIP_FLAGS_NULL);
+	ret = write_reg_mask(dev,			DIP_FLAGS,
+			DIP_FLAGS_NULL,			DIP_FLAGS_NULL);
 	if (ret < 0)
 		return ret;
-  
-	return 0;
-}
+  	return 0;}
 
 /**
  * @brief	Set Source Product Description Infoframe
  */
-static int
-tda998x_pkg_set_spdinfo(struct tda998x_dev *dev,
-		struct tda998x_spd_pkt *pkt,
-		bool en)
-{
+static inttda998x_pkg_set_spdinfo(struct tda998x_dev *dev,		struct tda998x_spd_pkt *pkt,		bool en){
 	int ret;
 	uint8_t buf[29];
   
 	if (dev->sink != SINK_HDMI)
 		return ERR_NOT_PERMITTED;
-    
-	if (pkt != NULL) {
+    	if (pkt != NULL) {
 		/* Data to change, start by clearing SPD packet insertion flag */
-		ret = write_reg_mask(dev,
-				DIP_IF_FLAGS,
-				DIP_IF_FLAGS_IF3,
-				0);
+		ret = write_reg_mask(dev,				DIP_IF_FLAGS,
+				DIP_IF_FLAGS_IF3,				0);
 		if (ret < 0)
 			return ret;
  
@@ -3549,85 +3154,52 @@ tda998x_pkg_set_spdinfo(struct tda998x_dev *dev,
 		buf[1] = 0x01;		/* Version 1 [CEA 861B] */
 		buf[2] = 0x19;		/* Length [HDMI 1.2] */
 		buf[3] = 0;		/* Preset checksum to zero */
-    
-		memcpy(&buf[4], &pkt->vname[0], 8);	/* Copy vendor name */
-		memcpy(&buf[12], &pkt->desc[0], 16);	/* Copy device description */
-    
-		buf[28] = pkt->dev_info;
+    		memcpy(&buf[4], &pkt->vname[0], 8);	/* Copy vendor name */		memcpy(&buf[12], &pkt->desc[0], 16);	/* Copy device description */
+    		buf[28] = pkt->dev_info;
     
 		buf[3] = chksum(&buf[0], 29);
     
 		/* Write header and packet bytes in one operation */
-		ret = tda998x_write(dev,
-				IF3_HB0,
-				29,
-				&buf[0]);
+		ret = tda998x_write(dev,				IF3_HB0,				29,				&buf[0]);
 		if (ret < 0)
 			return ret;
 	}
  
-	ret = write_reg_mask(dev,
-			DIP_IF_FLAGS,
+	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
 			DIP_IF_FLAGS_IF3,
 			en ? DIP_IF_FLAGS_IF3 : 0);
-  
-	return ret;
-}
+  	return ret;}
 
 static int
-tda998x_pkt_set_raw_vid_infoframe(struct tda998x_dev *dev,
-		struct tda998x_pkt *pkt,
-		bool en)
-{
+tda998x_pkt_set_raw_vid_infoframe(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		bool en){
 	int ret;
-  
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
- 
+  	if (dev->sink != SINK_HDMI)
+		return ERR_NOT_PERMITTED; 
 	if (pkt != NULL) {
-		ret = write_reg_mask(dev,
-				DIP_IF_FLAGS,
-				DIP_IF_FLAGS_IF2,
-				0);
-		if (ret < 0)
+		ret = write_reg_mask(dev,				DIP_IF_FLAGS,
+				DIP_IF_FLAGS_IF2,				0);		if (ret < 0)
 			return ret;
     
-		ret = tda998x_write(dev, IF2_HB0, 3, &pkt->header[0]);
-		if (ret < 0)
+		ret = tda998x_write(dev, IF2_HB0, 3, &pkt->header[0]);		if (ret < 0)
 			return ret;
     
-		ret = tda998x_write(dev,
-				IF2_PB0,
-				28,
-				&pkt->data[0]);
+		ret = tda998x_write(dev,				IF2_PB0,				28,				&pkt->data[0]);
 		if (ret < 0)
-			return ret;
-	}
+			return ret;	}
   
-	ret = write_reg_mask(dev,
-			DIP_IF_FLAGS,
+	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
 			DIP_IF_FLAGS_IF2,
 			en ? DIP_IF_FLAGS_IF2 : 0);
 	if (ret < 0)
 		return ret;
- 
-	return 0;
-}
-
-static int
-tda998x_pkt_set_vs_infoframe(struct tda998x_dev *dev,
-		struct tda998x_pkt *pkt,
-		unsigned int len,
-		uint8_t version,
-		bool en)
-{
-	int ret;
+ 	return 0;}
+static inttda998x_pkt_set_vs_infoframe(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		unsigned int len,
+		uint8_t version,		bool en){	int ret;
 	uint8_t buf[31];
 
 	if (dev->sink != SINK_HDMI)
 		return ERR_NOT_PERMITTED;
-    
-	if (pkt != NULL) {
+    	if (pkt != NULL) {
 		ret = write_reg_mask(dev, DIP_IF_FLAGS, DIP_IF_FLAGS_IF1, 0);
 		if (ret < 0)
 			return ret;
@@ -3649,13 +3221,10 @@ tda998x_pkt_set_vs_infoframe(struct tda998x_dev *dev,
 			return ret;
 	}
   
-	ret = write_reg_mask(dev,
-			DIP_IF_FLAGS,
+	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
 			DIP_IF_FLAGS_IF1,
 			en ? DIP_IF_FLAGS_IF1 : 0);
-  
-	return ret;
-}
+  	return ret;}
 
 
 static int
@@ -3680,12 +3249,9 @@ tda998x_set_pix_edge(struct tda998x_dev *dev, enum vip_cntrl_3_edge edge)
  * @return	0 on success, non-zero error status otherwise
  */
 static int
-input_config(struct tda998x_dev *dev,
-		enum tda998x_vidin_mode vin_mode,
-		enum vip_cntrl_3_edge edge,
-		enum tda998x_pix_rate pix_rate,
-		enum tda998x_upsample upsample_mode,
-		uint8_t pix_rpt,
+input_config(struct tda998x_dev *dev,		enum tda998x_vidin_mode vin_mode,
+		enum vip_cntrl_3_edge edge,		enum tda998x_pix_rate pix_rate,
+		enum tda998x_upsample upsample_mode,		uint8_t pix_rpt,
 		enum tda998x_vid_fmt vout_fmt,
 		enum tda998x_format_3d format_3d)
 {
@@ -3703,19 +3269,14 @@ input_config(struct tda998x_dev *dev,
 	if (desc == NULL)
 		return ERR_NOT_FOUND;
 
-	ret = write_reg_mask(dev,
-			VIP_CNTRL_3,
+	ret = write_reg_mask(dev,			VIP_CNTRL_3,
 			VIP_CNTRL_3_EDGE,
 			(uint8_t) edge);
 	if (ret < 0)
 		return ret;
-
-	vidin_cfg->pix_rate = pix_rate;
-
-	switch (vidin_cfg->mode) {
+	vidin_cfg->pix_rate = pix_rate;	switch (vidin_cfg->mode) {
 	case VINMODE_RGB444:
-	case VINMODE_YUV444:
-		if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
+	case VINMODE_YUV444:		if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
 				(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
 			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, 0);
 			if (ret < 0)
@@ -3732,16 +3293,12 @@ input_config(struct tda998x_dev *dev,
 			ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0);
 			if (ret < 0)
 				return ret;
-
-			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, 0);
+			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, 0);
 			if (ret < 0)
-				return ret;
-		} else {
+				return ret;		} else {
 			return ERR_BAD_PARAM;
-		}
-		break;
-
-	case VINMODE_YUV422:
+		}		break;
+	case VINMODE_YUV422:
 		if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
 				(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
 			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, 0);
@@ -3759,17 +3316,11 @@ input_config(struct tda998x_dev *dev,
 			ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0);
 			if (ret < 0)
 				return ret;
-
-			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, 0);
+			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, 0);
 			if (ret < 0)
-				return ret;
-		} else {
-			return ERR_BAD_PARAM;
-		}
-		break;
-
-	case VINMODE_CCIR656:
-		if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
+				return ret;		} else {
+			return ERR_BAD_PARAM;		}		break;
+	case VINMODE_CCIR656:		if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
 				(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
 			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, VIP_CNTRL_4_CCIR656);
 			if (ret < 0)
@@ -3786,14 +3337,12 @@ input_config(struct tda998x_dev *dev,
 			ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0x02);
 			if (ret < 0)
 				return ret;
-
-			ret = write_reg_mask(dev,
+			ret = write_reg_mask(dev,
 					VIP_CNTRL_4,
 					VIP_CNTRL_4_656_ALT,
 					0);
 			if (ret < 0)
-				return ret;
-		} else if (vidin_cfg->pix_rate == PIXRATE_DOUBLE) {
+				return ret;		} else if (vidin_cfg->pix_rate == PIXRATE_DOUBLE) {
 			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, VIP_CNTRL_4_CCIR656);
 			if (ret < 0)
 				return ret;
@@ -3809,14 +3358,10 @@ input_config(struct tda998x_dev *dev,
 			ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0);
 			if (ret < 0)
 				return ret;
-
-			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, VIP_CNTRL_4_656_ALT);
+			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, VIP_CNTRL_4_656_ALT);
 			if (ret < 0)
-				return ret;
-		}
-		break;
-
-	default:
+				return ret;		}		break;
+	default:
 		ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, 0);
 		if (ret < 0)
 			return ret;
@@ -3838,41 +3383,72 @@ input_config(struct tda998x_dev *dev,
 
 	/* embedded 2D video format */
 	ssd = desc->pll_sc;
-
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_2,
+	ret = write_reg_mask(dev,			PLL_SERIAL_2,
 			PLL_SERIAL_2_SRL_NOSC_MASK,
 			ssd);
 
 	/* Set pixel repetition */
-	pix_rpt = desc->pix_rpt;
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_2,
-			PLL_SERIAL_2_SRL_PR_MASK,
-			pix_rpt);
-	if (ret < 0)
+	pix_rpt = desc->pix_rpt;	ret = write_reg_mask(dev,			PLL_SERIAL_2,
+			PLL_SERIAL_2_SRL_PR_MASK,			pix_rpt);	if (ret < 0)
 		return ret;
 
 	/* Set pixel repetition count for repeater module */
 	ret = write_reg(dev, RPT_CNTRL, pix_rpt);
 	if (ret < 0)
 		return ret;
-
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_1,
+	ret = write_reg_mask(dev,			PLL_SERIAL_1,
 			PLL_SERIAL_1_SRL_MAN_IZ,
-			0);
+			0);	if (ret < 0)
+		return ret;	ret = write_reg_mask(dev,			PLL_SERIAL_3,
+			PLL_SERIAL_3_SRL_DE,			0);	if (ret < 0)
+		return ret;	ret = write_reg(dev, SERIALIZER, 0);	if (ret < 0)
+		return ret;
+	return 0;}
+
+
+static int
+tda998x_reset(struct tda998x_dev *dev)
+{
+	int ret;
+
+	/* Reset I2C master and Audio*/
+	ret = write_reg_mask(dev,
+			SR_REG,
+			SR_REG_SR_I2C_MS | SR_REG_SR_AUDIO,
+			SR_REG_SR_AUDIO);
+	if (ret < 0)
+		return ret;
+
+	usleep(1000 * 50);
+
+	ret = write_reg_mask(dev,
+			SR_REG,
+                        SR_REG_SR_I2C_MS | SR_REG_SR_AUDIO,
+                        0);
+	if (ret < 0)
+		return ret;
+
+	usleep(1000 * 50);
+
+	ret = write_reg_mask(dev,
+			MAIN_CNTRL0,
+			MAIN_CNTRL0_SR,
+			MAIN_CNTRL0_SR);
 	if (ret < 0)
 		return ret;
 
 	ret = write_reg_mask(dev,
-			PLL_SERIAL_3,
-			PLL_SERIAL_3_SRL_DE,
+			MAIN_CNTRL0,
+			MAIN_CNTRL0_SR,
 			0);
 	if (ret < 0)
 		return ret;
 
-	ret = write_reg(dev, SERIALIZER, 0);
+	/* Clear any colorbars */
+	ret = write_reg_mask(dev,
+			HVF_CNTRL_0,
+			HVF_CNTRL_0_SM,
+			0);
 	if (ret < 0)
 		return ret;
 
@@ -3881,12 +3457,105 @@ input_config(struct tda998x_dev *dev,
 
 
 int
-tda998x_init(struct tda998x_dev *dev, struct tda998x_vidin_cfg *vidin_cfg)
+tda998x_init(struct tda998x_dev *dev, struct tda998x_cfg *cfg)
 {
 	int ret;
 
-        /* Start by forcing the TMDS ouputs off */
-	ret = tda998x_set_tmds_output(dev, TMDSOUT_FORCED0);
+	if ((dev == NULL) || (cfg == NULL))
+		return ERR_NULL_PARAM;
+
+	dev->cfg = cfg;
+
+	/* Reset ENAMODS */
+	ret = cec_write_reg(dev, ENAMODS, 0x40);
+	if (ret < 0)
+		return ret;
+
+	ret = cec_write_reg_mask(dev,
+			ENAMODS,
+			ENAMODS_ENA_HDMI | ENAMODS_ENA_RXS | ENAMODS_DIS_FRO,
+			ENAMODS_ENA_HDMI | ENAMODS_ENA_RXS);
+	if (ret < 0)
+		return ret;
+
+	ret = tda998x_reset(dev);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, ANA_GENERAL, 0x09);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SERIAL_1, 0x00);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SERIAL_2, 0x01);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SERIAL_3, 0x00);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, SERIALIZER, 0x00);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SCG1, 0x00);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, AUDIO_DIV, 0x03);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, SEL_CLK, 0x09);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, 0);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SCGN1, 0xFA);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SCGN2, 0x00);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SCGR1, 0x5B);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SCGR2, 0x00);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, PLL_SCG2, 0x10);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, DDC_DISABLE, 0x00);
+	if (ret < 0)
+		return ret;
+
+	/* Set clock speed of the DDC channel */
+	ret = write_reg(dev, OTP_TX3, 39);		// TDA19989_DDC_SPEED_FACTOR
+	if (ret < 0)
+		return ret;
+
+	ret = cec_write_reg(dev, FRO_IM_CLK_CTRL, FRO_IM_CLK_CTRL_GHOST_DIS | FRO_IM_CLK_CTRL_IMCLK_SEL);
+	if (ret < 0)
+		return ret;
+
+	/*Write data in RXSHPD Register*/
+	ret = cec_write_reg_mask(dev,
+			RXSHPDINTENA,
+			RXSHPDINTENA_ENA_RXS_INT | RXSHPDINTENA_ENA_HPD_INT,
+			RXSHPDINTENA_ENA_RXS_INT | RXSHPDINTENA_ENA_HPD_INT);
 	if (ret < 0)
 		return ret;
 
@@ -3944,6 +3613,9 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 	if (ret < 0)
 		return ret;
 
+	dev->vin_cfg = vidin_cfg;
+	dev->vout_cfg = vidout_cfg;
+
 	/* Set video output configuration */
 	ret = tda998x_vidout_set_config(dev, sink, vidout_cfg->mode, PREFIL_OFF, YUVBLK_16, QRANGE_FS);
 	if (ret < 0)
@@ -3953,7 +3625,7 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 	pix_rpt = PIXREP_DEFAULT;
 	dwidth = VOUT_DBITS_12;
 	pix_edge = PIXEDGE_CLK_POS;
-	sync_mthd = SYNCMTHD_V_H;
+	sync_mthd = SYNCMTHD_V_XDE;
 	toggle = PIXTOGL_ENABLE;
 
 	/* Set sync details */
@@ -3994,9 +3666,11 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 //		mirr = mirr_map_yuv422;
 //		break;
 
-         default:
-        	 return ERR_BAD_PARAM;
-    }
+	default:
+		return ERR_BAD_PARAM;
+	}
+
+
 
 	/* Set the audio and video input port configuration */
 	ret = tda998x_vidin_set_port_enable(dev);
@@ -4032,7 +3706,7 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 		    vidin_cfg->format_3d,
 		    SCALER_MODE_AUTO,
 		    vidout_cfg->format,
-		    pix_rpt,
+		    0,
 		    MTX_MODE_AUTO,
 		    dwidth,
 		    vidout_cfg->vqr);
@@ -4065,33 +3739,34 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 		}
 	}
 
+	ref_pix = 113;
+	ref_line = 2;
+
 	/* Combination found in table for scaler: configure input manually */
 	ret = tda998x_vidin_set_sync(dev,
 				vidin_cfg->sync_src,
 				sync_mthd,
-				toggle,
-				toggle,
-				toggle,
+				false,
+				false,
+				true,
 				ref_pix,
 				ref_line);
 	if (ret < 0)
 		return ret;
 
-//	} else {
-//		toggle = HDMITX_PIXTOGL_ENABLE;
-//		ref_pix = 0;
-//		ref_line = 0;
-//		sync_mthd = 0;
+//	toggle = HDMITX_PIXTOGL_ENABLE;
+//	ref_pix = 0;
+//	ref_line = 0;
+//	sync_mthd = 0;
 
 		/* Not found so assume non-scaler and auto-configure input */
-//		ret = tda998x_vidin_set_sync_auto(dev,
-//					vidin_cfg->sync_src,
-//					vidin_cfg->format,
-//					vidin_cfg->mode,
-//					vidin_cfg->format_3d);
-//		if (ret < 0)
-//			return ret;
-//	}
+//	ret = tda998x_vidin_set_sync_auto(dev,
+//				vidin_cfg->sync_src,
+//				vidin_cfg->format,
+//				vidin_cfg->mode,
+//				vidin_cfg->format_3d);
+//	if (ret < 0)
+//		return ret;
 
 	/* Set infoframes for HDMI only */
 //	if (sink == SINK_HDMI) {
