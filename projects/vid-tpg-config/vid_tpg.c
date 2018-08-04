@@ -140,7 +140,7 @@ vidtpg_init(vidtpg_t *tpg)
 	if (tpg == NULL)
 		return -1;
 
-	fd = open("/dev/uio2", O_RDWR);
+	fd = open("/dev/uio0", O_RDWR);
 	if (fd < 0)
 		return fd;
 
