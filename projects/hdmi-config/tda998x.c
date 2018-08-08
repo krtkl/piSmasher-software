@@ -121,18 +121,6 @@ enum tda998x_cec_reg {
 /**
  * @brief	HDMI Core Register Pages
  */
-//enum tda998x_hdmi_page {
-//	PAGE_00 = 0x00,
-//	PAGE_01 = 0x01,
-//	PAGE_02 = 0x02,
-//	PAGE_09 = 0x09,
-//	PAGE_10 = 0x10,
-//	PAGE_11 = 0x11,
-//	PAGE_12 = 0x12,
-//	PAGE_13 = 0x13,
-//	PAGE_INVALID = 0xFF
-//};
-
 enum tda998x_hdmi_page {
 	PAGE_00 = 0x00,
 	PAGE_01 = 0x01,
@@ -144,21 +132,6 @@ enum tda998x_hdmi_page {
 	PAGE_13 = 0x07,
 	PAGE_INVALID = 0xFF
 };
-
-//enum _ePage
-//{
-//    E_PAGE_00      = 0,
-//    E_PAGE_01      = 1,
-//    E_PAGE_02      = 2,
-//    E_PAGE_09      = 3,
-//    E_PAGE_10      = 4,
-//    E_PAGE_11      = 5,
-//    E_PAGE_12      = 6,
-//    E_PAGE_13      = 7,
-//    E_PAGE_NUM     = 8,         /* Number of pages */
-//    E_PAGE_INVALID = 8          /* Index value indicating invalid page */
-//};
-
 
 #define VERSION_NOT_SCALER			(1 << 4)
 #define VERSION_NOT_HDCP			(1 << 5)
@@ -341,7 +314,13 @@ enum vidformat_fmt {
 	VIDFORMAT_1920x1080i_50Hz = 0x09,
 	VIDFORMAT_720x576i_50Hz = 0x0A,
 	VIDFORMAT_720x288p_50Hz = 0x0B,
-	VIDFORMAT_1920x1080p_50Hz = 0x0C
+	VIDFORMAT_1920x1080p_50Hz = 0x0C,
+	VIDFORMAT_800x600p_60Hz,
+	VIDFORMAT_1024x768p_60Hz,
+	VIDFORMAT_1280x768p_60Hz,
+	VIDFORMAT_1366x768p_60Hz,
+	VIDFORMAT_1600x1200p_60Hz,
+	VIDFORMAT_1920x1200p_60Hz
 };
 
 #define REFPIX_MIN				(0x0000U)
@@ -962,8 +941,6 @@ struct tda998x_vid_frm {
 	uint16_t	act_vid_end;
 	uint16_t	de_start;
 	uint16_t	de_end;
-	uint16_t	act_space_start;
-	uint16_t	act_space_end;
 };
 
 static const enum vip_cntrl_swap port_map_rgb444[] = {
@@ -1124,6 +1101,98 @@ static const uint8_t mtx_cfg_preset[12][31] = {
 /**
  * @}
  */
+
+
+static const struct vidfmt_desc {
+	uint16_t		vs2;
+	uint8_t			pix_rpt;
+	uint8_t			v_toggle;
+	uint8_t			h_toggle;
+	uint16_t		hfp;
+	uint16_t		vfp;
+	uint16_t		href;
+	uint16_t		vref;
+	uint8_t			pll_sc;		/**< PLL scaler */
+	enum vidformat_fmt	reg_fmt;
+} vidformat_desc[] = {
+	/* vs2	pr	vtg	htg	hfp	vfp	href	vref	pll	fmt */
+	{ 0,	0,	1,	1,	17,	2,	161,	36,	2,	VIDFORMAT_640x480p_60Hz },
+	{ 0,	0,	1,	1,	17,	8,	139,	43,	2,	VIDFORMAT_720x480p_60Hz },
+	{ 0,	0,	0,	0,	111,	2,	371,	26,	1,	VIDFORMAT_1280x720p_60Hz },
+	{ 1188,	0,	0,	0,	89,	2,	281,	21,	1,	VIDFORMAT_1920x1080i_60Hz },
+	{ 448,	1,	1,	1,	20,	5,	139,	22,	3,	VIDFORMAT_720x480i_60Hz },
+	{ 0,	1,	1,	1,	20,	5,	139,	22,	0,	VIDFORMAT_720x240p_60Hz },
+	{ 0,	0,	0,	0,	89,	2,	281,	42,	0,	VIDFORMAT_1920x1080p_60Hz },
+	{ 0,	0,	1,	1,	13,	2,	145,	45,	2,	VIDFORMAT_720x576p_50Hz },
+	{ 0,	0,	0,	0,	441,	2,	701,	26,	1,	VIDFORMAT_1280x720p_50Hz },
+	{ 1848,	0,	0,	0,	529,	2,	721,	21,	1,	VIDFORMAT_1920x1080i_50Hz },
+	{ 444,	1,	1,	1,	13,	2,	145,	23,	3,	VIDFORMAT_720x576i_50Hz },
+	{ 0,	1,	1,	1,	13,	2,	145,	23,	0,	VIDFORMAT_720x288p_50Hz },
+	{ 0,	0,	0,	0,	529,	2,	721,	42,	0,	VIDFORMAT_1920x1080p_50Hz },
+	{ 0,	0,	0,	0,	41,	2,	259,	28,	1,	VIDFORMAT_800x600p_60Hz },
+	{ 0,	0,	1,	1,	25,	2,	323,	36,	1,	VIDFORMAT_1024x768p_60Hz },
+	{ 0,	0,	0,	1,	65,	2,	387,	28,	1,	VIDFORMAT_1280x768p_60Hz },
+	{ 0,	0,	0,	0,	166,	5,	435,	25,	0,	VIDFORMAT_1366x768p_60Hz },
+	{ 0,	0,	0,	0,	65,	2,	563,	50,	0,	VIDFORMAT_1600x1200p_60Hz },
+	{ 0,	0,	0,	0,	65,	2,	163,	35,	0,	VIDFORMAT_1920x1200p_60Hz },
+	{ /* Sentinel */ }
+};
+
+//struct tda998x_vid_frm {
+//	uint16_t	npix;
+//	uint16_t	nline;
+//	uint16_t	line_start;
+//	uint16_t	pix_start;
+//	uint16_t	line_end;
+//	uint16_t	pix_end;
+//	uint16_t	hs_start;
+//	uint16_t	hs_end;
+//	uint16_t	act_vid_start;
+//	uint16_t	act_vid_end;
+//	uint16_t	de_start;
+//	uint16_t	de_end;
+//};
+struct tda998x_vid_frm vidformat_pc[] = {
+	/*  npix	nline	vsl_s1	vsp_s1	vsl_e1	vsp_e1	hs_e	hs_e	vw_s1	vw_e1	de_s	de_e */
+	{ 1056,		628,	1,	40,	5,	40,	40,	168,	27,	627,	256,	1056 },		/* VIDFORMAT_800x600p_60Hz   */
+	{ 1344,		806,	1,	24,	7,	24,	24,	160,	35,	803,	320,	1344 },		/* VIDFORMAT_1024x768p_60Hz  */
+	{ 1664,		798,	1,	64,	8,	64,	64,	192,	27,	795,	384,	1664 },		/* VIDFORMAT_1280x768p_60Hz  */
+	{ 1792,		798,	5,	64,	10,	64,	70,	213,	27,	795,	426,	1792 },		/* VIDFORMAT_1366x768p_60Hz  */
+	{ 2160,		1250,	1,	64,	4,	64,	64,	256,	49,	1249,	560,	2160 },		/* VIDFORMAT_1600x1200p_60Hz */
+	{ 2080,		1235,	1,	64,	4,	64,	40,	80,	35,	1235,	160,	2080 },		/* VIDFORMAT_1920x1200p_60Hz */
+};
+
+static const struct vidfmt_map {
+	enum tda998x_vid_fmt vid_fmt;
+	enum vidformat_fmt reg_fmt;
+} vidformat_map[] = {
+	{ VFMT_01_640x480p_60Hz,	VIDFORMAT_640x480p_60Hz },
+	{ VFMT_02_720x480p_60Hz,	VIDFORMAT_720x480p_60Hz },
+	{ VFMT_03_720x480p_60Hz,	VIDFORMAT_720x480p_60Hz },
+	{ VFMT_04_1280x720p_60Hz,	VIDFORMAT_1280x720p_60Hz },
+	{ VFMT_05_1920x1080i_60Hz,	VIDFORMAT_1920x1080i_60Hz },
+	{ VFMT_06_720x480i_60Hz,	VIDFORMAT_720x480i_60Hz },
+	{ VFMT_07_720x480i_60Hz,	VIDFORMAT_720x480i_60Hz },
+	{ VFMT_08_720x240p_60Hz,	VIDFORMAT_720x240p_60Hz },
+	{ VFMT_09_720x240p_60Hz,	VIDFORMAT_720x240p_60Hz },
+	{ VFMT_16_1920x1080p_60Hz,	VIDFORMAT_1920x1080p_60Hz },
+	{ VFMT_17_720x576p_50Hz,	VIDFORMAT_720x576p_50Hz },
+	{ VFMT_18_720x576p_50Hz,	VIDFORMAT_720x576p_50Hz },
+	{ VFMT_19_1280x720p_50Hz,	VIDFORMAT_1280x720p_50Hz },
+	{ VFMT_20_1920x1080i_50Hz,	VIDFORMAT_1920x1080i_50Hz },
+	{ VFMT_21_720x576i_50Hz,	VIDFORMAT_720x576i_50Hz },
+	{ VFMT_22_720x576i_50Hz,	VIDFORMAT_720x576i_50Hz },
+	{ VFMT_23_720x288p_50Hz,	VIDFORMAT_720x288p_50Hz },
+	{ VFMT_24_720x288p_50Hz,	VIDFORMAT_720x288p_50Hz },
+	{ VFMT_PC_800x600p_60Hz,	VIDFORMAT_800x600p_60Hz },
+	{ VFMT_PC_1024x768p_60Hz,	VIDFORMAT_1024x768p_60Hz },
+	{ VFMT_PC_1280x768p_60Hz,	VIDFORMAT_1280x768p_60Hz },
+	{ VFMT_PC_1366x768p_60Hz,	VIDFORMAT_1366x768p_60Hz },
+	{ VFMT_PC_1600x1200p_60Hz,	VIDFORMAT_1600x1200p_60Hz },
+	{ VFMT_PC_1920x1200p_60Hz,	VIDFORMAT_1920x1200p_60Hz },
+	{ /* Sentinel */ }
+};
+
 static int
 tda998x_mtx_set_conv(struct tda998x_dev *dev,
 		enum tda998x_vid_fmt vin_fmt,
@@ -1418,60 +1487,6 @@ cec_write_reg_mask(struct tda998x_dev *dev,
  * @}
  */
 
-static const struct vidfmt_desc {
-	uint16_t		vs2;
-	uint8_t			pix_rpt;
-	uint8_t			v_toggle;
-	uint8_t			h_toggle;
-	uint16_t		hfp;
-	uint16_t		vfp;
-	uint16_t		href;
-	uint16_t		vref;
-	uint8_t			pll_sc;		/**< PLL scaler */
-	enum vidformat_fmt	reg_fmt;
-} vidformat_desc[] = {
-	/* vs2	pr	vtg	htg	hfp	vfp	href	vref	pll	fmt */
-	{ 0,	0,	1,	1,	17,	2,	161,	36,	2,	VIDFORMAT_640x480p_60Hz },
-	{ 0,	0,	1,	1,	17,	8,	139,	43,	2,	VIDFORMAT_720x480p_60Hz },
-	{ 0,	0,	0,	0,	111,	2,	371,	26,	1,	VIDFORMAT_1280x720p_60Hz },
-	{ 1188,	0,	0,	0,	89,	2,	281,	21,	1,	VIDFORMAT_1920x1080i_60Hz },
-	{ 448,	1,	1,	1,	20,	5,	139,	22,	3,	VIDFORMAT_720x480i_60Hz },
-	{ 0,	1,	1,	1,	20,	5,	139,	22,	0,	VIDFORMAT_720x240p_60Hz },
-	{ 0,	0,	0,	0,	89,	2,	281,	42,	0,	VIDFORMAT_1920x1080p_60Hz },
-	{ 0,	0,	1,	1,	13,	2,	145,	45,	2,	VIDFORMAT_720x576p_50Hz },
-	{ 0,	0,	0,	0,	441,	2,	701,	26,	1,	VIDFORMAT_1280x720p_50Hz },
-	{ 1848,	0,	0,	0,	529,	2,	721,	21,	1,	VIDFORMAT_1920x1080i_50Hz },
-	{ 444,	1,	1,	1,	13,	2,	145,	23,	3,	VIDFORMAT_720x576i_50Hz },
-	{ 0,	1,	1,	1,	13,	2,	145,	23,	0,	VIDFORMAT_720x288p_50Hz },
-	{ 0,	0,	0,	0,	529,	2,	721,	42,	0,	VIDFORMAT_1920x1080p_50Hz },
-	{ /* Sentinel */ }
-};
-
-static const struct vidfmt_map {
-	enum tda998x_vid_fmt vid_fmt;
-	enum vidformat_fmt reg_fmt;
-} vidformat_map[] = {
-	{ VFMT_01_640x480p_60Hz,	VIDFORMAT_640x480p_60Hz },
-	{ VFMT_02_720x480p_60Hz,	VIDFORMAT_720x480p_60Hz },
-	{ VFMT_03_720x480p_60Hz,	VIDFORMAT_720x480p_60Hz },
-	{ VFMT_04_1280x720p_60Hz,	VIDFORMAT_1280x720p_60Hz },
-	{ VFMT_05_1920x1080i_60Hz,	VIDFORMAT_1920x1080i_60Hz },
-	{ VFMT_06_720x480i_60Hz,	VIDFORMAT_720x480i_60Hz },
-	{ VFMT_07_720x480i_60Hz,	VIDFORMAT_720x480i_60Hz },
-	{ VFMT_08_720x240p_60Hz,	VIDFORMAT_720x240p_60Hz },
-	{ VFMT_09_720x240p_60Hz,	VIDFORMAT_720x240p_60Hz },
-	{ VFMT_16_1920x1080p_60Hz,	VIDFORMAT_1920x1080p_60Hz },
-	{ VFMT_17_720x576p_50Hz,	VIDFORMAT_720x576p_50Hz },
-	{ VFMT_18_720x576p_50Hz,	VIDFORMAT_720x576p_50Hz },
-	{ VFMT_19_1280x720p_50Hz,	VIDFORMAT_1280x720p_50Hz },
-	{ VFMT_20_1920x1080i_50Hz,	VIDFORMAT_1920x1080i_50Hz },
-	{ VFMT_21_720x576i_50Hz,	VIDFORMAT_720x576i_50Hz },
-	{ VFMT_22_720x576i_50Hz,	VIDFORMAT_720x576i_50Hz },
-	{ VFMT_23_720x288p_50Hz,	VIDFORMAT_720x288p_50Hz },
-	{ VFMT_24_720x288p_50Hz,	VIDFORMAT_720x288p_50Hz },
-	{ /* Sentinel */ }
-};
-
 static uint8_t
 set_pix_clk(enum tda998x_vid_fmt fmt, enum tda998x_vert_freq freq, uint8_t *pclk)
 {
@@ -1514,7 +1529,6 @@ set_de_vs(struct tda998x_dev *dev,
 {
 	int ret;
 	uint16_t vs2;
-	uint8_t reg_idx;
 	const struct vidfmt_desc *desc;
 
 	desc = get_vidfmt_desc(vout_fmt);
@@ -1657,6 +1671,78 @@ chksum(uint8_t *data, int len)
 		cksum += *(data++);
 
 	return (255 - cksum) + 1;
+}
+
+/**
+ * @brief	Set Video Configuration
+ *
+ * @param	dev:	TDA998x device structure pointer
+ * @param	vid:	Video frame structure pointer
+ * @return	0 on success, non-zero error status otherwise
+ */
+static int
+set_video_config(struct tda998x_dev *dev,
+		  struct tda998x_vid_frm *vid)
+{
+	int ret;
+
+	ret = write_reg(dev, VIDFORMAT, 0x1F);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, VIDFORMAT, 0x00);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, NPIX_MSB, vid->npix);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, NLINE_MSB, vid->nline);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, VS_LINE_STRT_1_MSB, vid->line_start);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, VS_PIX_STRT_1_MSB, vid->pix_start);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, VS_LINE_END_1_MSB, vid->line_end);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, VS_PIX_END_1_MSB, vid->pix_end);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, HS_PIX_START_MSB, vid->hs_start);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, HS_PIX_STOP_MSB, vid->hs_end);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, VWIN_START_1_MSB, vid->act_vid_start);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, VWIN_END_1_MSB, vid->act_vid_end);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, DE_START_MSB, vid->de_start);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg16(dev, DE_STOP_MSB, vid->de_end);
+	if (ret < 0)
+		return ret;
+
+	return 0;
 }
 
 /**
@@ -2067,12 +2153,9 @@ tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
 
 	vidin_cfg = dev->vin_cfg;
 
-
-
 	desc = get_vidfmt_desc(vout_fmt);
 	if (desc == NULL)
 		return ERR_NOT_FOUND;
-
 
 	ret = write_reg_mask(dev,
 			VIP_CNTRL_3,
@@ -2083,13 +2166,9 @@ tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
 
 	vidin_cfg->pix_rate = pix_rate;
 
-
-
 	ret = read_reg(dev, VIP_CNTRL_4, &vip_cntrl_4);
 	if (ret < 0)
 		return ret;
-
-
 
 	ret = read_reg(dev, HVF_CNTRL_1, &hvf_cntrl_1);
 	if (ret < 0)
@@ -2162,8 +2241,6 @@ tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
 	ret = write_reg(dev, VIP_CNTRL_4, vip_cntrl_4);
 	if (ret < 0)
 		return ret;
-
-
 
 	ssd = desc->pll_sc;
 	if (ssd < SSD_UNUSED_VALUE) {
@@ -2351,74 +2428,6 @@ tda998x_vidin_set_sync(struct tda998x_dev *dev,
  */
 
 /**
- * @brief	Set Video Configuration
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	vid:	Video frame structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static int
-set_video_config(struct tda998x_dev *dev,
-		  struct tda998x_vid_frm *vid){
-	int ret;
-
-	ret = write_reg(dev, VIDFORMAT, 0x1F);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg(dev, VIDFORMAT, 0x00);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, NPIX_MSB, vid->npix);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, NLINE_MSB, vid->nline);
-	if (ret < 0)
-		return ret;
- 
-	ret = write_reg16(dev, VS_LINE_STRT_1_MSB, vid->line_start);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VS_PIX_STRT_1_MSB, vid->pix_start);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VS_LINE_END_1_MSB, vid->line_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VS_PIX_END_1_MSB, vid->pix_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, HS_PIX_START_MSB, vid->hs_start);
-	if (ret < 0)
-		return ret;
- 
-	ret = write_reg16(dev, HS_PIX_STOP_MSB, vid->hs_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VWIN_START_1_MSB, vid->act_vid_start);
-	if (ret < 0)
-		return ret;
- 
-	ret = write_reg16(dev, VWIN_END_1_MSB, vid->act_vid_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, DE_START_MSB, vid->de_start);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, DE_STOP_MSB, vid->de_end);
-	if (ret < 0)
-		return ret;
-	return 0;}
-
-/**
  * @defgroup	TDA998X_VideoOut TDA998x Video Output
  * @{
  */
@@ -2562,7 +2571,7 @@ set_video_config(struct tda998x_dev *dev,
 	if (ret < 0)
 		return ret;
 
-	/* Toggle TMDS serialiser */
+	/* Toggle TMDS serializer */
 	ret = write_reg_mask(dev,			BUFFER_OUT,
 			BUFFER_OUT_SRL_FORCE_MASK,
 			(uint8_t) TMDSOUT_FORCED0);
@@ -2595,8 +2604,13 @@ static inttda998x_video_set_inout(struct tda998x_dev *dev,		enum tda998x_vid_f
 		enum tda998x_dwidth dwidth,		enum tda998x_vqr vqr){
 	int ret;
 	enum tda998x_scaler_mode sca_mode;
+	struct vidfmt_desc *desc;
 	uint8_t reg_idx;
 	uint8_t reg_val;
+
+	desc = get_vidfmt_desc(vout_fmt);
+	if (desc == NULL)
+		return ERR_NOT_FOUND;
 
 	if (dev->vout_cfg->mode == VOUTMODE_RGB444) {
 		if ((dev->vout_cfg->format >= VFMT_02_720x480p_60Hz) &&
@@ -2654,16 +2668,19 @@ static inttda998x_video_set_inout(struct tda998x_dev *dev,		enum tda998x_vid_f
 //	RETIF_BADPARAM(reg_vid_fmt
 //			(vin_fmt, format_3d, &reg_idx, &reg_idx3D, 0));
 
-	ret = write_reg(dev, VIDFORMAT, 0x00);
-	if (ret < 0)
-		return ret;
+	/* Determine if the video can be set up using preformatted resolution */
+	if (desc->reg_fmt <= VIDFORMAT_1920x1080p_50Hz) {
+		ret = write_reg(dev, VIDFORMAT, 0x00);
+		if (ret < 0)
+			return ret;
 
-	ret = write_reg(dev, VIDFORMAT, 0x1F);
-	if (ret < 0)
-		return ret;
+		ret = write_reg(dev, VIDFORMAT, 0x1F);
+		if (ret < 0)
+			return ret;
 
-	ret = write_reg(dev, VIDFORMAT, VIDFORMAT_1280x720p_60Hz);	if (ret < 0)
-		return ret;
+		ret = write_reg(dev, VIDFORMAT, desc->reg_fmt);		if (ret < 0)
+			return ret;
+	}
 
 	/* Set VS and optional DE */
 	ret = set_de_vs(dev, vout_fmt, format_3d);	if (ret < 0)
@@ -2695,12 +2712,7 @@ static inttda998x_video_set_inout(struct tda998x_dev *dev,		enum tda998x_vid_f
 			(uint8_t) dwidth);
 	if (ret < 0)
 		return ret;
-  
-	/* Save kBypassColourProc registers before pattern goes on */
-//	read_reg(dev, MTX_CNTRL, &gMatContrl[txUnit]);
-//	read_reg(dev, HVF_CNTRL_0, &gHvfCntrl0[txUnit]);
-//	read_reg(dev, HVF_CNTRL_1, &gHvfCntrl1[txUnit]);
-  	return 0;}
+	return 0;}
 
 /**
  * @defgroup	TDA998X_Functions_Matrix Color Conversion Matrix
@@ -3381,19 +3393,17 @@ input_config(struct tda998x_dev *dev,		enum tda998x_vidin_mode vin_mode,
 		break;
 	}
 
-	/* embedded 2D video format */
-	ssd = desc->pll_sc;
-	ret = write_reg_mask(dev,			PLL_SERIAL_2,
+	ret = write_reg_mask(dev,			PLL_SERIAL_2,
 			PLL_SERIAL_2_SRL_NOSC_MASK,
-			ssd);
+			desc->pll_sc);
 
 	/* Set pixel repetition */
-	pix_rpt = desc->pix_rpt;	ret = write_reg_mask(dev,			PLL_SERIAL_2,
-			PLL_SERIAL_2_SRL_PR_MASK,			pix_rpt);	if (ret < 0)
+	ret = write_reg_mask(dev,			PLL_SERIAL_2,
+			PLL_SERIAL_2_SRL_PR_MASK,			desc->pix_rpt);	if (ret < 0)
 		return ret;
 
 	/* Set pixel repetition count for repeater module */
-	ret = write_reg(dev, RPT_CNTRL, pix_rpt);
+	ret = write_reg(dev, RPT_CNTRL, desc->pix_rpt);
 	if (ret < 0)
 		return ret;
 	ret = write_reg_mask(dev,			PLL_SERIAL_1,
@@ -3589,6 +3599,7 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 	enum vip_cntrl_4_blnkit blankit;		/**< Blanking source */
 	uint16_t ref_pix;
 	uint16_t ref_line;
+	const struct vidfmt_desc *desc;
 
 	const enum vip_cntrl_swap *swap = NULL;
 	const enum vip_cntrl_mirr *mirr = NULL;
@@ -3599,6 +3610,10 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 //		if (ret < 0)
 //			return ret;
 //	}
+
+	desc = get_vidfmt_desc(vidout_cfg->format);
+	if (desc == NULL)
+		return ERR_NOT_FOUND;
 
 	/* Pixel repetition for DVI not allowed */
 	if (sink == SINK_DVI) {
@@ -3670,8 +3685,6 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 		return ERR_BAD_PARAM;
 	}
 
-
-
 	/* Set the audio and video input port configuration */
 	ret = tda998x_vidin_set_port_enable(dev);
 	if (ret < 0)
@@ -3700,7 +3713,7 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 	if (ret < 0)
 		return ret;
 
-	/* Set input ouput - may give NOT_SUPPORTED error */
+	/* Set input output */
 	ret = tda998x_video_set_inout(dev,
 		    vidin_cfg->format,
 		    vidin_cfg->format_3d,
@@ -3739,20 +3752,62 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 		}
 	}
 
-	ref_pix = 113;
-	ref_line = 2;
-
-	/* Combination found in table for scaler: configure input manually */
-	ret = tda998x_vidin_set_sync(dev,
-				vidin_cfg->sync_src,
-				sync_mthd,
-				false,
-				false,
-				true,
-				ref_pix,
-				ref_line);
+	/**
+	 * @todo BEGIN VIDO INPUT SYNCHRONIZATION
+	 */
+	ret = write_reg_mask(dev,
+			VIP_CNTRL_3,
+			VIP_CNTRL_3_EMB,
+			(uint8_t) vidin_cfg->sync_src);
 	if (ret < 0)
 		return ret;
+
+	ret = write_reg_mask(dev,
+			TBG_CNTRL_0,
+			TBG_CNTRL_0_SYNC_MTHD,
+			(uint8_t) sync_mthd);
+	if (ret < 0)
+		return ret;
+
+	/* Toggle DE */
+	ret = write_reg_mask(dev,
+			VIP_CNTRL_3,
+			VIP_CNTRL_3_V_TGL | VIP_CNTRL_3_H_TGL | VIP_CNTRL_3_X_TGL,
+			VIP_CNTRL_3_X_TGL);
+	if (ret < 0)
+		return ret;
+
+	if (desc->reg_fmt >= VIDFORMAT_800x600p_60Hz) {
+		set_video_config(dev, &vidformat_pc[desc->reg_fmt - VIDFORMAT_800x600p_60Hz]);
+	}
+
+	ref_pix = desc->hfp + 2;
+	ref_line = desc->vfp;
+
+	if ((ref_pix >= REFPIX_MIN) &&
+			(ref_pix <= REFPIX_MAX)) {
+		ret = write_reg16(dev, REFPIX_MSB, ref_pix);
+		if (ret < 0)
+			return ret;
+	}
+
+	if ((ref_line >= REFLINE_MIN) &&
+			(ref_line <= REFLINE_MAX)) {
+		ret = write_reg16(dev, REFLINE_MSB, ref_line);
+		if (ret < 0)
+			return ret;
+	}
+
+//	ret = tda998x_vidin_set_sync(dev,
+//				vidin_cfg->sync_src,
+//				sync_mthd,
+//				false,
+//				false,
+//				true,
+//				ref_pix,
+//				ref_line);
+//	if (ret < 0)
+//		return ret;
 
 //	toggle = HDMITX_PIXTOGL_ENABLE;
 //	ref_pix = 0;

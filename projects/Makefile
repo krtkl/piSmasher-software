@@ -2,7 +2,7 @@ proj	+= hdmi-config/
 proj	+= audio-config/
 proj	+= vid-tpg-config/
 proj	+= uio-vdma/
-
+proj	+= uio-vtc/
 
 all: $(proj)
 

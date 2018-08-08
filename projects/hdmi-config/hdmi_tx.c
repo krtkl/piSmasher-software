@@ -111,7 +111,7 @@ static struct tda998x_cfg *hdmi_tx_cfg_lookup(int dev_id)
 /**
  * @brief	HDMI Receiver Initialization
  */
-int hdmi_tx_init(void)
+int hdmi_tx_init(enum tda998x_vid_fmt vin_fmt, enum tda998x_vid_fmt vout_fmt)
 {
 	int err;
 	struct tda998x_cfg *cfg;
@@ -144,17 +144,12 @@ int hdmi_tx_init(void)
 		return err;
 	}
 
+	vin_cfg.format = vin_fmt;
+	vout_cfg.format = vout_fmt;
+
 	err = tda998x_set_input_output(dev, &vin_cfg, &vout_cfg, NULL, SINK_HDMI);
 	if (err < 0)
 		return err;
-
-//	err = tda998x_set_inout(dev, &vin_cfg, &vout_cfg, SINK_HDMI);
-//	if (err < 0) {
-//		printf("[ERROR] %s() %s %d\n", __func__, __FILE__, __LINE__);
-//		return err;
-//	}
-
-//	err = tda998x_config_audio()
 
 	return 0;
 }

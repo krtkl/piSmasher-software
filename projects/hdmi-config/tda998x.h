@@ -113,6 +113,16 @@ enum tda998x_vid_fmt {
 	VFMT_60_1280x720p_24Hz  = 60,   /**< Format 60 1280 x 720p  23.97/24Hz 16:9 */
 	VFMT_61_1280x720p_25Hz  = 61,   /**< Format 61 1280 x 720p  25Hz 16:9 */
 	VFMT_62_1280x720p_30Hz  = 62,   /**< Format 60 1280 x 720p  29.97/30Hz 16:9 */
+	VFMT_PC_640x480p_60Hz   = 128,   /**< PC format 128                */
+	VFMT_PC_800x600p_60Hz   = 129,   /**< PC format 129                */
+	VFMT_PC_1152x960p_60Hz  = 130,   /**< PC format 130                */
+	VFMT_PC_1024x768p_60Hz  = 131,		/**< PC format 131 */
+	VFMT_PC_1280x768p_60Hz  = 132,		/**< PC format 132 */
+	VFMT_PC_1280x1024p_60Hz = 133,		/**< PC format 133 */
+	VFMT_PC_1366x768p_60Hz  = 134,		/**< PC format 134 */
+	VFMT_PC_1400x1050p_60Hz = 135,		/**< PC format 135 */
+	VFMT_PC_1600x1200p_60Hz = 136,		/**< PC format 136 */
+	VFMT_PC_1920x1200p_60Hz = 137,		/**< PC format custom */
 };
 
 enum tda998x_edid_state {

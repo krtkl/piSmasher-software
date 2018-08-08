@@ -2,7 +2,7 @@
  *******************************************************************************
  *******************************************************************************
  *
- * @file	hdmi-config.c
+ * @file	main.c
  * @author	R. Bush
  * @email	bush@krtkl.com
  * @version	v1.0
@@ -50,8 +50,8 @@
 
 #include "i2c.h"
 
-#include "hdmi_rx.h"
 #include "hdmi_tx.h"
+#include "hdmi_rx.h"
 
 #define ERROR_PRINT(__format__, ...)		printf("[ERROR] %s() %s %d: " __format__ "\r\n", __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
 
@@ -70,8 +70,14 @@
 #define UNIT_I2C_ADDRESS_0 0x72
 #define CEC_UNIT_I2C_ADDRESS_0 0x36
 
+static void
+usage(void)
+{
+	printf("hdmi-config [-i input_format] [-o output_format]\n");
+}
+
 static int
-hdmi_init(void)
+hdmi_init(enum tda998x_vid_fmt vin_fmt, enum tda998x_vid_fmt vout_fmt)
 {
 	int err;
 
@@ -85,7 +91,7 @@ hdmi_init(void)
 	printf("done.\n");
 
 	printf("%-30s", "Initializing TD998x HDMI transmitter\n");
-	err = hdmi_tx_init();
+	err = hdmi_tx_init(vin_fmt, vout_fmt);
 	if (err) {
 		ERROR_PRINT("%x = hdmi_tx_init()", err);
 		return err;
@@ -94,19 +100,38 @@ hdmi_init(void)
 	return 0;
 }
 
-
 int
 main(int argc, char **argv)
 {
-	int err;
+	int c, err;
+	enum tda998x_vid_fmt vin_fmt = VFMT_PC_1366x768p_60Hz;
+	enum tda998x_vid_fmt vout_fmt = VFMT_PC_1366x768p_60Hz;
 
 	printf("--------------------------------------------------------\n");
 	printf("piSmasher HDMI Configuration and Test Utility\n");
 
 	printf("Compiled: %s %s\n\n", __DATE__, __TIME__);
 
+	while ((c = getopt(argc, argv, "i:o:")) != -1) {
+		switch (c) {
+		case 'i':
+			vin_fmt = (enum tda998x_vid_fmt) atoi(optarg);
+			break;
+
+		case 'o':
+			vout_fmt = (enum tda998x_vid_fmt) atoi(optarg);
+			break;
+
+		case '?':
+		default:
+			printf("Unknown option character `\\x%x'.\n", optopt);
+			usage();
+			return -1;
+		}
+	}
+
 	printf("--- Initializing HDMI interfaces\n");
-	err = hdmi_init();
+	err = hdmi_init(vin_fmt, vout_fmt);
 	if (err < 0)
 		ERROR_PRINT("%x = hdmi_init()", err);
 
