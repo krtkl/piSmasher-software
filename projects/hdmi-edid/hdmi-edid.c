@@ -192,6 +192,8 @@ main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 
+		lseek(fd, 0, SEEK_SET);
+
 		read(fd, edid_data, 128);
 		read(fd, edid_ext, 128);
 
