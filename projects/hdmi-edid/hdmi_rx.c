@@ -95,6 +95,87 @@ static uint8_t edid_ext[127] = {
 	0x00,	0x00,	0x00,	0x00,	0x00,	0x00,	0x00,			/* Padding */
 };
 
+#ifdef DEBUG
+const char *timing_regs[] = {
+	"V_PER_MSB",
+	"V_PER_ISB",
+	"V_PER_LSB",
+	"H_PER_MSB",
+	"H_PER_LSB",
+	"HS_WIDTH_MSB",
+	"HS_WIDTH_LSB",
+	"FMT_H_TOT_MSB",
+	"FMT_H_TOT_LSB",
+	"FMT_H_ACT_MSB",
+	"FMT_H_ACT_LSB",
+	"FMT_H_FRONT_MSB",
+	"FMT_H_FRONT_LSB",
+	"FMT_H_SYNC_MSB",
+	"FMT_H_SYNC_LSB",
+	"FMT_H_BACK_MSB",
+	"FMT_H_BACK_LSB",
+	"FMT_V_TOT_MSB",
+	"FMT_V_TOT_LSB",
+	"FMT_V_ACT_MSB",
+	"FMT_V_ACT_LSB",
+	"FMT_V_FRONT_F1",
+	"FMT_V_FRONT_F2",
+	"FMT_V_SYNC",
+	"FMT_V_BACK_F1",
+	"FMT_V_BACK_F2",
+	"FMT_DE_ACT",
+	"PXCNT_PR_MSB",
+	"PXCNT_PR_LSB",
+	"PXCNT_NPIX_MSB",
+	"PXCNT_NPIX_LSB",
+	"LCNT_PR_MSB",
+	"LCNT_PR_LSB",
+	"LCNT_NLIN_MSB",
+	"LCNT_NLIN_LSB",
+	"HREF_S_MSB",
+	"HREF_S_LSB",
+	"HREF_E_MSB",
+	"HREF_E_LSB",
+	"HS_S_MSB",
+	"HS_S_LSB",
+	"HS_E_MSB",
+	"HS_E_LSB",
+	"VREF_F1_S_MSB",
+	"VREF_F1_S_LSB",
+	"VREF_F1_WIDTH",
+	"VREF_F2_S_MSB",
+	"VREF_F2_S_LSB",
+	"VREF_F2_WIDTH",
+	"VS_F1_LINE_S_MSB",
+	"VS_F1_LINE_S_LSB",
+	"VS_F1_LINE_WIDTH",
+	"VS_F2_LINE_S_MSB",
+	"VS_F2_LINE_S_LSB",
+	"VS_F2_LINE_WIDTH",
+	"VS_F1_PIX_S_MSB",
+	"VS_F1_PIX_S_LSB",
+	"VS_F1_PIX_E_MSB",
+	"VS_F1_PIX_E_LSB",
+	"VS_F2_PIX_S_MSB",
+	"VS_F2_PIX_S_LSB",
+	"VS_F2_PIX_E_MSB",
+	"VS_F2_PIX_E_LSB",
+	"FREF_F1_S_MSB",
+	"FREF_F1_S_LSB",
+	"FREF_F2_S_MSB",
+	"FREF_F2_S_LSB",
+	"FDW_S_MSB",
+	"FDW_S_LSB",
+	"FDW_E_MSB",
+	"FDW_E_LSB",
+	"MEASLIN_MSB",
+	"MEASLIN_LSB",
+	"MEASPIX_MSB",
+	"MEASPIX_LSB",
+	"ASD_MEASLIN_MSB"
+};
+#endif
+
 struct tda1997x_dev hdmi_rx;
 
 static struct tda1997x_cfg hdmi_rx_cfg_tab[HDMI_RX_NCONFIGS] =
@@ -104,7 +185,8 @@ static struct tda1997x_cfg hdmi_rx_cfg_tab[HDMI_RX_NCONFIGS] =
 		.i2c_addr = HDMI_RX_HDMI_I2C_ADDR,
 		.cec_addr = HDMI_RX_CEC_I2C_ADDR,
 		.i2c_write = i2c_write_reg,
-		.i2c_read = i2c_read_reg
+		.i2c_read = i2c_read_reg,
+		.cur_page = 0xFF
 	}
 };
 
@@ -115,7 +197,8 @@ static struct tda1997x_cfg hdmi_rx_cfg_tab[HDMI_RX_NCONFIGS] =
  * @return	Pointer to configuration matching device identifier if found or
  * 			NULL if not found in the lookup table
  */
-static struct tda1997x_cfg *hdmi_rx_cfg_lookup(int dev_id)
+static struct tda1997x_cfg *
+hdmi_rx_cfg_lookup(int dev_id)
 {
 	struct tda1997x_cfg *cfg = NULL;
 	int i;
@@ -130,10 +213,37 @@ static struct tda1997x_cfg *hdmi_rx_cfg_lookup(int dev_id)
 	return cfg;
 }
 
+int
+hdmi_rx_dump_timing(void)
+{
+	int i, ret;
+	uint8_t reg_val[26 + 48];
+
+	ret = tda1997x_get_timing(&hdmi_rx, reg_val);
+	if (ret < 0)
+		return ret;
+#ifdef DEBUG
+	printf("HDMI RX Timing:\n");
+	for (i = 0; i < (26 + 48); i++) {
+		printf(" %s = %02x\n", timing_regs[i], reg_val[i]);
+	}
+	printf("\n");
+#endif
+
+	return 0;
+}
+
+int
+hdmi_rx_set_edid(uint8_t *edid, uint8_t *edid_ext)
+{
+	return tda1997x_cfg_edid(&hdmi_rx, edid, edid_ext);
+}
+
 /**
  * @brief	HDMI Receiver Initialization
  */
-int hdmi_rx_init(void)
+int
+hdmi_rx_init(void)
 {
 	int err;
 	struct tda1997x_cfg *cfg;
@@ -156,5 +266,7 @@ int hdmi_rx_init(void)
 		return err;
 	}
 
-	return tda1997x_init(&hdmi_rx, cfg, edid_block, edid_ext);
+	hdmi_rx.cfg = cfg;
+
+	return 0;
 }

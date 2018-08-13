@@ -52,6 +52,12 @@
 
 #include "hdmi_tx.h"
 
+#ifdef DEBUG
+# define DEBUG_PRINT(__format__, ...)		printf("[DEBUG] %s() %s %d: " __format__ "\r\n", __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+# define DEBUG_PRINT(...)			do {} while (0)
+#endif
+
 #define HDMI_TX_DEVICE_ID			(0)
 #define HDMI_TX_NCONFIGS			(1)
 
@@ -85,6 +91,7 @@ static struct tda998x_vidout_cfg vout_cfg = {
 };
 
 static struct tda998x_dev hdmi_tx;
+static uint8_t edid_block[EDID_BLOCK_SIZE * 2];		/**< EDID data for 2 blocks */
 
 /**
  * @brief	HDMI transmitter configuration lookup by device identifier
@@ -108,10 +115,119 @@ static struct tda998x_cfg *hdmi_tx_cfg_lookup(int dev_id)
 	return cfg;
 }
 
+static int
+handle_hotplug(struct tda998x_dev *dev)
+{
+	int ret;
+
+	enum tda998x_hotplug_status hotplug_status;
+
+	/* Get Hot Plug status */
+	ret = tda998x_get_hotplug_status(dev, &hotplug_status, false);
+	if (ret < 0)
+		return ret;
+
+	/* Has hot plug changed to Active? */
+	if (hotplug_status == HOTPLUG_ACTIVE) {
+
+		/* Set state machine to Plugged */
+		if (dev->state == TDA998X_STATE_ON) {
+
+			usleep(1000 * 500);
+
+			dev->edid = malloc(sizeof(struct tda998x_edid));
+			if (dev->edid == NULL)
+				return -1;
+
+			/* Request EDID read */
+			ret = tda998x_edid_get_block(dev, edid_block, 2, EDID_BLOCK_SIZE);
+			if (ret < 0)
+				return ret;
+		}
+	} else {
+		/* Set state machine to Unplugged */
+	}
+
+	return 0;
+}
+
+static int
+parse_edid(uint8_t *block)
+{
+	int i;
+
+	for (i = 54; i < 71; i++) {
+	}
+}
+
 /**
- * @brief	HDMI Receiver Initialization
+ * @brief	HDMI transmitter dump EDID data
  */
-int hdmi_tx_init(enum tda998x_vid_fmt vin_fmt, enum tda998x_vid_fmt vout_fmt)
+int
+hdmi_tx_dump_edid(uint8_t *data0, uint8_t *data1)
+{
+	int i, ret;
+	struct tda998x_edid *edid;
+
+	edid = malloc(sizeof(struct tda998x_edid));
+	if (edid == NULL)
+		return -1;
+
+	hdmi_tx.edid = edid;
+	ret = tda998x_read_edid(&hdmi_tx, data0);
+	if (ret < 0)
+		return ret;
+
+#ifdef DEBUG
+	printf("\nEDID BLOCK 0 DATA:\n");
+	for (i = 0; i < EDID_BLOCK_SIZE; i++) {
+		printf(" %02x", data0[i]);
+
+		if (!((i + 1) % 8))
+			printf("\n");
+	}
+	printf("\n");
+#endif
+
+	hdmi_tx.edid->req_id = 1;
+	ret = tda998x_read_edid(&hdmi_tx, data1);
+	if (ret < 0)
+		return ret;
+
+#ifdef DEBUG
+	printf("EDID BLOCK 1 DATA:\n");
+
+	for (i = 0; i < EDID_BLOCK_SIZE; i++) {
+		printf(" %02x", data1[i]);
+
+		if (!((i + 1) % 8))
+			printf("\n");
+	}
+	printf("\n");
+#endif
+	return 0;
+}
+
+/**
+ * @brief	HDMI Transmitter Handle Interrupt
+ */
+int
+hdmi_tx_handle_interrupt(void)
+{
+	int ret;
+
+	ret = tda998x_handle_interrupt(&hdmi_tx);
+	if (ret < 0)
+		return ret;
+
+	return 0;
+}
+
+/**
+ * @brief	HDMI Transmitter Initialization
+ */
+int
+hdmi_tx_init(void)
 {
 	int err;
 	struct tda998x_cfg *cfg;
@@ -138,18 +254,9 @@ int hdmi_tx_init(enum tda998x_vid_fmt vin_fmt, enum tda998x_vid_fmt vout_fmt)
 		return err;
 	}
 
-	err = tda998x_init(dev, cfg);
-	if (err < 0) {
-		printf("[ERROR] %s() %s %d\n", __func__, __FILE__, __LINE__);
-		return err;
-	}
-
-	vin_cfg.format = vin_fmt;
-	vout_cfg.format = vout_fmt;
-
-	err = tda998x_set_input_output(dev, &vin_cfg, &vout_cfg, NULL, SINK_HDMI);
-	if (err < 0)
-		return err;
+	/* Assume the devices have been configured. Don't reset. */
+	dev->cfg = cfg;
+	dev->state = TDA998X_STATE_ON;
 
 	return 0;
 }

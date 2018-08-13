@@ -103,7 +103,7 @@ typedef struct _vidtpg_t {
 	int fd;
 } vidtpg_t;
 
-int vidtpg_init(vidtpg_t *tpg);
+int vidtpg_init(vidtpg_t *tpg, const char *devname);
 int vidtpg_set_pattern(vidtpg_t *tpg, enum vidtpg_bgpat bgpat, enum vidtpg_fgpat fgpat);
 int vidtpg_set_format(vidtpg_t *tpg, int height, int width, enum vidtpg_color_fmt color_fmt);
 

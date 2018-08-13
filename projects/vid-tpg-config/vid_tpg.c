@@ -132,15 +132,15 @@ vidtpg_set_pattern(vidtpg_t *tpg, enum vidtpg_bgpat bgpat, enum vidtpg_fgpat fgp
 }
 
 int
-vidtpg_init(vidtpg_t *tpg)
+vidtpg_init(vidtpg_t *tpg, const char *devname)
 {
 	int fd, ret;
 	void *base;
 
-	if (tpg == NULL)
+	if ((tpg == NULL) || (devname == NULL))
 		return -1;
 
-	fd = open("/dev/uio0", O_RDWR);
+	fd = open(devname, O_RDWR);
 	if (fd < 0)
 		return fd;
 

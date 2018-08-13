@@ -46,10 +46,10 @@
 #include <sys/mman.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
 
@@ -81,50 +81,21 @@ vdma_init_bufs(void)
 	return 0;
 }
 
-
-static int
-vdma_memdump(void)
-{
-	int i, j, fd;
-	volatile uint32_t *mem;
-
-	fd = open("/dev/mem", O_RDWR | O_SYNC);
-	if (fd < 0)
-		return fd;
-
-	mem = mmap(NULL, BUF_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0x30000000);
-	if (mem == MAP_FAILED) {
-		close(fd);
-		return -2;
-	}
-
-	for (i = 0; i < (BUF_SIZE / sizeof(uint32_t)); i++) {
-		printf("%08x:", i);
-
-		printf(" %08x", mem[i]);
-
-		printf("\n");
-	}
-
-	munmap(mem, BUF_SIZE);
-	close(fd);
-	return 0;
-}
-
-
 int
 main(int argc, char *argv[])
 {
 	int c;
 	bool stop = false;
 	int ret;
+	const char *dev_name = NULL;
 	struct pollfd pollfd;
 	struct timeval tv;
 	AxiVdma *vdma;
 
-	while ((c = getopt(argc, argv, "p")) != -1) {
+	while ((c = getopt(argc, argv, "pd:")) != -1) {
 		switch (c) {
 		case 'p': stop = true; break;
+		case 'd': dev_name = optarg; break;
 		case '?':
 		default:
 			printf("Unknown option character `\\x%x'.\n", optopt);
@@ -132,29 +103,40 @@ main(int argc, char *argv[])
 		}
 	}
 
+	if (dev_name == NULL) {
+		printf("Select a device path\n");
+		return -1;
+	}
+
 	vdma = malloc(sizeof(AxiVdma));
 	if (!vdma)
 		return -9;
 
-	ret = vdma_init(vdma);
+	ret = vdma_init(vdma, dev_name);
 	if (ret < 0)
 		goto out;
 
-	vdma_init_bufs();
+//	vdma_init_bufs();
 	ret = vdma_config(vdma);
 	if (ret < 0)
 		goto out;
 
-	pollfd.fd = vdma->fd;
-	pollfd.events = POLLRDNORM;
+	usleep(1000 * 2000);
 
-	tv.tv_sec = 5;
-	tv.tv_usec = 0;
+	ret = vdma_get_status(vdma);
+	if (ret < 0)
+		goto out;
 
-	ret = poll(&pollfd, 1, 5000);
-	if (ret != -1) {
-		vdma_memdump();
-	}
+//	pollfd.fd = vdma->fd;
+//	pollfd.events = POLLRDNORM;
+//
+//	tv.tv_sec = 5;
+//	tv.tv_usec = 0;
+//
+//	ret = poll(&pollfd, 1, 5000);
+//	if (ret != -1) {
+//		vdma_memdump();
+//	}
 
 out:
 	munmap(vdma->base, 0x10000);

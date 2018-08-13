@@ -56,8 +56,9 @@ typedef struct _AxiVdma {
 	int fd;
 } AxiVdma;
 
-int vdma_init(AxiVdma *vdma);
+int vdma_init(AxiVdma *vdma, const char *name);
 int vdma_config(AxiVdma *vdma);
+int vdma_get_status(AxiVdma *vdma);
 
 #ifdef __cplusplus
 }

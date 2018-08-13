@@ -54,9 +54,11 @@
 
 static void usage(void)
 {
-	printf("Usage:\n"
-		"  uio-vtc -d devname\n"
+	printf("Usage: uio-vtc [OPTIONS] UIONUM\n"
 		"\n"
+		"Options:\n"
+		"    -g        - Configure generator (default)\n"
+		"    -d        - Configure detector\n"
 	);
 }
 
@@ -65,13 +67,19 @@ main(int argc, char *argv[])
 {
 	int c;
 	int ret;
-	char *devname = NULL;
+	bool isgen = true;
+	int devnum = -1;
+	char devname[16];
 	struct vtc_dev *vtc;
 
-	while ((c = getopt(argc, argv, "d:")) != -1) {
+	while ((c = getopt(argc, argv, "gd")) != -1) {
 		switch (c) {
 		case 'd':
-			devname = optarg;
+			isgen = false;
+			break;
+
+		case 'g':
+			isgen = true;
 			break;
 
 		case '?':
@@ -82,7 +90,11 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (devname == NULL) {
+	/* Get the UIO number after parsing the options */
+	if (optind < argc) {
+		devnum = atoi(argv[optind]);
+		sprintf(devname, "/dev/uio%d", devnum);
+	} else {
 		usage();
 		return -1;
 	}
@@ -95,17 +107,27 @@ main(int argc, char *argv[])
 	if (ret < 0)
 		goto out;
 
-	ret = vtc_set_generator_video_mode(vtc, VTC_MODE_WXGA);
+	ret = vtc_enable_interrupts(vtc);
 	if (ret < 0)
 		goto out;
 
-	ret = vtc_enable(vtc, true);
-	if (ret < 0)
-		goto out;
+	if (isgen) {
+		ret = vtc_set_generator_video_mode(vtc, VTC_MODE_WXGA);
+		if (ret < 0)
+			goto out;
 
-	ret = vtc_gen_enable(vtc, true);
-	if (ret < 0)
-		goto out;
+		ret = vtc_gen_enable(vtc, true);
+		if (ret < 0)
+			goto out;
+	} else {
+		ret = vtc_det_enable(vtc, true);
+		if (ret < 0)
+			goto out;
+
+		ret = vtc_det_dump(vtc);
+		if (ret < 0)
+			goto out;
+	}
 out:
 	free(vtc);
 	return ret;

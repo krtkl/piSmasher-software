@@ -52,7 +52,9 @@ extern "C" {
 
 #include "tda998x.h"
 
-int hdmi_tx_init(enum tda998x_vid_fmt vin_fmt, enum tda998x_vid_fmt vout_fmt);
+int hdmi_tx_init(void);
+int hdmi_tx_handle_interrupt(void);
+int hdmi_tx_dump_edid(uint8_t *data0, uint8_t *data1);
 
 #ifdef __cplusplus
 }

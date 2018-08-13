@@ -45,16 +45,18 @@
 
 
 #include <sys/mman.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 #include "vtc.h"
 
-#define ERR_MODE_INVALID		(0x0100)
+#define ERR_MODE_INVALID		(0x0100U)
 
 #define VTC_REG_CONTROL			(0x00000000U)	/**< Control */
 #define VTC_REG_STATUS			(0x00000004U)	/**< Core/interrupt status */
@@ -69,8 +71,12 @@
 #define VTC_REG_DET_HSIZE		(0x00000030U)	/**< Horizontal frame size (with blanking) */
 #define VTC_REG_DET_VSIZE		(0x00000034U)	/**< Vertical frame size (with blanking) */
 #define VTC_REG_DET_HSYNC		(0x00000038U)	/**< Hsync start and end cycle index */
-#define VTC_REG_DET_VBLANK		(0x0000003CU)	/**< Vblank start and end cycle index (field 0) */
-#define VTC_REG_DET_VSYNC		(0x00000040U)	/**< Vsync start and end line index (field 0) */
+#define VTC_REG_DET_VBLANK_F0		(0x0000003CU)	/**< Vblank start and end cycle index (field 0) */
+#define VTC_REG_DET_VSYNC_V_F0		(0x00000040U)	/**< Start and end line index of VSync for field 0 */
+#define VTC_REG_DET_VSYNC_H_F0		(0x00000044U)	/**< Start and end cycle index of VSync for field 0 */
+#define VTC_REG_DET_VBLANK_F1		(0x00000048U)	/**< Start and end cycle index of VBlank for field 1 */
+#define VTC_REG_DET_VSYNC_V_F1		(0x0000004CU)	/**< Start and end line index of VSync for field 1 */
+#define VTC_REG_DET_VSYNC_H_F1		(0x00000050U)	/**< Start and end cycle index of VSync for field 1 */
 
 #define VTC_REG_GEN_ASIZE		(0x00000060U)	/**< Generator frame size (without blanking) (R/W) */
 #define VTC_REG_GEN_STATUS		(0x00000064U)	/**< Generator timing measurement status (RO) */
@@ -397,9 +403,9 @@ static struct vtc_timing {
 		.hfporch = 70,
 		.hsyncwidth = 143,
 		.hbackporch = 213,
-		.v0fporch = 5,
-		.v0syncwidth = 5,
-		.v0backporch = 20,
+		.v0fporch = 3,
+		.v0syncwidth = 3,
+		.v0backporch = 24,
 		.vsyncpol = 1,
 		.interlaced = false
 	},
@@ -605,6 +611,32 @@ vtc_tim2sig(struct vtc_dev *dev,
 	}
 }
 
+static int
+vtc_reset(struct vtc_dev *dev)
+{
+	struct timeval start, end;
+	uint32_t reg_val;
+
+	reg_val = REG_READ(dev->base, VTC_REG_CONTROL);
+	reg_val |= CONTROL_SW_RESET;
+	REG_WRITE(dev->base, VTC_REG_CONTROL, reg_val);
+
+	gettimeofday(&start, NULL);
+	while (1) {
+		reg_val = REG_READ(dev->base, VTC_REG_CONTROL);
+		if (!(reg_val & CONTROL_SW_RESET))
+			break;
+
+		gettimeofday(&end, NULL);
+		if (end.tv_sec > (start.tv_sec + 5))
+			return -1;
+
+		usleep(1000 * 10);
+	}
+
+	return 0;
+}
+
 /**
  * @brief	Enable Video Timing Controller
  *
@@ -649,6 +681,78 @@ vtc_gen_enable(struct vtc_dev *dev, bool en)
 		reg_val &= ~(CONTROL_GEN_ENABLE);
 
 	REG_WRITE(dev->base, VTC_REG_CONTROL, reg_val);
+
+	return 0;
+}
+
+/**
+ * @brief	Enable Video Timing Detector
+ */
+int
+vtc_det_enable(struct vtc_dev *dev, bool en)
+{
+	uint32_t reg_val;
+	struct timeval start, end;
+
+	reg_val = REG_READ(dev->base, VTC_REG_CONTROL);
+
+	if (en)
+		reg_val |= CONTROL_DET_ENABLE;
+	else
+		reg_val &= ~(CONTROL_DET_ENABLE);
+
+	REG_WRITE(dev->base, VTC_REG_CONTROL, reg_val);
+
+	gettimeofday(&start, NULL);
+	while (1) {
+
+		reg_val = REG_READ(dev->base, VTC_REG_STATUS);
+		if (reg_val & STATUS_LOCK)
+			break;
+
+		gettimeofday(&end, NULL);
+		if (end.tv_sec > (start.tv_sec + 5))
+			return -1;
+
+		usleep(1000 * 5);
+	}
+
+
+	return 0;
+}
+
+int
+vtc_det_dump(struct vtc_dev *dev)
+{
+	uint32_t reg_val;
+
+	printf("VTC Detection:\n");
+
+	reg_val = REG_READ(dev->base, VTC_REG_DET_ASIZE);
+	printf("  Act VSIZE: %d\n", (reg_val >> 1) & 0x1FFF6);
+	printf("  Act HSIZE: %d\n", reg_val & 0x1FFF);
+
+	reg_val = REG_READ(dev->base, VTC_REG_DET_HSIZE);
+	printf("  HSIZE: %d\n", reg_val);
+
+	reg_val = REG_READ(dev->base, VTC_REG_DET_VSIZE);
+	printf("  VSIZE: %d\n", reg_val);
+
+	reg_val = REG_READ(dev->base, VTC_REG_DET_HSYNC);
+	printf("  HSYNC Start: %d\n", (reg_val >> 16) & 0x1FFF);
+	printf("  HSYNC End: %d\n", reg_val & 0x1FFF);
+
+	reg_val = REG_READ(dev->base, VTC_REG_DET_VBLANK_F0);
+	printf("  VBLANK Start: %d\n", (reg_val >> 16) & 0x1FFF);
+	printf("  VBLANK End: %d\n", reg_val & 0x1FFF);
+
+	reg_val = REG_READ(dev->base, VTC_REG_DET_VSYNC_V_F0);
+	printf("  VSYNC_V Start: %d\n", (reg_val >> 16) & 0x1FFF);
+	printf("  VSYNC_V End: %d\n", reg_val & 0x1FFF);
+
+	reg_val = REG_READ(dev->base, VTC_REG_DET_VSYNC_H_F0);
+	printf("  VSYNC_H Start: %d\n", (reg_val >> 16) & 0x1FFF);
+	printf("  VSYNC_H End: %d\n", reg_val & 0x1FFF);
 
 	return 0;
 }
@@ -877,6 +981,23 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 	return 0;
 }
 
+int
+vtc_enable_interrupts(struct vtc_dev *dev)
+{
+	uint32_t reg_val;
+
+	reg_val = REG_READ(dev->base, VTC_REG_IRQ_ENABLE);
+
+	reg_val |= (IRQ_ENABLE_LOCK |
+			IRQ_ENABLE_LOCK_LOSS |
+			IRQ_ENABLE_DET_VBLANK |
+			IRQ_ENABLE_DET_ACTIVE_VIDEO);
+
+	REG_WRITE(dev->base, VTC_REG_IRQ_ENABLE, reg_val);
+
+	return 0;
+}
+
 /**
  * @brief	Video Timing Controller Initialization
  */
@@ -901,6 +1022,9 @@ vtc_init(struct vtc_dev *dev, const char *devname)
 
 	dev->base = base;
 	dev->fd = fd;
+
+	/* Perform a reset */
+	ret = vtc_reset(dev);
 out:
 	return ret;
 }

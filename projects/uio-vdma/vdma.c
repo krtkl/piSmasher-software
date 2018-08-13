@@ -158,74 +158,96 @@
  */
 
 int
-vdma_config(AxiVdma *vdma)
+vdma_get_status(AxiVdma *vdma)
 {
-	int en;
-	uint32_t cr;
+	uint32_t sr;
 
-	/* Set up MM2S control register */
-//	cr = REG_READ(vdma->base, AXIVDMA_MM2S_CR);
-//	cr |=  MM2S_CR_RUN_STOP |		/* Run channel */
-//		MM2S_CR_GEN_LOCK_EN |		/* Enable GenLock */
-//		MM2S_CR_GEN_LOCK_SRC |		/* Internal GenLock */
-//		MM2S_CR_CIRC_PARK |		/* Circular mode */
-//		MM2S_CR_REPEAT_EN;		/* Repeat on error */
-//	cr &= ~(MM2S_CR_FRM_CNT_EN |		/* Don't limit to number of frames */
-//		MM2S_CR_IRQ_FRM_CNT_EN);
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_CR, cr);
+	sr = REG_READ(vdma->base, AXIVDMA_MM2S_SR);
+	printf("MM2S SR: %x\n", sr);
 
-	/* Set up S2MM control register */
-	cr = REG_READ(vdma->base, AXIVDMA_S2MM_CR);
-	cr |=  MM2S_CR_RUN_STOP |		/* Run channel */
-//		MM2S_CR_GEN_LOCK_EN |		/* Enable GenLock */
-//		MM2S_CR_GEN_LOCK_SRC |		/* Internal GenLock */
-//		MM2S_CR_CIRC_PARK |		/* Circular mode */
-		MM2S_CR_FRM_CNT_EN |		/* Frame count on */
-		MM2S_CR_IRQ_FRM_CNT_EN |	/* Interrupt on frame count */
-		(3 << 16) |			/* Number of frames to count */
-		MM2S_CR_REPEAT_EN;		/* Repeat on error */
-//	cr &= ~(MM2S_CR_FRM_CNT_EN |		/* Don't limit to number of frames */
-//		MM2S_CR_IRQ_FRM_CNT_EN);
-	REG_WRITE(vdma->base, AXIVDMA_S2MM_CR, cr);
-
-	/* Write frame buffer addresses */
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_START_ADDRESS, 0x30000000);
-	REG_WRITE(vdma->base, AXIVDMA_S2MM_START_ADDRESS, 0x30000000);
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_START_ADDRESS + 4, 0x31000000);
-	REG_WRITE(vdma->base, AXIVDMA_S2MM_START_ADDRESS + 4, 0x31000000);
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_START_ADDRESS + 8, 0x32000000);
-	REG_WRITE(vdma->base, AXIVDMA_S2MM_START_ADDRESS + 8, 0x32000000);
-
-	/* Write horizontal size (in bytes) */
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_HSIZE, 3840);
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_FRMDLYSTRD, 3840);
-
-	REG_WRITE(vdma->base, AXIVDMA_S2MM_HSIZE, 3840);
-	REG_WRITE(vdma->base, AXIVDMA_S2MM_FRMDLYSTRD, 3840);
-
-	/* Arm the interrupt */
-	en = 1;
-	write(vdma->fd, &en, sizeof(int));
-
-	/* This starts the transfer */
-	REG_WRITE(vdma->base, AXIVDMA_S2MM_VSIZE, 720);
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_VSIZE, 720);
+	sr = REG_READ(vdma->base, AXIVDMA_S2MM_SR);
+	printf("S2MM SR: %x\n", sr);
 
 	return 0;
 }
 
 
 int
-vdma_init(AxiVdma *vdma)
+vdma_config(AxiVdma *vdma)
+{
+	int en;
+	uint32_t cr;
+
+	/* Set up MM2S control register */
+	cr = REG_READ(vdma->base, AXIVDMA_MM2S_CR);
+	printf("MM2S CR: %x\n", cr);
+
+	cr |=  MM2S_CR_RUN_STOP |		/* Run channel */
+		MM2S_CR_GEN_LOCK_EN |		/* Enable GenLock */
+		MM2S_CR_GEN_LOCK_SRC; // |		/* Internal GenLock */
+//		(3 << 23) |
+//		MM2S_CR_CIRC_PARK;		/* Circular mode */
+	cr &= ~(MM2S_CR_FRM_CNT_EN |		/* Don't limit to number of frames */
+		MM2S_CR_IRQ_FRM_CNT_EN);
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_CR, cr);
+
+	cr = REG_READ(vdma->base, AXIVDMA_MM2S_CR);
+	printf("MM2S CR: %x\n", cr);
+
+	/* Set up S2MM control register */
+	cr = REG_READ(vdma->base, AXIVDMA_S2MM_CR);
+	printf("S2MM CR: %x\n", cr);
+
+	cr |=  MM2S_CR_RUN_STOP |		/* Run channel */
+		MM2S_CR_GEN_LOCK_EN |		/* Enable GenLock */
+		MM2S_CR_GEN_LOCK_SRC |		/* Internal GenLock */
+//		(3 << 23) |
+		MM2S_CR_CIRC_PARK;		/* Circular mode */
+	cr &= ~(MM2S_CR_FRM_CNT_EN |		/* Don't limit to number of frames */
+		MM2S_CR_IRQ_FRM_CNT_EN);
+	REG_WRITE(vdma->base, AXIVDMA_S2MM_CR, cr);
+
+	cr = REG_READ(vdma->base, AXIVDMA_S2MM_CR);
+	printf("S2MM CR: %x\n", cr);
+
+	/* Write frame buffer addresses */
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_START_ADDRESS, 0x30000000);
+	REG_WRITE(vdma->base, AXIVDMA_S2MM_START_ADDRESS, 0x30000000);
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_START_ADDRESS + 4, 0x31000000);
+	REG_WRITE(vdma->base, AXIVDMA_S2MM_START_ADDRESS + 4, 0x31000000);
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_START_ADDRESS + 8, 0x32000000);
+	REG_WRITE(vdma->base, AXIVDMA_S2MM_START_ADDRESS + 8, 0x32000000);
+
+	/* Write horizontal size (in bytes) */
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_HSIZE, 3840);
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_FRMDLYSTRD, 3840);
+
+	REG_WRITE(vdma->base, AXIVDMA_S2MM_HSIZE, 3840);
+	REG_WRITE(vdma->base, AXIVDMA_S2MM_FRMDLYSTRD, 3840);
+
+	/* Arm the interrupt */
+//	en = 1;
+//	write(vdma->fd, &en, sizeof(int));
+
+	/* This starts the transfer */
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_VSIZE, 720);
+	REG_WRITE(vdma->base, AXIVDMA_S2MM_VSIZE, 720);
+
+	return 0;
+}
+
+
+int
+vdma_init(AxiVdma *vdma, const char *dev_name)
 {
 	int fd, ret;
 	void *base;
-	uint32_t cr;
+	uint32_t cr, halted;
 
 	if (vdma == NULL)
 		return -1;
 
-	fd = open("/dev/uio1", O_RDWR);
+	fd = open(dev_name, O_RDWR);
 	if (fd < 0)
 		return fd;
 
@@ -235,19 +257,26 @@ vdma_init(AxiVdma *vdma)
 		goto out;
 	}
 
-	vdma->base = base;
 	vdma->fd = fd;
+	vdma->base = base;
 
 	/* Set up MM2S control register */
-//	cr = REG_READ(vdma->base, AXIVDMA_MM2S_CR);
-//	cr &= ~MM2S_CR_RUN_STOP;
-//	cr |= MM2S_CR_RESET;
-//	REG_WRITE(vdma->base, AXIVDMA_MM2S_CR, cr);
+	cr = REG_READ(vdma->base, AXIVDMA_MM2S_CR);
+	cr &= ~MM2S_CR_RUN_STOP;
+	cr |= MM2S_CR_RESET;
+	REG_WRITE(vdma->base, AXIVDMA_MM2S_CR, cr);
 
 	cr = REG_READ(vdma->base, AXIVDMA_S2MM_CR);
 	cr &= ~MM2S_CR_RUN_STOP;
 	cr |= MM2S_CR_RESET;
 	REG_WRITE(vdma->base, AXIVDMA_S2MM_CR, cr);
+
+	/* Wait for both channels to be halted */
+	do {
+		halted = REG_READ(vdma->base, AXIVDMA_MM2S_SR) & (1 << 0);
+		halted &= REG_READ(vdma->base, AXIVDMA_S2MM_SR) & (1 << 0);
+	} while (!halted);
+
 
 	usleep(1000 * 5);
 out:

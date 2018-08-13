@@ -67,10 +67,11 @@ main(int argc, char *argv[])
 	int ret;
 	int height = 720, width = 1280;
 	vidtpg_t *tpg;
+	char *devname;
 	enum vidtpg_bgpat bgpat = BGPAT_VIDEOIN;
 	enum vidtpg_fgpat fgpat = FGPAT_NOOVERLAY;
 
-	while ((c = getopt(argc, argv, "h:w:b:f:")) != -1) {
+	while ((c = getopt(argc, argv, "h:w:b:f:d:")) != -1) {
 		switch (c) {
 		case 'h':
 			height = atoi(optarg);
@@ -88,6 +89,10 @@ main(int argc, char *argv[])
 			fgpat = (enum vidtpg_fgpat)atoi(optarg);
 			break;
 
+		case 'd':
+			devname = optarg;
+			break;
+
 		case '?':
 		default:
 			printf("Unknown option character `\\x%x'.\n", optopt);
@@ -100,7 +105,7 @@ main(int argc, char *argv[])
 	if (!tpg)
 		return -9;
 
-	ret = vidtpg_init(tpg);
+	ret = vidtpg_init(tpg, devname);
 	if (ret < 0)
 		goto out;
 

@@ -76,6 +76,9 @@ int vtc_init(struct vtc_dev *dev, const char *devname);
 int vtc_gen_enable(struct vtc_dev *dev, bool en);
 int vtc_enable(struct vtc_dev *dev, bool en);
 int vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode);
+int vtc_enable_interrupts(struct vtc_dev *dev);
+int vtc_det_enable(struct vtc_dev *dev, bool en);
+int vtc_det_dump(struct vtc_dev *dev);
 
 #ifdef __cplusplus
 }
