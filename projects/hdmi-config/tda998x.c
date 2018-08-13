@@ -1143,7 +1143,7 @@ static const struct vidfmt_desc {
 	{ 0,	0,	0,	0,	41,	2,	259,	28,	1,	VIDFORMAT_800x600p_60Hz },
 	{ 0,	0,	1,	1,	25,	2,	323,	36,	1,	VIDFORMAT_1024x768p_60Hz },
 	{ 0,	0,	0,	1,	65,	2,	387,	28,	1,	VIDFORMAT_1280x768p_60Hz },
-	{ 0,	0,	0,	0,	100,	2,	435,	25,	0,	VIDFORMAT_1366x768p_60Hz },
+	{ 0,	0,	0,	0,	71,	2,	429,	31,	0,	VIDFORMAT_1366x768p_60Hz },
 	{ 0,	0,	0,	0,	65,	2,	563,	50,	0,	VIDFORMAT_1600x1200p_60Hz },
 	{ 0,	0,	0,	0,	65,	2,	163,	35,	0,	VIDFORMAT_1920x1200p_60Hz },
 	{ /* Sentinel */ }
@@ -1164,11 +1164,11 @@ static const struct vidfmt_desc {
 //	uint16_t	de_end;
 //};
 struct tda998x_vid_frm vidformat_pc[] = {
-	/*  npix	nline	vsl_s1	vsp_s1	vsl_e1	vsp_e1	hs_e	hs_e	vw_s1	vw_e1	de_s	de_e */
+	/*  npix	nline	vsl_s1	vsp_s1	vsl_e1	vsp_e1	hs_s	hs_e	vw_s1	vw_e1	de_s	de_e */
 	{ 1056,		628,	1,	40,	5,	40,	40,	168,	27,	627,	256,	1056 },		/* VIDFORMAT_800x600p_60Hz   */
 	{ 1344,		806,	1,	24,	7,	24,	24,	160,	35,	803,	320,	1344 },		/* VIDFORMAT_1024x768p_60Hz  */
 	{ 1664,		798,	1,	64,	8,	64,	64,	192,	27,	795,	384,	1664 },		/* VIDFORMAT_1280x768p_60Hz  */
-	{ 1792,		798,	5,	64,	10,	64,	70,	213,	30,	798,	426,	1792 },		/* VIDFORMAT_1366x768p_60Hz  */
+	{ 1792,		798,	3,	70,	6,	70,	70,	213,	30,	798,	426,	1792 },		/* VIDFORMAT_1366x768p_60Hz  */
 	{ 2160,		1250,	1,	64,	4,	64,	64,	256,	49,	1249,	560,	2160 },		/* VIDFORMAT_1600x1200p_60Hz */
 	{ 2080,		1235,	1,	64,	4,	64,	40,	80,	35,	1235,	160,	2080 },		/* VIDFORMAT_1920x1200p_60Hz */
 };

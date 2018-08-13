@@ -398,7 +398,7 @@ static struct vtc_timing {
 	{
 		.mode = VTC_MODE_WXGA,
 		.hactive = 1366,
-		.hsyncpol = 1,
+		.hsyncpol = 0,
 		.vactive = 768,
 		.hfporch = 70,
 		.hsyncwidth = 143,
@@ -739,20 +739,20 @@ vtc_det_dump(struct vtc_dev *dev)
 	printf("  VSIZE: %d\n", reg_val);
 
 	reg_val = REG_READ(dev->base, VTC_REG_DET_HSYNC);
-	printf("  HSYNC Start: %d\n", (reg_val >> 16) & 0x1FFF);
-	printf("  HSYNC End: %d\n", reg_val & 0x1FFF);
+	printf("  HSYNC Start: %d\n", reg_val & 0x1FFF);
+	printf("  HSYNC End: %d\n", (reg_val >> 16) & 0x1FFF);
 
 	reg_val = REG_READ(dev->base, VTC_REG_DET_VBLANK_F0);
-	printf("  VBLANK Start: %d\n", (reg_val >> 16) & 0x1FFF);
-	printf("  VBLANK End: %d\n", reg_val & 0x1FFF);
+	printf("  VBLANK Start: %d\n", reg_val & 0x1FFF);
+	printf("  VBLANK End: %d\n", (reg_val >> 16) & 0x1FFF);
 
 	reg_val = REG_READ(dev->base, VTC_REG_DET_VSYNC_V_F0);
-	printf("  VSYNC_V Start: %d\n", (reg_val >> 16) & 0x1FFF);
-	printf("  VSYNC_V End: %d\n", reg_val & 0x1FFF);
+	printf("  VSYNC_V Start: %d\n", reg_val & 0x1FFF);
+	printf("  VSYNC_V End: %d\n", (reg_val >> 16) & 0x1FFF);
 
 	reg_val = REG_READ(dev->base, VTC_REG_DET_VSYNC_H_F0);
-	printf("  VSYNC_H Start: %d\n", (reg_val >> 16) & 0x1FFF);
-	printf("  VSYNC_H End: %d\n", reg_val & 0x1FFF);
+	printf("  VSYNC_H Start: %d\n", reg_val & 0x1FFF);
+	printf("  VSYNC_H End: %d\n", (reg_val >> 16) & 0x1FFF);
 
 	return 0;
 }
