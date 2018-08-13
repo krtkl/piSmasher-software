@@ -114,7 +114,7 @@ hdmi_init(void)
 int
 main(int argc, char **argv)
 {
-	int c, fd, ret;
+	int i, c, fd, ret;
 	off_t fsize;
 	char *fname = NULL;
 	bool read_edid = true;
@@ -161,7 +161,7 @@ main(int argc, char **argv)
 			exit(ret);
 		}
 
-		fd = open(fname, O_CREAT | O_RDWR | O_TRUNC);
+		fd = open(fname, O_CREAT | O_RDWR | O_TRUNC, 0666);
 		if (fd < 0) {
 			ERROR_PRINT("%s", strerror(errno));
 			exit(ret);
@@ -178,7 +178,7 @@ main(int argc, char **argv)
 			exit(ret);
 		}
 
-		fd = open(fname, O_WRONLY);
+		fd = open(fname, O_RDONLY);
 		if (fd < 0) {
 			ERROR_PRINT("opening file %s: %s", fname, strerror(errno));
 			exit(fd);
@@ -187,7 +187,7 @@ main(int argc, char **argv)
 		/* Check file size */
 		fsize = lseek(fd, 0, SEEK_END);
 		if (fsize != 256) {
-			ERROR_PRINT("file size should be 256 bytes, received %d", fsize);
+			ERROR_PRINT("file size should be 256 bytes, received %ld", fsize);
 			close(fd);
 			exit(EXIT_FAILURE);
 		}
