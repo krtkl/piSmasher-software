@@ -104,7 +104,8 @@ static struct tda1997x_cfg hdmi_rx_cfg_tab[HDMI_RX_NCONFIGS] =
 		.i2c_addr = HDMI_RX_HDMI_I2C_ADDR,
 		.cec_addr = HDMI_RX_CEC_I2C_ADDR,
 		.i2c_write = i2c_write_reg,
-		.i2c_read = i2c_read_reg
+		.i2c_read = i2c_read_reg,
+		.cur_page = 0xFF
 	}
 };
 
@@ -115,7 +116,8 @@ static struct tda1997x_cfg hdmi_rx_cfg_tab[HDMI_RX_NCONFIGS] =
  * @return	Pointer to configuration matching device identifier if found or
  * 			NULL if not found in the lookup table
  */
-static struct tda1997x_cfg *hdmi_rx_cfg_lookup(int dev_id)
+static struct tda1997x_cfg *
+hdmi_rx_cfg_lookup(int dev_id)
 {
 	struct tda1997x_cfg *cfg = NULL;
 	int i;
@@ -133,7 +135,8 @@ static struct tda1997x_cfg *hdmi_rx_cfg_lookup(int dev_id)
 /**
  * @brief	HDMI Receiver Initialization
  */
-int hdmi_rx_init(void)
+int
+hdmi_rx_init(void)
 {
 	int err;
 	struct tda1997x_cfg *cfg;

@@ -48,18 +48,74 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "vtc.h"
 
-static void usage(void)
+
+static void
+usage(void)
 {
 	printf("Usage: uio-vtc [OPTIONS] UIONUM\n"
 		"\n"
 		"Options:\n"
 		"    -g        - Configure generator (default)\n"
+		"    -m MODE   - Configure generator for format MODE\n"
 		"    -d        - Configure detector\n"
+		"\n"
+		"Modes:\n"
+		"    720p\n"
+		"    1080p\n"
+		"    480p\n"
+		"    576p\n"
+		"    VGA\n"
+		"    SVGA\n"
+		"    XGA\n"
+		"    SXGA\n"
+		"    WXGA\n"
 	);
+}
+
+const struct vtc_mode_str {
+	const char *str;
+	enum vtc_mode mode;
+} modestr[] = {
+	{ "720p", VTC_MODE_720p },
+	{ "1080p", VTC_MODE_1080p },
+	{ "480p", VTC_MODE_480p },
+	{ "576p", VTC_MODE_576p },
+	{ "VGA", VTC_MODE_VGA },
+	{ "SVGA", VTC_MODE_SVGA },
+	{ "XGA", VTC_MODE_XGA },
+	{ "SXGA", VTC_MODE_SXGA },
+	{ "WXGA", VTC_MODE_WXGA },
+	{ /* Sentinel */ }
+};
+
+static int
+str2mode(const char *str, enum vtc_mode *mode)
+{
+	const struct vtc_mode_str *list = &modestr[0];
+
+	while (list && list->str[0]) {
+
+		printf("Comparing %s and %s\n", list->str, str);
+
+		if (strcmp(str, list->str) == 0) {
+
+			printf("Mode found %s (%d)\n", list->str, list->mode);
+
+			*mode = list->mode;
+			return 0;
+		}
+
+		list++;
+	}
+
+	printf("Mode not found\n");
+
+	return -1;
 }
 
 int
@@ -70,9 +126,10 @@ main(int argc, char *argv[])
 	bool isgen = true;
 	int devnum = -1;
 	char devname[16];
+	enum vtc_mode mode = VTC_MODE_WXGA;
 	struct vtc_dev *vtc;
 
-	while ((c = getopt(argc, argv, "gd")) != -1) {
+	while ((c = getopt(argc, argv, "gdm:")) != -1) {
 		switch (c) {
 		case 'd':
 			isgen = false;
@@ -80,6 +137,15 @@ main(int argc, char *argv[])
 
 		case 'g':
 			isgen = true;
+			break;
+
+		case 'm':
+			ret = str2mode(optarg, &mode);
+			if (ret < 0) {
+				printf("Unknown mode option %s\n", optarg);
+				usage();
+				return -1;
+			}
 			break;
 
 		case '?':
@@ -112,7 +178,7 @@ main(int argc, char *argv[])
 		goto out;
 
 	if (isgen) {
-		ret = vtc_set_generator_video_mode(vtc, VTC_MODE_WXGA);
+		ret = vtc_set_generator_video_mode(vtc, mode);
 		if (ret < 0)
 			goto out;
 

@@ -51,7 +51,7 @@ extern "C" {
 #endif
 
 enum vtc_mode {
-	VTC_MODE_720p,		/**< Video mode 720P */
+	VTC_MODE_720p = 0,	/**< Video mode 720P */
 	VTC_MODE_1080p,		/**< Video mode 1080P */
 	VTC_MODE_480p,		/**< Video mode 480P */
 	VTC_MODE_576p,		/**< Video mode 576P */

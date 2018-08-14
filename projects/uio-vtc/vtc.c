@@ -57,6 +57,7 @@
 #include "vtc.h"
 
 #define ERR_MODE_INVALID		(0x0100U)
+#define ERR_NULL_PARAM			(0x0101U)
 
 #define VTC_REG_CONTROL			(0x00000000U)	/**< Control */
 #define VTC_REG_STATUS			(0x00000004U)	/**< Core/interrupt status */
@@ -517,23 +518,6 @@ vtc_write_start_end(struct vtc_dev *dev, uint32_t reg, uint32_t start, uint32_t 
 	REG_WRITE(dev->base, reg, reg_val);
 }
 
-
-//{
-//	.mode = VTC_MODE_WXGA,
-//	.hactive = 1366,
-//	.hsyncpol = 1,
-//	.vactive = 768,
-//	.hfporch = 166,
-//	.hsyncwidth = 40,
-//	.hbackporch = 220,
-//	.v0fporch = 5,
-//	.v0syncwidth = 5,
-//	.v0backporch = 20,
-//	.vsyncpol = 1,
-//	.interlaced = false
-//},
-
-
 void
 vtc_tim2sig(struct vtc_dev *dev,
 		struct vtc_timing *timing,
@@ -680,6 +664,8 @@ vtc_gen_enable(struct vtc_dev *dev, bool en)
 	else
 		reg_val &= ~(CONTROL_GEN_ENABLE);
 
+	reg_val |= CONTROL_REG_UPDATE;
+
 	REG_WRITE(dev->base, VTC_REG_CONTROL, reg_val);
 
 	return 0;
@@ -729,7 +715,7 @@ vtc_det_dump(struct vtc_dev *dev)
 	printf("VTC Detection:\n");
 
 	reg_val = REG_READ(dev->base, VTC_REG_DET_ASIZE);
-	printf("  Act VSIZE: %d\n", (reg_val >> 1) & 0x1FFF6);
+	printf("  Act VSIZE: %d\n", (reg_val >> 16) & 0x1FFF);
 	printf("  Act HSIZE: %d\n", reg_val & 0x1FFF);
 
 	reg_val = REG_READ(dev->base, VTC_REG_DET_HSIZE);
@@ -951,9 +937,12 @@ vtc_set_generator(struct vtc_dev *dev, struct vtc_signal *signal)
 /**
  * @brief	Set Video Timing Generator Timing
  */
-static void
+static int
 vtc_set_generator_timing(struct vtc_dev *dev, struct vtc_timing *timing)
 {
+	if ((dev == NULL) || (timing == NULL))
+		return ERR_NULL_PARAM;
+
 	struct vtc_polarity polarity;
 	struct vtc_signal signal;
 	struct vtc_hoffset hoffset;
@@ -962,6 +951,8 @@ vtc_set_generator_timing(struct vtc_dev *dev, struct vtc_timing *timing)
 
 	vtc_set_polarity(dev, &polarity);
 	vtc_set_generator(dev, &signal);
+
+	return 0;
 }
 
 /**
@@ -976,9 +967,7 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 	if (timing == NULL)
 		return ERR_MODE_INVALID;
 
-	vtc_set_generator_timing(dev, timing);
-
-	return 0;
+	return vtc_set_generator_timing(dev, timing);
 }
 
 int

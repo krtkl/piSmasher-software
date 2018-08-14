@@ -49,6 +49,9 @@
 
 #include "tda1997x.h"
 
+
+#define DEBUG_PRINT(__format__, ...)		printf("[DEBUG] %s() %s %d: " __format__ "\r\n", __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
+
 /**
  * @defgroup	TDA1997X TDA1997x HDMI Receiver
  * @{
@@ -2430,8 +2433,10 @@ tda1997x_cfg_edid(struct tda1997x_dev *dev, uint8_t *edid, uint8_t *edid_ext)
 		return (-1);
 
 	/* Required number of EDID extensions after EDID block */
-	if (edid[126] != 1)
-		return (-2);
+	if (edid[126] != 1) {
+		DEBUG_PRINT("invalid number of EDID extensions: %d", edid[126]);
+		return (-3);
+	}
 
 	/* Calculate the checksum for EDID block 0 */
 	err = tda1997x_edid_cksum(dev, edid, &cksum);
