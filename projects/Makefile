@@ -1,3 +1,4 @@
+proj	+= video-config/
 proj	+= hdmi-config/
 proj	+= hdmi-edid/
 proj	+= audio-config/
