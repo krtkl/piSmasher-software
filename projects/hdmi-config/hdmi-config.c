@@ -76,19 +76,13 @@ usage(void)
 {
 	printf("hdmi-config [OPTIONS]\n"
 		"Options:\n"
-		"    -i FORMAT - Configure transmitter input format\n"
-		"    -o FORMAT - Configure transmitter output format\n"
+		"    -m MODE   - Configure transmitter format mode\n"
 		"\n"
-		"Formats:\n"
+		"Modes:\n"
 		"    720p\n"
 		"    1080p\n"
-		"    480p\n"
-		"    576p\n"
-		"    VGA\n"
-		"    SVGA\n"
-		"    XGA\n"
-		"    SXGA\n"
 		"    WXGA\n"
+		"\n"
 	);
 }
 
@@ -98,17 +92,14 @@ const struct vid_fmt_str {
 	const char *str;
 	enum tda998x_vid_fmt fmt;
 } fmt_str[] = {
-	{ "720p60", VFMT_04_1280x720p_60Hz },
-	{ "1080p60", VFMT_16_1920x1080p_60Hz },
-	{ "VGA", VFMT_PC_640x480p_60Hz },
-	{ "SVGA", VFMT_PC_800x600p_60Hz },
-	{ "XGA", VFMT_PC_1024x768p_60Hz },
+	{ "720p", VFMT_04_1280x720p_60Hz },
+	{ "1080p", VFMT_16_1920x1080p_60Hz },
 	{ "WXGA", VFMT_PC_1366x768p_60Hz },
 	{ /* Sentinel */ }
 };
 
 static int
-str2fmt(const char *str,enum tda998x_vid_fmt *fmt)
+str2fmt(const char *str, enum tda998x_vid_fmt *fmt)
 {
 	const struct vid_fmt_str *list = &fmt_str[0];
 
@@ -160,29 +151,19 @@ int
 main(int argc, char **argv)
 {
 	int c, ret;
-	enum tda998x_vid_fmt vin_fmt = VFMT_PC_1366x768p_60Hz;
-	enum tda998x_vid_fmt vout_fmt = VFMT_PC_1366x768p_60Hz;
+	enum tda998x_vid_fmt fmt = VFMT_PC_1366x768p_60Hz;
 
 	printf("--------------------------------------------------------\n");
-	printf("piSmasher HDMI EDID Read/Write\n");
+	printf("piSmasher HDMI Configuration Utility\n");
 
 	printf("Compiled: %s %s\n\n", __DATE__, __TIME__);
 
-	while ((c = getopt(argc, argv, "i:o:")) != -1) {
+	while ((c = getopt(argc, argv, "m:")) != -1) {
 		switch (c) {
-		case 'i':
-			ret = str2fmt(optarg, &vin_fmt);
+		case 'm':
+			ret = str2fmt(optarg, &fmt);
 			if (ret < 0) {
 				printf("Unknown input format option %s\n", optarg);
-				usage();
-				return -1;
-			}
-			break;
-
-		case 'o':
-			ret = str2fmt(optarg, &vout_fmt);
-			if (ret < 0) {
-				printf("Unknown output format option %s\n", optarg);
 				usage();
 				return -1;
 			}
@@ -196,7 +177,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	ret = hdmi_init(vin_fmt, vout_fmt);
+	ret = hdmi_init(fmt, fmt);
 	if (ret < 0)
 		ERROR_PRINT("%x = hdmi_init()", ret);
 

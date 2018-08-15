@@ -2,12 +2,12 @@
  *******************************************************************************
  *******************************************************************************
  *
- * @file    uio-vtc.c
+ * @file    uio-clk-wiz.c
  * @author  R. Bush
  * @email   bush@krtkl.com
  * @version 0.1
  * @date    August 6, 2018
- * @brief   Video Timing Controller Userspace Control
+ * @brief   Clocking Wizard Userspace Control
  * @license FreeBSD
  *
  *******************************************************************************
@@ -51,18 +51,16 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "vtc.h"
+#include "clk_wiz.h"
 
 
 static void
 usage(void)
 {
-	printf("Usage: uio-vtc [OPTIONS] UIONUM\n"
+	printf("Usage: uio-clk-wiz [OPTIONS] UIONUM\n"
 		"\n"
 		"Options:\n"
-		"    -g        - Configure generator (default)\n"
 		"    -m MODE   - Configure generator for format MODE\n"
-		"    -d        - Configure detector\n"
 		"\n"
 		"Modes:\n"
 		"    720p\n"
@@ -72,20 +70,20 @@ usage(void)
 	);
 }
 
-const struct vtc_mode_str {
+const struct clk_wiz_mode_str {
 	const char *str;
-	enum vtc_mode mode;
+	enum clk_wiz_mode mode;
 } modestr[] = {
-	{ "720p", VTC_MODE_720p },
-	{ "1080p", VTC_MODE_1080p },
-	{ "WXGA", VTC_MODE_WXGA },
+	{ "720p", CLK_WIZ_MODE_720p },
+	{ "1080p", CLK_WIZ_MODE_1080p },
+	{ "WXGA", CLK_WIZ_MODE_WXGA },
 	{ /* Sentinel */ }
 };
 
 static int
-str2mode(const char *str, enum vtc_mode *mode)
+str2mode(const char *str, enum clk_wiz_mode *mode)
 {
-	const struct vtc_mode_str *list = &modestr[0];
+	const struct clk_wiz_mode_str *list = &modestr[0];
 
 	while (list && list->str[0]) {
 		if (strcmp(str, list->str) == 0) {
@@ -99,27 +97,18 @@ str2mode(const char *str, enum vtc_mode *mode)
 	return -1;
 }
 
+
 int
 main(int argc, char *argv[])
 {
-	int c;
-	int ret;
-	bool isgen = true;
+	int c, ret;
 	int devnum = -1;
+	enum clk_wiz_mode mode;
+	struct clk_wiz_dev *clk_wiz;
 	char devname[16];
-	enum vtc_mode mode = VTC_MODE_WXGA;
-	struct vtc_dev *vtc;
 
-	while ((c = getopt(argc, argv, "gdm:")) != -1) {
+	while ((c = getopt(argc, argv, "m:")) != -1) {
 		switch (c) {
-		case 'd':
-			isgen = false;
-			break;
-
-		case 'g':
-			isgen = true;
-			break;
-
 		case 'm':
 			ret = str2mode(optarg, &mode);
 			if (ret < 0) {
@@ -146,32 +135,16 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
-	vtc = malloc(sizeof(struct vtc_dev));
-	if (vtc == NULL)
+	clk_wiz = malloc(sizeof (struct clk_wiz_dev));
+	if (clk_wiz == NULL)
 		return EXIT_FAILURE;
 
-	ret = vtc_init(vtc, devname);
+	ret = clk_wiz_init(clk_wiz, devname);
 	if (ret < 0)
 		goto out;
 
-	if (isgen) {
-		ret = vtc_set_generator_video_mode(vtc, mode);
-		if (ret < 0)
-			goto out;
-
-		ret = vtc_gen_enable(vtc, true);
-		if (ret < 0)
-			goto out;
-	} else {
-		ret = vtc_det_enable(vtc, true);
-		if (ret < 0)
-			goto out;
-
-		ret = vtc_det_dump(vtc);
-		if (ret < 0)
-			goto out;
-	}
+	ret = clk_wiz_config(clk_wiz, mode);
 out:
-	free(vtc);
+	free(clk_wiz);
 	return ret;
 }

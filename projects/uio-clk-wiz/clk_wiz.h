@@ -2,12 +2,12 @@
  *******************************************************************************
  *******************************************************************************
  *
- * @file    vid-tpg-config.c
+ * @file    clk_wiz.h
  * @author  R. Bush
  * @email   bush@krtkl.com
  * @version 0.1
- * @date    July 10, 2018
- * @brief   Video Test Pattern Generator Userspace Control
+ * @date    August 6, 2018
+ * @brief   Clocking Wizard Userspace I/O Driver
  * @license FreeBSD
  *
  *******************************************************************************
@@ -43,88 +43,29 @@
  *******************************************************************************
  */
 
+#ifndef __CLK_WIZ_H
+#define __CLK_WIZ_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "vid_tpg.h"
+enum clk_wiz_mode {
+	CLK_WIZ_MODE_720p = 0,	/**< Video mode 720P */
+	CLK_WIZ_MODE_1080p,	/**< Video mode 1080P */
+	CLK_WIZ_MODE_WXGA,	/**< Video mode WXGA */
+};
 
-static void
-usage(void)
-{
-	printf("Usage:\n"
-		"  vid-tpg-config [OPTIONS] UIONUM\n"
-		"\n"
-		"Options:\n"
-		"    -h HEIGHT - Set active video height to HEIGHT\n"
-		"    -w WIDTH  - Set active video width to WIDTH\n"
-		"    -b PAT    - Set background pattern ID to PAT\n"
-		"\n"
-	);
+struct clk_wiz_dev {
+	void	*base;
+	int	fd;
+};
+
+int clk_wiz_init(struct clk_wiz_dev *dev, const char *devname);
+int clk_wiz_config(struct clk_wiz_dev *dev, enum clk_wiz_mode mode);
+
+#ifdef __cplusplus
 }
+#endif
 
-int
-main(int argc, char *argv[])
-{
-	int c;
-	int ret;
-	int height = 768, width = 1366;
-	vidtpg_t *tpg;
-	int devnum = -1;
-	char devname[16];
-	enum vidtpg_bgpat bgpat = BGPAT_COLORBARS;
-	enum vidtpg_fgpat fgpat = FGPAT_NOOVERLAY;
-
-	while ((c = getopt(argc, argv, "h:w:b:")) != -1) {
-		switch (c) {
-		case 'h':
-			height = atoi(optarg);
-			break;
-
-		case 'w':
-			width = atoi(optarg);
-			break;
-
-		case 'b':
-			bgpat = (enum vidtpg_bgpat) atoi(optarg);
-			break;
-
-		case 'f':
-			fgpat = (enum vidtpg_fgpat) atoi(optarg);
-			break;
-
-		case '?':
-		default:
-			printf("Unknown option character `\\x%x'.\n", optopt);
-			usage();
-			return -1;
-		}
-	}
-
-	/* Get the UIO number after parsing the options */
-	if (optind < argc) {
-		devnum = atoi(argv[optind]);
-		sprintf(devname, "/dev/uio%d", devnum);
-	} else {
-		usage();
-		return -1;
-	}
-
-
-	tpg = malloc(sizeof(vidtpg_t));
-	if (!tpg)
-		return -9;
-
-	ret = vidtpg_init(tpg, devname);
-	if (ret < 0)
-		goto out;
-
-	vidtpg_set_format(tpg, height, width, COLORFMT_RGB);
-	vidtpg_set_pattern(tpg, bgpat, fgpat);
-
-out:
-	close(tpg->fd);
-	free(tpg);
-	return ret;
-}
+#endif /* __CLK_WIZ_H */

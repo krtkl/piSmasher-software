@@ -399,7 +399,7 @@ static struct vtc_timing {
 	{
 		.mode = VTC_MODE_WXGA,
 		.hactive = 1366,
-		.hsyncpol = 0,
+		.hsyncpol = 1,
 		.vactive = 768,
 		.hfporch = 70,
 		.hsyncwidth = 143,
@@ -961,13 +961,66 @@ vtc_set_generator_timing(struct vtc_dev *dev, struct vtc_timing *timing)
 int
 vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 {
-	struct vtc_timing *timing;
+	uint32_t reg_val;
+	int hact, vact, htotal, vtotal, hsync_st, hsync_end, vsync_st, vsync_end;
 
-	timing = vtc_mode2tim(dev, mode);
-	if (timing == NULL)
-		return ERR_MODE_INVALID;
+	switch (mode) {
+	case VTC_MODE_720p:
+		hact = 1280;
+		vact = 720;
+		htotal = 1650;
+		vtotal = 750;
+		hsync_st = 1390;
+		hsync_end = 1430;
+		vsync_st = 724;
+		vsync_end = 729;
+		break;
 
-	return vtc_set_generator_timing(dev, timing);
+	case VTC_MODE_1080p:
+		hact = 1920;
+		vact = 1080;
+		htotal = 2200;
+		vtotal = 1125;
+		hsync_st = 2008;
+		hsync_end = 2052;
+		vsync_st = 1083;
+		vsync_end = 1088;
+		break;
+
+	case VTC_MODE_WXGA:
+		hact = 1366;
+		vact = 768;
+		htotal = 1792;
+		vtotal = 798;
+		hsync_st = 1436;
+		hsync_end = 1579;
+		vsync_st = 770;
+		vsync_end = 773;
+		break;
+
+	default:
+		printf("Unsupported video mode %d\n", mode);
+		return -1;
+	}
+
+	REG_WRITE(dev->base, VTC_REG_GEN_POL, 0x7FU);
+
+	reg_val = (vact << 16) | (hact);
+	REG_WRITE(dev->base, VTC_REG_GEN_ASIZE, reg_val);
+	REG_WRITE(dev->base, VTC_REG_GEN_HSIZE, htotal);
+	REG_WRITE(dev->base, VTC_REG_GEN_VSIZE, vtotal);
+
+	reg_val = (hsync_end << 16) | hsync_st;
+	REG_WRITE(dev->base, VTC_REG_GEN_HSYNC, reg_val);
+
+	reg_val = (vsync_end << 16) | vsync_st;
+	REG_WRITE(dev->base, VTC_REG_GEN_VSYNC_V_F0, reg_val);
+
+	reg_val = (hact << 16) | hact;
+	REG_WRITE(dev->base, VTC_REG_GEN_VBLANK_F0, reg_val);
+	REG_WRITE(dev->base, VTC_REG_GEN_VSYNC_H_F0, reg_val);
+
+	return 0;
 }
 
 int

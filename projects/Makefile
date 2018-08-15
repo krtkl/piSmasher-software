@@ -4,6 +4,7 @@ proj	+= audio-config/
 proj	+= vid-tpg-config/
 proj	+= uio-vdma/
 proj	+= uio-vtc/
+proj	+= uio-clk-wiz/
 
 all: $(proj)
 
