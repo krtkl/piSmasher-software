@@ -76,7 +76,35 @@ usage(void)
 	printf("Usage: video-config [OPTIONS]\n"
 		"\n"
 		"Options:\n"
-		"    -m MODE   - Read EDID from transmitter (default)\n"
+		"    -m MODE       - Set video mode (default: WXGA)\n"
+		"    -p PATTERN    - Set test pattern code (default: Color bars)\n"
+		"\n"
+		"Modes:\n"
+		"    720p\n"
+		"    1080p\n"
+		"    WXGA\n"
+		"\n"
+		"Patterns Codes:\n"
+		"       0          - Video input to test pattern generator\n"
+		"       1          - Horizontal ramp\n"
+		"       2          - Vertical ramp\n"
+		"       3          - Temporal ramp\n"
+		"       4          - Solid red\n"
+		"       5          - Solid green\n"
+		"       6          - Solid blue\n"
+		"       7          - Solid black\n"
+		"       8          - Solid white\n"
+		"       9          - Color bars\n"
+		"      10          - Zone plate\n"
+		"      11          - Tartan bars\n"
+		"      12          - Cross hatch\n"
+		"      13          - Color sweep\n"
+		"      14          - Horizontal and vertical ramp\n"
+		"      15          - Checker\n"
+		"      16          - Pseudorandom\n"
+		"      17          - DisplayPort color ramp\n"
+		"      18          - DisplayPort vertical lines\n"
+		"      19          - DisplayPort color square\n"
 		"\n"
 	);
 }
@@ -149,7 +177,7 @@ main(int argc, char *argv[])
 	int ret;
 	struct vidtpg *tpg;
 	struct vtc_dev *vtc;
-	const struct video_mode *mode;
+	const struct video_mode *mode = NULL;
 	enum vidtpg_bgpat bgpat = BGPAT_COLORBARS;
 
 	while ((c = getopt(argc, argv, "m:p:")) != -1) {
@@ -173,6 +201,10 @@ main(int argc, char *argv[])
 			return -1;
 		}
 	}
+
+	/* Set default mode */
+	if (mode == NULL)
+		mode = &video_modes[2];
 
 	/**
 	 * Initialize HDMI input/output
