@@ -87,7 +87,7 @@ static const struct video_mode {
 	int width;
 	int height;
 } video_modes[] = {
-	{ VFMT_04_1280x720p_60Hz, VTC_MODE_720p, 1260, 720 },
+	{ VFMT_04_1280x720p_60Hz, VTC_MODE_720p, 1280, 720 },
 	{ VFMT_16_1920x1080p_60Hz, VTC_MODE_1080p, 1920, 1080 },
 	{ VFMT_PC_1366x768p_60Hz, VTC_MODE_WXGA, 1366, 768 },
 	{ /* Sentinel */ }
@@ -152,7 +152,7 @@ main(int argc, char *argv[])
 	const struct video_mode *mode;
 	enum vidtpg_bgpat bgpat = BGPAT_COLORBARS;
 
-	while ((c = getopt(argc, argv, "m:")) != -1) {
+	while ((c = getopt(argc, argv, "m:p:")) != -1) {
 		switch (c) {
 		case 'm':
 			mode = str2mode(optarg);
@@ -161,6 +161,9 @@ main(int argc, char *argv[])
 				usage();
 				return EXIT_FAILURE;
 			}
+			break;
+		case 'p':
+			bgpat = (enum vidtpg_bgpat) atoi(optarg);
 			break;
 
 		case '?':
