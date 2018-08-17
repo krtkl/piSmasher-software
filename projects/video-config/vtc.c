@@ -1018,6 +1018,8 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 
 	reg_val = (hact << 16) | hact;
 	REG_WRITE(dev->base, VTC_REG_GEN_VBLANK_F0, reg_val);
+
+	reg_val = (hsync_st << 16) | hsync_st;
 	REG_WRITE(dev->base, VTC_REG_GEN_VSYNC_H_F0, reg_val);
 
 	return 0;
