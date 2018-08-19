@@ -144,8 +144,7 @@ int i2c_write_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *da
 
 int i2c_read_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *data)
 {
-	int i, fd, err;
-	union i2c_smbus_data bus_data;
+	int fd, err;
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
 	if (fd < 0) {
