@@ -76,12 +76,12 @@ usage(void)
 	printf("Usage: video-config [OPTIONS]\n"
 		"\n"
 		"Options:\n"
-		"    -m MODE       - Set video mode (default: WXGA)\n"
+		"    -m MODE       - Set video mode\n"
 		"    -p PATTERN    - Set test pattern code (default: Color bars)\n"
 		"\n"
 		"Modes:\n"
 		"    1280x720\n"
-		"    1366x768\n"
+		"    1366x768 (default)\n"
 		"    1920x1080\n"
 		"\n"
 		"Patterns Codes:\n"
@@ -206,7 +206,7 @@ main(int argc, char *argv[])
 
 	/* Set default mode */
 	if (mode == NULL)
-		mode = &video_modes[2];
+		mode = &video_modes[1];
 
 	/**
 	 * Initialize HDMI input/output
