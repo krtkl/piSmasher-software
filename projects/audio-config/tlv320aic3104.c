@@ -435,28 +435,6 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 	if (ret < 0)
 		return ret;
 
-//	ret = write_reg(codec, AIC3X_P0_ASD_INTF_CTRLB, 0);
-//	if (ret < 0)
-//		return ret;
-
-//	ret = write_reg_mask(codec, AIC3X_P0_PLL_PROGA, (1 << 7) | 0x07, (1 << 7) | 0x01);
-//	if (ret != 0)
-//		return ret;
-
-	/* Set PLL 'J' value */
-//	ret = write_reg(codec, AIC3X_P0_PLL_PROGB, 0x88);
-//	if (ret != 0)
-//		return ret;
-
-	/* Set PLL 'D' value */
-//	ret = write_reg(codec, AIC3X_P0_PLL_PROGC, 0x02);
-//	if (ret != 0)
-//		return ret;
-
-//	ret = write_reg(codec, AIC3X_P0_PLL_PROGD, 0x20);
-//	if (ret != 0)
-//		return ret;
-
 	/* Configure inputs */
 	if (cfg->in_route == AIC3X_MIC_IN_MONO) {
 
@@ -491,11 +469,11 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 //		return ret;
 
 	/* ADC default volume and unmute */
-	ret = write_reg(codec, AIC3X_P0_RADC_VOL, AIC3X_DEFAULT_GAIN);
+	ret = write_reg(codec, AIC3X_P0_RADC_VOL, cfg->in_gain);
 	if (ret != 0)
 		return ret;
 
-	ret = write_reg(codec, AIC3X_P0_LADC_VOL, AIC3X_DEFAULT_GAIN);
+	ret = write_reg(codec, AIC3X_P0_LADC_VOL, cfg->in_gain);
 	if (ret != 0)
 		return ret;
 
@@ -539,11 +517,11 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 		return ret;
 
 	/* DAC default volume and unmute */
-	ret = write_reg(codec, AIC3X_P0_LDAC_VOL, AIC3X_DEFAULT_VOL);
+	ret = write_reg(codec, AIC3X_P0_LDAC_VOL, cfg->out_gain);
 	if (ret != 0)
 		return ret;
 
-	ret = write_reg(codec, AIC3X_P0_RDAC_VOL, AIC3X_DEFAULT_VOL);
+	ret = write_reg(codec, AIC3X_P0_RDAC_VOL, cfg->out_gain);
 	if (ret != 0)
 		return ret;
 
@@ -554,11 +532,11 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 	}
 
 	/* DAC to output default volume and route to output mixer */
-	ret = write_reg(codec, reg[0], AIC3X_DEFAULT_VOL | AIC3X_ROUTE_ON);
+	ret = write_reg(codec, reg[0], cfg->out_gain | AIC3X_ROUTE_ON);
 	if (ret != 0)
 		return ret;
 
-	ret = write_reg(codec, reg[1], AIC3X_DEFAULT_VOL | AIC3X_ROUTE_ON);
+	ret = write_reg(codec, reg[1], cfg->out_gain | AIC3X_ROUTE_ON);
 	if (ret != 0)
 		return ret;
 
@@ -572,11 +550,11 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 		return ret;
 
 	/* PGA to HP Bypass default volume */
-	ret = write_reg(codec, reg[4], AIC3X_DEFAULT_VOL);
+	ret = write_reg(codec, reg[4], cfg->out_gain);
 	if (ret != 0)
 		return ret;
 
-	ret = write_reg(codec, reg[5], AIC3X_DEFAULT_VOL);
+	ret = write_reg(codec, reg[5], cfg->out_gain);
 	if (ret != 0)
 		return ret;
 

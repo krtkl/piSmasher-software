@@ -134,13 +134,13 @@ struct aic3x_asd_if_cfg {
 #define AIC3X_DEFAULT_GAIN    			(0x20U)
 
 /* Route bits */
-#define AIC3X_ROUTE_ON				(0x80U)
+#define AIC3X_ROUTE_ON				(1 << 7)
 
 /* Mute bits */
-#define AIC3X_UNMUTE				(0x08U)
-#define AIC3X_MUTE_ON				(0x80U)
+#define AIC3X_UNMUTE				(1 << 3)
+#define AIC3X_MUTE_ON				(1 << 7)
 
-#define AIC3X_POWER_ON				(0x01U)
+#define AIC3X_POWER_ON				(1 << 0)
 
 
 /* MIC2/LINE2 to Right ADC Control Register - Page 0, Reg 18 */
@@ -222,6 +222,8 @@ struct aic3x_cfg {
 	int (*i2c_read)(uint16_t addr, uint8_t reg,  uint8_t *data);
 	enum aic3x_outroute out_route;
 	enum aic3x_inroute in_route;
+	uint8_t in_gain;
+	uint8_t out_gain;
 };
 
 
