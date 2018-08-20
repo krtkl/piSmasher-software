@@ -80,9 +80,9 @@ usage(void)
 		"    -p PATTERN    - Set test pattern code (default: Color bars)\n"
 		"\n"
 		"Modes:\n"
-		"    720p\n"
-		"    1080p\n"
-		"    WXGA\n"
+		"    1280x720\n"
+		"    1366x768\n"
+		"    1920x1080\n"
 		"\n"
 		"Patterns Codes:\n"
 		"       0          - Video input to test pattern generator\n"
@@ -116,8 +116,8 @@ static const struct video_mode {
 	int height;
 } video_modes[] = {
 	{ VFMT_04_1280x720p_60Hz, VTC_MODE_720p, 1280, 720 },
-	{ VFMT_16_1920x1080p_60Hz, VTC_MODE_1080p, 1920, 1080 },
 	{ VFMT_PC_1366x768p_60Hz, VTC_MODE_WXGA, 1366, 768 },
+	{ VFMT_16_1920x1080p_60Hz, VTC_MODE_1080p, 1920, 1080 },
 	{ /* Sentinel */ }
 };
 
@@ -125,9 +125,11 @@ static const struct vid_mode_str {
 	const char *str;
 	const struct video_mode *mode;
 } video_mode_str[] = {
+	{ "1280x720", &video_modes[0] },
 	{ "720p", &video_modes[0] },
-	{ "1080p", &video_modes[1] },
-	{ "WXGA", &video_modes[2] },
+	{ "1366x768", &video_modes[1] },
+	{ "1920x1080", &video_modes[2] },
+	{ "1080p", &video_modes[2] },
 	{ /* Sentinel */ }
 };
 
