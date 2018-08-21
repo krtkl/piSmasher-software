@@ -360,9 +360,9 @@ aic3x_configure_pll(struct aic3x_dev *codec)
 	uint16_t pll_p, pll_r, pll_j, pll_d;
 
 	pll_p = 1;
-	pll_r = 1;
-	pll_j = 7;
-	pll_d = 5264;
+	pll_r = 2;
+	pll_j = 8;
+	pll_d = 1920;
 
 	ret = write_reg_mask(codec,
 			AIC3X_P0_PLL_PROGA,
@@ -439,8 +439,12 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 	if (cfg->in_route == AIC3X_MIC_IN_MONO) {
 
 		/* Route MIC2R to RADC (-3dB input level control gain)*/
-		ret = write_reg_mask(codec, AIC3X_P0_MIC2LR_2_RADC_CTRL, 0x0f, 0x02);
+		ret = write_reg_mask(codec, AIC3X_P0_MIC2LR_2_RADC_CTRL, 0x0f, 0x00);
 		if (ret != 0)
+			return ret;
+
+		ret = aic3x_set_micbias(codec, AIC3X_MICBIAS_2V);
+		if (ret < 0)
 			return ret;
 
 	} else {
@@ -473,17 +477,21 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 	if (ret != 0)
 		return ret;
 
-	ret = write_reg(codec, AIC3X_P0_LADC_VOL, cfg->in_gain);
-	if (ret != 0)
-		return ret;
-
 	ret = write_reg_mask(codec, AIC3X_P0_RADC_VOL, (1 << 7), 0);
 	if (ret != 0)
 		return ret;
 
-	ret = write_reg_mask(codec, AIC3X_P0_LADC_VOL, (1 << 7), 0);
-	if (ret != 0)
-		return ret;
+	if (cfg->in_route == AIC3X_LINE_IN_STEREO) {
+
+		ret = write_reg(codec, AIC3X_P0_LADC_VOL, cfg->in_gain);
+		if (ret != 0)
+			return ret;
+
+		ret = write_reg_mask(codec, AIC3X_P0_LADC_VOL, (1 << 7), 0);
+		if (ret != 0)
+			return ret;
+	}
+
 
 //	if (cfg->in_route == AIC3X_MIC_IN_MONO) {
 //		ret = aic3x_set_micbias(codec, AIC3X_MICBIAS_2V);
@@ -492,7 +500,7 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 //	}
 
 	/* Set the reference sample frequency */
-	ret = aic3x_configure_fref(codec, DATAPATH_FREF_44_1kHz);
+	ret = aic3x_configure_fref(codec, DATAPATH_FREF_48kHz);
 	if (ret != 0)
 		return ret;
 

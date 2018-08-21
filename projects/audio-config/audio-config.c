@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 	uint8_t invol = 47;			/**< Default input volume */
 	uint8_t outvol = 47;			/**< Default output volume */
 
-	while ((c = getopt(argc, argv, "i:o:")) != -1) {
+	while ((c = getopt(argc, argv, "i:o:g:")) != -1) {
 		switch (c) {
 		case 'i':
 			/* Set the ADC datapath */
