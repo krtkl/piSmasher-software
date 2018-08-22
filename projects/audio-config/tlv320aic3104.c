@@ -242,9 +242,6 @@ enum aic3x_reg {
 	AIC3X_P0_DAC_ICC_ADJ = 			PAGE_REG_ADDR(AIC3X_P0, 109)
 };
 
-
-
-
 static enum aic3x_reg lineout[] = {
 	AIC3X_P0_DACL1_2_LLOPM_VOL,
 	AIC3X_P0_DACR1_2_RLOPM_VOL,
@@ -388,6 +385,8 @@ aic3x_configure_pll(struct aic3x_dev *codec)
 	if (ret < 0)
 		return ret;
 
+	ret = write_reg_mask(codec, AIC3X_OVRF_STATUS_AND_PLLR, 0x0f, pll_r);
+
 	return 0;
 }
 
@@ -438,7 +437,7 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 	/* Configure inputs */
 	if (cfg->in_route == AIC3X_MIC_IN_MONO) {
 
-		/* Route MIC2R to RADC (-3dB input level control gain)*/
+		/* Route MIC2R to RADC (0dB input level control gain)*/
 		ret = write_reg_mask(codec, AIC3X_P0_MIC2LR_2_RADC_CTRL, 0x0f, 0x00);
 		if (ret != 0)
 			return ret;
@@ -448,11 +447,11 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 			return ret;
 
 	} else {
-		ret = write_reg_mask(codec, AIC3X_P0_LINE1R_2_RADC_CTRL, 0x78, 0x10);
+		ret = write_reg_mask(codec, AIC3X_P0_LINE1R_2_RADC_CTRL, 0x78, 0x00);
 		if (ret != 0)
 			return ret;
 
-		ret = write_reg_mask(codec, AIC3X_P0_LINE1L_2_LADC_CTRL, 0x78, 0x10);
+		ret = write_reg_mask(codec, AIC3X_P0_LINE1L_2_LADC_CTRL, 0x78, 0x00);
 		if (ret != 0)
 			return ret;
 	}
@@ -473,7 +472,7 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 //		return ret;
 
 	/* ADC default volume and unmute */
-	ret = write_reg(codec, AIC3X_P0_RADC_VOL, cfg->in_gain);
+	ret = write_reg(codec, AIC3X_P0_RADC_VOL, cfg->gains->radc_pga & 0x7FU);
 	if (ret != 0)
 		return ret;
 
@@ -483,7 +482,7 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 
 	if (cfg->in_route == AIC3X_LINE_IN_STEREO) {
 
-		ret = write_reg(codec, AIC3X_P0_LADC_VOL, cfg->in_gain);
+		ret = write_reg(codec, AIC3X_P0_LADC_VOL, cfg->gains->ladc_pga & 0x7FU);
 		if (ret != 0)
 			return ret;
 
@@ -491,7 +490,6 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 		if (ret != 0)
 			return ret;
 	}
-
 
 //	if (cfg->in_route == AIC3X_MIC_IN_MONO) {
 //		ret = aic3x_set_micbias(codec, AIC3X_MICBIAS_2V);
@@ -525,46 +523,88 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 		return ret;
 
 	/* DAC default volume and unmute */
-	ret = write_reg(codec, AIC3X_P0_LDAC_VOL, cfg->out_gain);
+	ret = write_reg(codec, AIC3X_P0_LDAC_VOL, cfg->gains->ldac_dvc);
 	if (ret != 0)
 		return ret;
 
-	ret = write_reg(codec, AIC3X_P0_RDAC_VOL, cfg->out_gain);
+	ret = write_reg(codec, AIC3X_P0_RDAC_VOL, cfg->gains->rdac_dvc);
 	if (ret != 0)
 		return ret;
 
 	/* Left Line Output Plus/Minus control registers */
 	switch (cfg->out_route) {
-	case AIC3X_LINE_OUT_STEREO: reg = lineout; break;
-	case AIC3X_HP_OUT_STEREO: reg = headout; break;
+	case AIC3X_LINE_OUT_STEREO:
+		/* DAC to output default volume and route to output mixer */
+		ret = write_reg(codec, AIC3X_P0_DACL1_2_LLOPM_VOL, cfg->gains->ldac_vol | AIC3X_ROUTE_ON);
+		if (ret != 0)
+			return ret;
+
+		ret = write_reg(codec, AIC3X_P0_DACR1_2_RLOPM_VOL, cfg->gains->rdac_vol | AIC3X_ROUTE_ON);
+		if (ret != 0)
+			return ret;
+
+		/* Unmute outputs and power on */
+		ret = write_reg_mask(codec,
+				AIC3X_P0_LLOPM_CTRL,
+				AIC3X_UNMUTE | AIC3X_POWER_ON,
+				AIC3X_UNMUTE | AIC3X_POWER_ON);
+		if (ret != 0)
+			return ret;
+
+		ret = write_reg_mask(codec,
+				AIC3X_P0_RLOPM_CTRL,
+				AIC3X_UNMUTE | AIC3X_POWER_ON,
+				AIC3X_UNMUTE | AIC3X_POWER_ON);
+		if (ret != 0)
+			return ret;
+
+		/* PGA to HP Bypass default volume */
+		ret = write_reg(codec, AIC3X_P0_PGAL_2_LLOPM_VOL, cfg->gains->lpga_vol);
+		if (ret != 0)
+			return ret;
+
+		ret = write_reg(codec, AIC3X_P0_PGAR_2_RLOPM_VOL, cfg->gains->rpga_vol);
+		if (ret != 0)
+			return ret;
+
+		break;
+
+	case AIC3X_HP_OUT_STEREO:
+		/* DAC to output default volume and route to output mixer */
+		ret = write_reg(codec, AIC3X_P0_DACL1_2_HPLOUT_VOL, cfg->gains->ldac_vol | AIC3X_ROUTE_ON);
+		if (ret != 0)
+			return ret;
+
+		ret = write_reg(codec, AIC3X_P0_DACR1_2_HPROUT_VOL, cfg->gains->rdac_vol | AIC3X_ROUTE_ON);
+		if (ret != 0)
+			return ret;
+
+		/* Unmute outputs and power on */
+		ret = write_reg_mask(codec,
+				AIC3X_P0_HPLOUT_CTRL,
+				AIC3X_UNMUTE | AIC3X_POWER_ON,
+				AIC3X_UNMUTE | AIC3X_POWER_ON);
+		if (ret != 0)
+			return ret;
+
+		ret = write_reg_mask(codec,
+				AIC3X_P0_HPROUT_CTRL,
+				AIC3X_UNMUTE | AIC3X_POWER_ON,
+				AIC3X_UNMUTE | AIC3X_POWER_ON);
+		if (ret != 0)
+			return ret;
+
+		/* PGA to HP Bypass default volume */
+		ret = write_reg(codec, AIC3X_P0_PGAL_2_HPLOUT_VOL, cfg->gains->lpga_vol);
+		if (ret != 0)
+			return ret;
+
+		ret = write_reg(codec, AIC3X_P0_PGAR_2_HPROUT_VOL, cfg->gains->rpga_vol);
+		if (ret != 0)
+			return ret;
+
+		break;
 	}
-
-	/* DAC to output default volume and route to output mixer */
-	ret = write_reg(codec, reg[0], cfg->out_gain | AIC3X_ROUTE_ON);
-	if (ret != 0)
-		return ret;
-
-	ret = write_reg(codec, reg[1], cfg->out_gain | AIC3X_ROUTE_ON);
-	if (ret != 0)
-		return ret;
-
-	/* Unmute outputs and power on */
-	ret = write_reg_mask(codec, reg[2], AIC3X_UNMUTE | AIC3X_POWER_ON, AIC3X_UNMUTE | AIC3X_POWER_ON);
-	if (ret != 0)
-		return ret;
-
-	ret = write_reg_mask(codec, reg[3], AIC3X_UNMUTE | AIC3X_POWER_ON, AIC3X_UNMUTE | AIC3X_POWER_ON);
-	if (ret != 0)
-		return ret;
-
-	/* PGA to HP Bypass default volume */
-	ret = write_reg(codec, reg[4], cfg->out_gain);
-	if (ret != 0)
-		return ret;
-
-	ret = write_reg(codec, reg[5], cfg->out_gain);
-	if (ret != 0)
-		return ret;
 
 	return (0);
 }

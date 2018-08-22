@@ -215,6 +215,17 @@ enum aic3x_inroute {
 	AIC3X_MIC_IN_MONO,
 };
 
+struct aic3x_gain {
+	uint8_t ladc_pga;		/**< Left-ADC PGA gain setting */
+	uint8_t radc_pga;		/**< Right-ADC PGA gain setting */
+	uint8_t ldac_dvc;		/**< Left-DAC digital volume control */
+	uint8_t rdac_dvc;		/**< Right-DAC digital volume control */
+	uint8_t lpga_vol;		/**< Left PGA to output analog volume control */
+	uint8_t rpga_vol;		/**< Right PGA to output analog volume control */
+	uint8_t ldac_vol;		/**< Left-DAC to output analog volume control */
+	uint8_t rdac_vol;		/**< Right-DAC to output analog volume control */
+};
+
 struct aic3x_cfg {
 	int id;
 	uint16_t sl_addr;
@@ -222,8 +233,7 @@ struct aic3x_cfg {
 	int (*i2c_read)(uint16_t addr, uint8_t reg,  uint8_t *data);
 	enum aic3x_outroute out_route;
 	enum aic3x_inroute in_route;
-	uint8_t in_gain;
-	uint8_t out_gain;
+	struct aic3x_gain *gains;
 };
 
 

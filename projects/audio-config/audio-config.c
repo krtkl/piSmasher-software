@@ -73,7 +73,10 @@ usage(void)
 		"\n"
 		"    -i SOURCE     - Set input to SOURCE\n"
 		"    -o SINK       - Set output to SINK\n"
-		"    -g GAIN       - Set gain to GAIN (0 - 127)\n"
+		"    -d GAIN       - Set DAC analog output gain to GAIN\n"
+		"    -p GAIN       - Set DAC PGA analog output gain to GAIN\n"
+		"    -D GAIN       - Set DAC digital volume control to GAIN\n"
+		"    -A GAIN       - Set ADC PGA gain setting\n"
 		"\n"
 		"Sources:\n"
 		"    linein\n"
@@ -82,6 +85,11 @@ usage(void)
 		"Sinks:\n"
 		"    lineout\n"
 		"    headphones\n"
+		"\n"
+		"Gain Settings:\n"
+		"\n"
+		"\n"
+		"PGA Gain Values valid values are 0 - 59.5 representing units of decibels (dB)\n"
 		"\n"
 	);
 }
@@ -112,8 +120,22 @@ main(int argc, char *argv[])
 	char *inpath, *outpath;
 	uint8_t invol = 47;			/**< Default input volume */
 	uint8_t outvol = 47;			/**< Default output volume */
+	uint8_t adc_pga = 0;
 
-	while ((c = getopt(argc, argv, "i:o:g:")) != -1) {
+	struct aic3x_gain *gains = malloc(sizeof(struct aic3x_gain));
+	if (!gains)
+		exit(EXIT_FAILURE);
+
+	gains->ladc_pga = 0;		/**< 0dB */
+	gains->radc_pga = 0;		/**< 0dB */
+	gains->ldac_dvc = 0;
+	gains->rdac_dvc = 0;
+	gains->ldac_vol = 0;
+	gains->rdac_vol = 0;
+	gains->lpga_vol = 0;
+	gains->rpga_vol = 0;
+
+	while ((c = getopt(argc, argv, "i:o:d:p:D:A:")) != -1) {
 		switch (c) {
 		case 'i':
 			/* Set the ADC datapath */
@@ -125,8 +147,24 @@ main(int argc, char *argv[])
 			outpath = optarg;
 			break;
 
-		case 'g':
-			invol = outvol = atoi(optarg);
+		case 'd':
+			gains->ldac_vol = atoi(optarg);
+			gains->rdac_vol = atoi(optarg);
+			break;
+
+		case 'p':
+			gains->lpga_vol = atoi(optarg);
+			gains->rpga_vol = atoi(optarg);
+			break;
+
+		case 'D':
+			gains->ldac_dvc = atoi(optarg);
+			gains->rdac_dvc = atoi(optarg);
+			break;
+
+		case 'A':
+			gains->ladc_pga = atoi(optarg);
+			gains->radc_pga = atoi(optarg);
 			break;
 
 		case '?':
@@ -162,8 +200,7 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	cfg.in_gain = invol;
-	cfg.out_gain = outvol;
+	cfg.gains = gains;
 
 	ret = audio_init();
 	if (ret < 0) {
