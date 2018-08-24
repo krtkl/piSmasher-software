@@ -2272,7 +2272,7 @@ tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 	 * @todo Determine the correct register setting for FIFO_LATENCY_CTRL
 	 * that will eliminate glitches and interruptions in audio stream
 	 */
-	err = write_reg(dev, FIFO_LATENCY_CTRL, 0x03);
+	err = write_reg(dev, FIFO_LATENCY_CTRL, 0x06);
 	if (err < 0)
 		return err;
 
@@ -2289,8 +2289,7 @@ tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 			AUDIO_OUT_ENABLE_WS |
 			AUDIO_OUT_ENABLE_AP0 |
 			AUDIO_OUT_ENABLE_AP1 |
-			AUDIO_OUT_ENABLE_AP2 |
-			AUDIO_OUT_ENABLE_AP3);
+			AUDIO_OUT_ENABLE_AP2);
 	if (err < 0)
 		return err;
 
