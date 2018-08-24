@@ -1756,6 +1756,11 @@ static uint16_t spa_edid[2] = {
 };
 
 /**
+ * @addtogroup	TDA1997X_Functions_I2C	I2C Control Functions
+ * @{
+ */
+
+/**
  * @brief	Write Data
  *
  * @param	dev:	TDA1997X device structure pointer
@@ -1764,7 +1769,8 @@ static uint16_t spa_edid[2] = {
  * @param	data:	Pointer to data to write from
  * @return	Number of bytes written or less-than-zero error status
  */
-static int tda1997x_write(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
+static int
+tda1997x_write(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
 {
 	int i, err;
 	struct tda1997x_cfg *cfg = dev->cfg;
@@ -1801,7 +1807,8 @@ static int tda1997x_write(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t l
  * @param	data:	Pointer to data to read to
  * @return	Number of bytes read or less-than-zero error status
  */
-static int tda1997x_read(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
+static int
+tda1997x_read(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t len, uint8_t *data)
 {
 	int i, err;
 	struct tda1997x_cfg *cfg = dev->cfg;
@@ -1833,7 +1840,8 @@ static int tda1997x_read(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t le
  * @param	data:	Pointer to data to read to
  * @return	Number of bytes read or less-than-zero error status
  */
-static int read_reg(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t *data)
+static int
+read_reg(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t *data)
 {
 	return tda1997x_read(dev, reg, 1, data);;
 }
@@ -1846,7 +1854,8 @@ static int read_reg(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t *data)
  * @param	data:	Data value to write to register
  * @return	Number of bytes written or less-than-zero error status
  */
-static int write_reg(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t data)
+static int
+write_reg(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t data)
 {
 	uint8_t tmp = data;
 
@@ -1863,7 +1872,8 @@ static int write_reg(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t data)
  * @param	val:	Bitfield to be written within mask
  * @return	Number of bytes written or less-than-zero error status
  */
-static int write_reg_mask(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t mask, uint8_t val)
+static int
+write_reg_mask(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t mask, uint8_t val)
 {
 	int err;
 	uint8_t reg_val;
@@ -1887,7 +1897,8 @@ static int write_reg_mask(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t m
  * @param	data:	Pointer to data to write from
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_cec_write(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t len, uint8_t *data)
+static int
+tda1997x_cec_write(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t len, uint8_t *data)
 {
 	int i, err;
 	struct tda1997x_cfg *cfg = dev->cfg;
@@ -1910,7 +1921,8 @@ static int tda1997x_cec_write(struct tda1997x_dev *dev, enum cec_reg reg, uint8_
  * @param	data:	Pointer to data to read to
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_cec_read(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t len, uint8_t *data)
+static int
+tda1997x_cec_read(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t len, uint8_t *data)
 {
 	int i, err;
 	struct tda1997x_cfg *cfg = dev->cfg;
@@ -1932,7 +1944,8 @@ static int tda1997x_cec_read(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t
  * @param	data:	Data value to write to register
  * @return	0 on success, non-zero error status otherwise
  */
-static int cec_write_reg(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t data)
+static int
+cec_write_reg(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t data)
 {
 	uint8_t tmp = data;
 
@@ -1947,7 +1960,8 @@ static int cec_write_reg(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t dat
  * @param	data:	Pointer to data to read to
  * @return	0 on success, non-zero error status otherwise
  */
-static int cec_read_reg(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t *data)
+static int
+cec_read_reg(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t *data)
 {
 	return tda1997x_cec_read(dev, reg, 1, data);;
 }
@@ -1962,7 +1976,8 @@ static int cec_read_reg(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t *dat
  * @param	val:	Bitfield to be written within mask
  * @return	0 on success, non-zero error status otherwise
  */
-static int cec_write_reg_mask(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t mask, uint8_t val)
+static int
+cec_write_reg_mask(struct tda1997x_dev *dev, enum cec_reg reg, uint8_t mask, uint8_t val)
 {
 	int err;
 	uint8_t reg_val;
@@ -1976,6 +1991,9 @@ static int cec_write_reg_mask(struct tda1997x_dev *dev, enum cec_reg reg, uint8_
 
 	return cec_write_reg(dev, reg, reg_val);
 }
+/**
+ * @}
+ */
 
 /**
  * @brief	Clear Interrupt Register
@@ -1985,7 +2003,8 @@ static int cec_write_reg_mask(struct tda1997x_dev *dev, enum cec_reg reg, uint8_
  * @param	val:	Pointer to data to write from register
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_clear_irq(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t *val)
+static int
+tda1997x_clear_irq(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8_t *val)
 {
 	int err;
 	uint8_t tmp;
@@ -2010,7 +2029,8 @@ static int tda1997x_clear_irq(struct tda1997x_dev *dev, enum hdmi_reg reg, uint8
  * @param	rst:	Reset (> 0) or enable (0)
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_soft_rst(struct tda1997x_dev *dev, uint8_t rst)
+static int
+tda1997x_soft_rst(struct tda1997x_dev *dev, uint8_t rst)
 {
 	return write_reg(dev, HDMI_SOFT_RST, rst);
 }
@@ -2023,7 +2043,8 @@ static int tda1997x_soft_rst(struct tda1997x_dev *dev, uint8_t rst)
  * @param	sus_en:		Start up sequence enabled
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_info_rst(struct tda1997x_dev *dev, uint8_t rst)
+static int
+tda1997x_info_rst(struct tda1997x_dev *dev, uint8_t rst)
 {
 	int err;
 	uint8_t reg_val;
@@ -2053,7 +2074,8 @@ static int tda1997x_info_rst(struct tda1997x_dev *dev, uint8_t rst)
  * @param	en:		Enable (> 0) or disable (0)
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_sus_en(struct tda1997x_dev *dev, uint8_t en)
+static int
+tda1997x_sus_en(struct tda1997x_dev *dev, uint8_t en)
 {
 	if (en)
 		return write_reg_mask(dev, RATE_CTRL, SUS_ENABLE, SUS_ENABLE);
@@ -2068,7 +2090,8 @@ static int tda1997x_sus_en(struct tda1997x_dev *dev, uint8_t en)
  * @param	vp_conf:	Pointer to array of video port control values
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_cfg_vp(struct tda1997x_dev *dev, uint8_t *vp_conf)
+int
+tda1997x_cfg_vp(struct tda1997x_dev *dev, uint8_t *vp_conf)
 {
 	return tda1997x_write(dev, VP35_32_CTRL, 9, vp_conf);
 }
@@ -2080,7 +2103,8 @@ int tda1997x_cfg_vp(struct tda1997x_dev *dev, uint8_t *vp_conf)
  * @param	mtx:		Pointer to start of conversion matrix or NULL for bypass
  * @return 	0 on success, non-zero error status otherwise
  */
-int tda1997x_cfg_conv(struct tda1997x_dev *dev, int16_t *mtx)
+int
+tda1997x_cfg_conv(struct tda1997x_dev *dev, int16_t *mtx)
 {
 	int err;
 	uint8_t i;
@@ -2113,7 +2137,8 @@ int tda1997x_cfg_conv(struct tda1997x_dev *dev, int16_t *mtx)
  * @param	dev:	TDA1997X device structure pointer
  * @return	0 on success, non-zero error code otherwise
  */
-int tda1997x_cfg_vid_out(struct tda1997x_dev *dev)
+int
+tda1997x_cfg_vid_out(struct tda1997x_dev *dev)
 {
 	int err;
 
@@ -2181,7 +2206,6 @@ int tda1997x_cfg_vid_out(struct tda1997x_dev *dev)
 	return 0;
 }
 
-
 /**
  * @brief	Configure Prefilter
  *
@@ -2190,7 +2214,10 @@ int tda1997x_cfg_vid_out(struct tda1997x_dev *dev)
  * @param	rv:		R/Cr channel prefilter configuration
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_cfg_prefilter(struct tda1997x_dev *dev, enum tda1997x_filters_ctrl_prefil bu, enum tda1997x_filters_ctrl_prefil rv)
+int
+tda1997x_cfg_prefilter(struct tda1997x_dev *dev,
+		enum tda1997x_filters_ctrl_prefil bu,
+		enum tda1997x_filters_ctrl_prefil rv)
 {
 	int err;
 	uint8_t reg_val = ((uint8_t)bu << 2) | ((uint8_t)rv);
@@ -2213,23 +2240,20 @@ int tda1997x_cfg_prefilter(struct tda1997x_dev *dev, enum tda1997x_filters_ctrl_
 	return 0;
 }
 
-
 /**
  * @brief	Configure Audio Format
  *
  * @param	dev:	TDA1997X device structure pointer
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
+int
+tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 {
 	int err;
 	uint8_t reg_val;
 
-	/**
-	 * BEGIN: Configure Audio Formatter
-	 */
-	/* Configure audio path */
-	err = write_reg(dev, AUDIO_PATH, 0x01);
+	/* Configure audio path (CEA-861-D Table 20) */
+	err = write_reg(dev, AUDIO_PATH, 0x1F);
 	if (err < 0)
 		return err;
 
@@ -2252,7 +2276,8 @@ int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 	if (err < 0)
 		return err;
 
-	/* Configure audio selection */
+
+	/* Configure audio selection (16-bit I2S PCM) */
 	err = write_reg(dev, AUDIO_SEL, 0x00);
 	if (err < 0)
 		return err;
@@ -2262,7 +2287,10 @@ int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 			AUDIO_OUT_ENABLE,
 			AUDIO_OUT_ENABLE_ACLK |
 			AUDIO_OUT_ENABLE_WS |
-			AUDIO_OUT_ENABLE_AP0);
+			AUDIO_OUT_ENABLE_AP0 |
+			AUDIO_OUT_ENABLE_AP1 |
+			AUDIO_OUT_ENABLE_AP2 |
+			AUDIO_OUT_ENABLE_AP3);
 	if (err < 0)
 		return err;
 
@@ -2278,24 +2306,14 @@ int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 	err = write_reg_mask(dev, TEST_NCTS_CTRL, 0x03, 0);
 	if (err < 0)
 		return err;
-	/**
-	 * END: Configure Audio Formatter
-	 */
 
-	/**
-	 * BEGIN: Configure Audio Clock Mode
-	 */
-
+	/* Configure Audio Clock Mode */
 	err = write_reg(dev, AUDIO_CLOCK_MODE, (uint8_t) AUDIO_CLOCK_MODE_128FS);
 	if (err < 0)
 		return err;
-	/**
-	 * END: Configure Audio Clock Mode
-	 */
 
 	return 0;
 }
-
 
 /**
  * @brief	Configure Audio Selection
@@ -2304,11 +2322,11 @@ int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
  * @param	mode:	Audio selection mode enumeration value
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_cfg_audio_mode(struct tda1997x_dev *dev, enum tda1997x_audio_sel_mode mode)
+int
+tda1997x_cfg_audio_mode(struct tda1997x_dev *dev, enum tda1997x_audio_sel_mode mode)
 {
-	return write_reg_mask(dev, AUDIO_SEL, AUDIO_SEL_MODE_MASK, (uint8_t)mode);
+	return write_reg_mask(dev, AUDIO_SEL, AUDIO_SEL_MODE_MASK, (uint8_t) mode);
 }
-
 
 /**
  * @brief	Get Audio Status
@@ -2317,11 +2335,11 @@ int tda1997x_cfg_audio_mode(struct tda1997x_dev *dev, enum tda1997x_audio_sel_mo
  * @param	status:	Pointer to audio status to write value
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_get_audio_flags(struct tda1997x_dev *dev, uint8_t *status)
+int
+tda1997x_get_audio_flags(struct tda1997x_dev *dev, uint8_t *status)
 {
 	return read_reg(dev, AUDIO_FLAGS, status);
 }
-
 
 /**
  * @brief	Get Audio Frequency
@@ -2330,7 +2348,8 @@ int tda1997x_get_audio_flags(struct tda1997x_dev *dev, uint8_t *status)
  * @param	freq:	Pointer to frequency to write value
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_get_audio_freq(struct tda1997x_dev *dev, enum tda1997x_audio_freq *freq)
+int
+tda1997x_get_audio_freq(struct tda1997x_dev *dev, enum tda1997x_audio_freq *freq)
 {
 	int err;
 	uint8_t reg_val;
@@ -2339,11 +2358,10 @@ int tda1997x_get_audio_freq(struct tda1997x_dev *dev, enum tda1997x_audio_freq *
 	if (err < 0)
 		return err;
 
-	*freq = (enum tda1997x_audio_freq)reg_val;
+	*freq = (enum tda1997x_audio_freq) reg_val;
 
 	return 0;
 }
-
 
 /**
  * @brief	Get Audio Channel Status
@@ -2351,7 +2369,8 @@ int tda1997x_get_audio_freq(struct tda1997x_dev *dev, enum tda1997x_audio_freq *
  * @param	dev:	TDA1997X device structure pointer
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_get_chan_status(struct tda1997x_dev *dev)
+int
+tda1997x_get_chan_status(struct tda1997x_dev *dev)
 {
 	int err;
 	uint8_t reg_val[12];
@@ -2363,14 +2382,14 @@ int tda1997x_get_chan_status(struct tda1997x_dev *dev)
 	return 0;
 }
 
-
 /**
  * @brief	Reset Audio FIFO
  *
  * @param	dev:	TDA1997X device structure pointer
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_audio_fifo_rst(struct tda1997x_dev *dev)
+static int
+tda1997x_audio_fifo_rst(struct tda1997x_dev *dev)
 {
 	int err;
 
@@ -2385,6 +2404,10 @@ static int tda1997x_audio_fifo_rst(struct tda1997x_dev *dev)
 	return 0;
 }
 
+/**
+ * @addtogroup	TDA1997X_Functions_EDID	EDID Functions
+ * @{
+ */
 
 /**
  * @brief	Calculate EDID Block Checksum
@@ -2393,7 +2416,8 @@ static int tda1997x_audio_fifo_rst(struct tda1997x_dev *dev)
  * @param	cksum:	Pointer to data to write checksum value
  * @return	None
  */
-static int tda1997x_edid_cksum(struct tda1997x_dev *dev, uint8_t *edid, uint8_t *cksum)
+static int
+tda1997x_edid_cksum(struct tda1997x_dev *dev, uint8_t *edid, uint8_t *cksum)
 {
 	uint8_t i;
 	uint8_t tmp = 0;
@@ -2411,6 +2435,26 @@ static int tda1997x_edid_cksum(struct tda1997x_dev *dev, uint8_t *edid, uint8_t 
 	return 0;
 }
 
+
+/**
+ * Data block collection:
+ *
+ *	Audio Data Block:
+ *		Audio data blocks are made up of a block header (1 byte)
+ *		followed by one or more 3-byte audio descriptors.
+ *
+ */
+
+
+int
+tda1997x_edid_block(struct tda1997x_dev *dev)
+{
+
+
+
+
+	return 0;
+}
 
 /**
  * @brief	Configure EDID
@@ -2468,7 +2512,9 @@ tda1997x_cfg_edid(struct tda1997x_dev *dev, uint8_t *edid, uint8_t *edid_ext)
 
 	return 0;
 }
-
+/**
+ * @}
+ */
 
 /**
  * @brief	Configure Source Physical Address
@@ -2479,7 +2525,8 @@ tda1997x_cfg_edid(struct tda1997x_dev *dev, uint8_t *edid, uint8_t *edid_ext)
  * @param	spa:	Pointer to array of SPAs
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_cfg_spa(struct tda1997x_dev *dev, uint8_t *edid1, uint8_t offset, uint16_t* spa)
+static int
+tda1997x_cfg_spa(struct tda1997x_dev *dev, uint8_t *edid1, uint8_t offset, uint16_t* spa)
 {
 	int err;
 	uint8_t reg_val[7];
@@ -2520,17 +2567,14 @@ static int tda1997x_cfg_spa(struct tda1997x_dev *dev, uint8_t *edid1, uint8_t of
 	return 0;
 }
 
-
-
-
-
 /**
  * @brief	Read Infoframe
  *
  * @param	dev:	TDA1997X device structure pointer
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_read_infoframe(struct tda1997x_dev *dev, enum hdmi_reg reg, union tda1997x_infoframe *info)
+static int
+tda1997x_read_infoframe(struct tda1997x_dev *dev, enum hdmi_reg reg, union tda1997x_infoframe *info)
 {
 	int err;
 	uint8_t head[4];
@@ -2564,7 +2608,6 @@ static int tda1997x_read_infoframe(struct tda1997x_dev *dev, enum hdmi_reg reg, 
 	return 0;
 }
 
-
 /**
  * @brief	Parse Infoframe
  *
@@ -2572,11 +2615,11 @@ static int tda1997x_read_infoframe(struct tda1997x_dev *dev, enum hdmi_reg reg, 
  * @param	info:	Pointer to infoframe union data
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_parse_infoframe(struct tda1997x_dev *dev, union tda1997x_infoframe *info)
+int
+tda1997x_parse_infoframe(struct tda1997x_dev *dev, union tda1997x_infoframe *info)
 {
 	return 0;
 }
-
 
 /**
  * @brief	Parse Audio Infoframe
@@ -2585,7 +2628,8 @@ int tda1997x_parse_infoframe(struct tda1997x_dev *dev, union tda1997x_infoframe 
  * @param	info:	Pointer to audio infoframe structure
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_parse_aud_infoframe(struct tda1997x_dev *dev, struct tda1997x_info_aud *info)
+int
+tda1997x_parse_aud_infoframe(struct tda1997x_dev *dev, struct tda1997x_info_aud *info)
 {
 	int err;
 
@@ -2602,14 +2646,14 @@ int tda1997x_parse_aud_infoframe(struct tda1997x_dev *dev, struct tda1997x_info_
 	return 0;
 }
 
-
 /**
  * @brief	Print Infoframe
  *
  * @param	dev:	TDA1997X device structure pointer
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_print_infoframe(struct tda1997x_dev *dev)
+int
+tda1997x_print_infoframe(struct tda1997x_dev *dev)
 {
 	return 0;
 }
@@ -3057,7 +3101,6 @@ tda1997x_init(struct tda1997x_dev *dev, struct tda1997x_cfg *cfg, uint8_t *edid_
 	return 0;
 }
 
-
 /**
  * @brief	Startup Sequence Interrupt Handler
  *
@@ -3065,7 +3108,8 @@ tda1997x_init(struct tda1997x_dev *dev, struct tda1997x_cfg *cfg, uint8_t *edid_
  * @param	flags:	Flags read from the interrupt flags register
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_sus_irq(struct tda1997x_dev *dev, uint8_t flags)
+static int
+tda1997x_sus_irq(struct tda1997x_dev *dev, uint8_t flags)
 {
 	int err;
 	uint8_t i, status;
@@ -3183,7 +3227,6 @@ static int tda1997x_sus_irq(struct tda1997x_dev *dev, uint8_t flags)
 	return 0;
 }
 
-
 /**
  * @brief	Parse Infoframe
  *
@@ -3191,7 +3234,8 @@ static int tda1997x_sus_irq(struct tda1997x_dev *dev, uint8_t flags)
  * @param	flags:	Flags read from interrupt flags register
  * @return	0 on success, non-zero error status otherwise
  */
-static int tda1997x_infoframe_irq(struct tda1997x_dev *dev, uint8_t flags)
+static int
+tda1997x_infoframe_irq(struct tda1997x_dev *dev, uint8_t flags)
 {
 	int err;
 	uint8_t i;
@@ -3226,7 +3270,6 @@ static int tda1997x_infoframe_irq(struct tda1997x_dev *dev, uint8_t flags)
 	return 0;
 }
 
-
 /**
  * @brief	Audio Interrupt Handler
  *
@@ -3234,7 +3277,8 @@ static int tda1997x_infoframe_irq(struct tda1997x_dev *dev, uint8_t flags)
  * @param	flags:	Flags read from the interrupt flags register
  * @return	0 on success, non-zero error status otherwise
  */
-int tda1997x_audio_irq(struct tda1997x_dev *dev, uint8_t flags)
+int
+tda1997x_audio_irq(struct tda1997x_dev *dev, uint8_t flags)
 {
 	int err;
 	uint8_t status;
@@ -3310,7 +3354,6 @@ int tda1997x_audio_irq(struct tda1997x_dev *dev, uint8_t flags)
 	return 0;
 }
 
-
 /**
  * @brief	AFE Interrupt Handler
  *
@@ -3318,11 +3361,11 @@ int tda1997x_audio_irq(struct tda1997x_dev *dev, uint8_t flags)
  * @param	flags:	Flags read from the interrupt flags register
  * @return	0 on success, non-zero error otherwise
  */
-int tda1997x_afe_irq(struct tda1997x_dev *dev, uint8_t flags)
+int
+tda1997x_afe_irq(struct tda1997x_dev *dev, uint8_t flags)
 {
 	return 0;
 }
-
 
 /**
  * @brief	Handle TDA1997x Interrupt
@@ -3330,7 +3373,8 @@ int tda1997x_afe_irq(struct tda1997x_dev *dev, uint8_t flags)
  * @param	dev:	TDA1997X device structure pointer
  * @return 0 on success, non-zero error status otherwise
  */
-int tda1997x_handle_irq(struct tda1997x_dev *dev)
+int
+tda1997x_handle_irq(struct tda1997x_dev *dev)
 {
 	int err;
 	uint8_t irq_flags_top, reg_val;
@@ -3432,11 +3476,11 @@ int tda1997x_handle_irq(struct tda1997x_dev *dev)
 	return 0;
 }
 
-
 /**
  * @brief
  */
-int tda1997x_interrupt(struct tda1997x_dev *dev, struct tda1997x_irq_source *tab)
+int
+tda1997x_interrupt(struct tda1997x_dev *dev, struct tda1997x_irq_source *tab)
 {
 	int err;
 	uint8_t i, j;

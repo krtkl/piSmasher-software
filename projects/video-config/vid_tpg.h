@@ -111,5 +111,4 @@ int vidtpg_set_format(struct vidtpg *tpg, int height, int width, enum vidtpg_col
 }
 #endif
 
-
 #endif /* __VIDTPG_H */

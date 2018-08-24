@@ -20,6 +20,45 @@
 #define HDMI_RX_HDMI_I2C_ADDR			(0x48U)
 #define HDMI_RX_CEC_I2C_ADDR			(0x34U)
 
+
+/* Short Audio Descriptors */
+//#define SAD_FMT_MASK			(0x78U)
+
+//enum edid_sad_format {
+//	SAD_FMT_LPCM = 0x08,		/**< Linear pulse code modulation */
+//	SAD_FMT_AC3,			/**< AC-3 */
+//	SAD_FMT_MPEG1,			/**< MPEG layers 1 and 2 */
+//	SAD_FMT_MP3,			/**< MP3 */
+//	SAD_FMT_MPEG2,			/**< MPEG2 */
+//	SAD_FMT_AAC,			/**< AAC */
+//	SAD_FMT_DTS,			/**< DTS */
+//	SAD_FMT_ATRAC,			/**< ATRAC */
+//	SAD_FMT_OBA,			/**< One-bit audio */
+//	SAD_FMT_DDPLUS,			/**< DD+ */
+//	SAD_FMT_DTS_HD,			/**< DTS-HD */
+//	SAD_FMT_MLP,			/**< MLP/Dolby TrueHD */
+//	SAD_FMT_DST_AUDIO,		/**< DST Audio */
+//	SAD_FMT_WMA			/**< Microsoft WMA Pro */
+//};
+
+//#define SAD_NCHAN_MASK			(0x07U)
+
+/* SAD Byte 2 */
+//#define SAD_FREQ_192kHz			(1 << 6)
+//#define SAD_FREQ_176kHz			(1 << 5)
+//#define SAD_FREQ_96kHz			(1 << 4)
+//#define SAD_FREQ_88kHz			(1 << 3)
+//#define SAD_FREQ_48kHz			(1 << 2)
+//#define SAD_FREQ_44kHz			(1 << 1)
+//#define SAD_FREQ_32kHz			(1 << 0)
+
+/* SAD Byte 3 */
+
+//struct audio_data_block {
+//	int nsads;		/**< Number of short audio descriptors (SADs) */
+//};
+
+
 /**
  * @brief	EDID block
  */
@@ -83,7 +122,7 @@ static uint8_t edid_ext[127] = {
 	0x07,									/* 720x480i @ 60 Hz */
 	0x16,									/* 720x576i @ 50 Hz */
 	0x01,									/* 640x480p @ 60 Hz */
-	0x23,	0x09,	0x07,	0x07,						/* Audio data block */
+	0x23,	0x0F,	0x17,	0x07,						/* Audio data block */
 	0x02,	0x3A,	0x80,	0xD0,	0x72,	0x38,	0x2D,	0x40,	0x10,	/* DTD (148.5 MHz) */
 	0x2C,	0x45,	0x80,	0xC4,	0x8E,	0x21,	0x00,	0x00,	0x1E,
 	0x01,	0x1D,	0x80,	0x3E,	0x73,	0x38,	0x2D,	0x40,	0x7E,	/* DTD (74.25 MHz) */
