@@ -69,7 +69,7 @@ static uint8_t edid_block[127] = {
 	0x01,	0x00,	0x00,	0x00,							/* Serial number */
 	0x30,	0x15,									/* Manufacture week/year */
 	0x01,	0x03,									/* EDID version */
-	0x80,										/* Video input parameters */
+	0xA2,										/* Video input parameters */
 	0x00,										/* Maximum horizontal size */
 	0x00,										/* Maximum vertical size */
 	0x00,										/* Display gamma */

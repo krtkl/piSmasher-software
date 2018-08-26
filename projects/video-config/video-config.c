@@ -78,14 +78,15 @@ usage(void)
 		"Options:\n"
 		"    -m MODE       - Set video mode\n"
 		"    -p PATTERN    - Set test pattern code\n"
+		"    -t            - Configure video timing controller\n"
 		"\n"
 		"Modes:\n"
 		"    1280x720\n"
-		"    1366x768 (default)\n"
-		"    1920x1080\n"
+		"    1366x768\n"
+		"    1920x1080 (default)\n"
 		"\n"
 		"Patterns Codes:\n"
-		"       0          - Video input to test pattern generator\n"
+		"       0          - Video input to test pattern generator (default)\n"
 		"       1          - Horizontal ramp\n"
 		"       2          - Vertical ramp\n"
 		"       3          - Temporal ramp\n"
@@ -94,7 +95,7 @@ usage(void)
 		"       6          - Solid blue\n"
 		"       7          - Solid black\n"
 		"       8          - Solid white\n"
-		"       9          - Color bars (default)\n"
+		"       9          - Color bars\n"
 		"      10          - Zone plate\n"
 		"      11          - Tartan bars\n"
 		"      12          - Cross hatch\n"
@@ -178,12 +179,20 @@ main(int argc, char *argv[])
 	int c;
 	int ret;
 	struct vidtpg *tpg;
-	struct vtc_dev *vtc;
+	struct vtc_dev *vtc = NULL;
 	const struct video_mode *mode = NULL;
-	enum vidtpg_bgpat bgpat = BGPAT_COLORBARS;
+	enum vidtpg_bgpat bgpat = BGPAT_VIDEOIN;
 
-	while ((c = getopt(argc, argv, "m:p:")) != -1) {
+	while ((c = getopt(argc, argv, "tm:p:")) != -1) {
 		switch (c) {
+		case 't':
+			/* Initialize video timing controller */
+			vtc = malloc(sizeof (struct vtc_dev));
+			if (vtc == NULL) {
+				ERROR_PRINT("allocating VTC data");
+				return EXIT_FAILURE;
+			}
+			break;
 		case 'm':
 			mode = str2mode(optarg);
 			if (mode == NULL) {
@@ -195,7 +204,6 @@ main(int argc, char *argv[])
 		case 'p':
 			bgpat = (enum vidtpg_bgpat) atoi(optarg);
 			break;
-
 		case '?':
 		default:
 			printf("Unknown option character `\\x%x'.\n", optopt);
@@ -206,7 +214,7 @@ main(int argc, char *argv[])
 
 	/* Set default mode */
 	if (mode == NULL)
-		mode = &video_modes[1];
+		mode = &video_modes[2];		/* 1920x1080 */
 
 	/**
 	 * Initialize HDMI input/output
@@ -217,31 +225,24 @@ main(int argc, char *argv[])
 		goto out_hdmi;
 	}
 
-	/**
-	 * Initialize video timing controller
-	 */
-	vtc = malloc(sizeof (struct vtc_dev));
-	if (vtc == NULL) {
-		ERROR_PRINT("allocating VTC data");
-		goto out_hdmi;
-	}
+	if (vtc) {
+		ret = vtc_init(vtc, "/dev/uio3");
+		if (ret < 0) {
+			ERROR_PRINT("initializing VTC (%d)", ret);
+			goto out_vtc;
+		}
 
-	ret = vtc_init(vtc, "/dev/uio3");
-	if (ret < 0) {
-		ERROR_PRINT("initializing VTC (%d)", ret);
-		goto out_vtc;
-	}
+		ret = vtc_set_generator_video_mode(vtc, mode->mode);
+		if (ret < 0) {
+			ERROR_PRINT("setting VTC generator mode (%d)", ret);
+			goto out_vtc;
+		}
 
-	ret = vtc_set_generator_video_mode(vtc, mode->mode);
-	if (ret < 0) {
-		ERROR_PRINT("setting VTC generator mode (%d)", ret);
-		goto out_vtc;
-	}
-
-	ret = vtc_gen_enable(vtc, true);
-	if (ret < 0) {
-		ERROR_PRINT("enabling VTC generator (%d)", ret);
-		goto out_vtc;
+		ret = vtc_gen_enable(vtc, true);
+		if (ret < 0) {
+			ERROR_PRINT("enabling VTC generator (%d)", ret);
+			goto out_vtc;
+		}
 	}
 
 	/**
@@ -275,9 +276,10 @@ out:
 	free(tpg);
 
 out_vtc:
-	close(vtc->fd);
-	free(vtc);
-
+	if (vtc) {
+		close(vtc->fd);
+		free(vtc);
+	}
 out_hdmi:
 	exit(ret);
 }

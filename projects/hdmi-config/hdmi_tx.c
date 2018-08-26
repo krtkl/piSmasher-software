@@ -84,6 +84,16 @@ static struct tda998x_vidout_cfg vout_cfg = {
 	.vqr = VQR_RGB_FULL
 };
 
+static struct tda998x_audin_cfg ain_cfg = {
+	.format = AFMT_I2S,
+	.rate = AFS_48K,
+	.i2s_format = I2S_FMT_OTH_R_16,
+	.i2s_wlen = I2S_WLEN_16BITS,
+	.dst_rate = DST_RATE_SINGLE,
+	.ch_alloc = 0x1F
+};
+
+
 static struct tda998x_dev hdmi_tx;
 
 /**
@@ -147,7 +157,7 @@ int hdmi_tx_init(enum tda998x_vid_fmt vin_fmt, enum tda998x_vid_fmt vout_fmt)
 	vin_cfg.format = vin_fmt;
 	vout_cfg.format = vout_fmt;
 
-	err = tda998x_set_input_output(dev, &vin_cfg, &vout_cfg, NULL, SINK_HDMI);
+	err = tda998x_set_input_output(dev, &vin_cfg, &vout_cfg, &ain_cfg, SINK_HDMI);
 	if (err < 0)
 		return err;
 

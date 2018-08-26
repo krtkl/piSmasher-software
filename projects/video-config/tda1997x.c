@@ -202,8 +202,7 @@ enum vs_vref_sel {
 
 #define AUDIO_CLOCK_POWER_OFF				(1 << 7)		/**< Power down audio clocks */
 #define AUDIO_CLOCK_REF_TMDS				(1 << 6)		/**< Use TMDS as reference rather than xtal */
-#define AUDIO_CLOCK_REF_FREQ_MASK			(0x03U << 4)
-
+#define AUDIO_CLOCK_REF_FREQ_MASK			(0x30U)
 enum audio_clock_ref_freq {
 	AUDIO_CLOCK_REF_FREQ_13_5MHz = 0x00,
 	AUDIO_CLOCK_REF_FREQ_27MHz = 0x10,
@@ -211,7 +210,6 @@ enum audio_clock_ref_freq {
 };
 
 #define AUDIO_CLOCK_MODE_MASK				(0x07U)
-
 enum audio_clock_mode {
 	AUDIO_CLOCK_MODE_16FS = 0x00,
 	AUDIO_CLOCK_MODE_32FS = 0x01,
@@ -1600,14 +1598,14 @@ union tda1997x_infoframe {
 //#endif
 
 static uint8_t vp_conf444[9] = {
-	VP_CTRL_C_MSB,			/* [23:20] */
-	VP_CTRL_C_ISB,			/* [19:16] */
+	VP_CTRL_A_MSB,			/* [23:20] */
+	VP_CTRL_A_ISB,			/* [19:16] */
 	VP_CTRL_HIZ,			/* Not used */
 	VP_CTRL_B_MSB,			/* [15:12] */
 	VP_CTRL_B_ISB,			/* [11:8] */
 	VP_CTRL_HIZ,			/* Not used */
-	VP_CTRL_A_MSB,			/* [7:4] */
-	VP_CTRL_A_ISB,			/* [3:0] */
+	VP_CTRL_C_MSB,			/* [7:4] */
+	VP_CTRL_C_ISB,			/* [3:0] */
 	VP_CTRL_HIZ,			/* Not used */
 };
 
@@ -2143,7 +2141,7 @@ tda1997x_cfg_vid_out(struct tda1997x_dev *dev)
 	int err;
 
 	/* Bypass formatter (not needed in RGB444 with no blanking or timing ref) */
-	err = write_reg_mask(dev, VDP_CTRL, VDP_CTRL_FORMATTER_BYPASS, 0);
+	err = write_reg_mask(dev, VDP_CTRL, VDP_CTRL_FORMATTER_BYPASS, VDP_CTRL_FORMATTER_BYPASS);
 	if (err < 0)
 		return err;
 
@@ -2249,67 +2247,79 @@ tda1997x_cfg_prefilter(struct tda1997x_dev *dev,
 int
 tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 {
-	int err;
+	int ret;
 	uint8_t reg_val;
 
 	/* Configure audio path (CEA-861-D Table 20) */
-	err = write_reg(dev, AUDIO_PATH, 0x1F);
-	if (err < 0)
-		return err;
+	ret = write_reg(dev, AUDIO_PATH, 0x1F);
+	if (ret < 0)
+		return ret;
 
 	/* Configure audio layout */
-	err = write_reg(dev, AUDIO_LAYOUT, AUDIO_LAYOUT_SP_FLAG);
-	if (err < 0)
-		return err;
+	ret = write_reg(dev, AUDIO_LAYOUT, AUDIO_LAYOUT_SP_FLAG | AUDIO_LAYOUT_MANUAL);
+	if (ret < 0)
+		return ret;
 
 	/* Configure FIFO latency */
-	err = write_reg(dev, FIFO_LATENCY_VALUE, 0x80U);
-	if (err < 0)
-		return err;
+	ret = write_reg(dev, FIFO_LATENCY_VALUE, 0x80U);
+	if (ret < 0)
+		return ret;
 
 	/**
 	 * Configure FIFO control for audio
 	 * @todo Determine the correct register setting for FIFO_LATENCY_CTRL
 	 * that will eliminate glitches and interruptions in audio stream
 	 */
-	err = write_reg(dev, FIFO_LATENCY_CTRL, 0x06);
-	if (err < 0)
-		return err;
+	ret = write_reg(dev, FIFO_LATENCY_CTRL, 0x03);
+	if (ret < 0)
+		return ret;
 
+//	AUDIO_SEL_TESTTONE
+//	AUDIO_SEL_MODE_SAMPLES
 
 	/* Configure audio selection (16-bit I2S PCM) */
-	err = write_reg(dev, AUDIO_SEL, 0x00);
-	if (err < 0)
-		return err;
+	ret = write_reg(dev, AUDIO_SEL, AUDIO_SEL_TESTTONE);
+	if (ret < 0)
+		return ret;
 
 	/* Configure audio enable */
-	err = write_reg(dev,
+	ret = write_reg(dev,
 			AUDIO_OUT_ENABLE,
 			AUDIO_OUT_ENABLE_ACLK |
 			AUDIO_OUT_ENABLE_WS |
 			AUDIO_OUT_ENABLE_AP0 |
 			AUDIO_OUT_ENABLE_AP1 |
 			AUDIO_OUT_ENABLE_AP2);
-	if (err < 0)
-		return err;
+	if (ret < 0)
+		return ret;
 
-	err = read_reg(dev, AUDIO_OUT_LOW_HIZ, &reg_val);
-	if (err < 0)
-		return err;
+//	ret = read_reg(dev, AUDIO_OUT_LOW_HIZ, &reg_val);
+//	if (ret < 0)
+//		return ret;
 
 	/* Reset test mode */
-	err = write_reg(dev, TEST_MODE, 0x00);
-	if (err < 0)
-		return err;
+	ret = write_reg(dev, TEST_MODE, 0x00);
+	if (ret < 0)
+		return ret;
 
-	err = write_reg_mask(dev, TEST_NCTS_CTRL, 0x03, 0);
-	if (err < 0)
-		return err;
+	if (1) {
+		ret = write_reg(dev, TEST_AUDIO_FREQ, 0x0B);
+		if (ret < 0)
+			return ret;
+
+		ret = write_reg(dev, TEST_MODE, 0x03);
+		if (ret < 0)
+			return ret;
+	} else {
+		ret = write_reg_mask(dev, TEST_NCTS_CTRL, 0x03, 0);
+		if (ret < 0)
+			return ret;
+	}
 
 	/* Configure Audio Clock Mode */
-	err = write_reg(dev, AUDIO_CLOCK_MODE, (uint8_t) AUDIO_CLOCK_MODE_128FS);
-	if (err < 0)
-		return err;
+	ret = write_reg(dev, AUDIO_CLOCK_MODE, AUDIO_CLOCK_POWER_OFF | (uint8_t) AUDIO_CLOCK_MODE_128FS);
+	if (ret < 0)
+		return ret;
 
 	return 0;
 }
