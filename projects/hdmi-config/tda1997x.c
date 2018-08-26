@@ -2485,12 +2485,6 @@ tda1997x_cfg_edid(struct tda1997x_dev *dev, uint8_t *edid, uint8_t *edid_ext)
 		(edid_ext == NULL))
 		return (-1);
 
-	/* Required number of EDID extensions after EDID block */
-	if (edid[126] != 1) {
-		DEBUG_PRINT("invalid number of EDID extensions: %d", edid[126]);
-		return (-3);
-	}
-
 	/* Calculate the checksum for EDID block 0 */
 	err = tda1997x_edid_cksum(dev, edid, &cksum);
 	if (err < 0)
@@ -2505,19 +2499,22 @@ tda1997x_cfg_edid(struct tda1997x_dev *dev, uint8_t *edid, uint8_t *edid_ext)
 	if (err < 0)
 		return err;
 
-	/* Calculate the checksum for EDID extension */
-	err = tda1997x_edid_cksum(dev, edid_ext, &cksum);
-	if (err < 0)
-		return err;
+	/* Required number of EDID extensions after EDID block */
+	if (edid[126] == 1) {
+		/* Calculate the checksum for EDID extension */
+		err = tda1997x_edid_cksum(dev, edid_ext, &cksum);
+		if (err < 0)
+			return err;
 
-	err = tda1997x_write(dev, EDID_IN_BYTE128, 127, edid_ext);
-	if (err < 0)
-		return err;
+		err = tda1997x_write(dev, EDID_IN_BYTE128, 127, edid_ext);
+		if (err < 0)
+			return err;
 
-	/* Write block 1 checksum byte */
-	err = write_reg(dev, EDID_IN_CHECKSUM1, cksum);
-	if (err < 0)
-		return err;
+		/* Write block 1 checksum byte */
+		err = write_reg(dev, EDID_IN_CHECKSUM1, cksum);
+		if (err < 0)
+			return err;
+	}
 
 	return 0;
 }
