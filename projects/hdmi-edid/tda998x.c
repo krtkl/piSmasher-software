@@ -955,6 +955,10 @@ struct tda998x_vid_frm {
 	uint16_t	de_end;
 };
 
+static int tda998x_aud_set_pkt_infoframe(struct tda998x_dev *dev,
+					 struct tda998x_aud_if_pkt *pkt,
+					 bool en);
+
 static const enum vip_cntrl_swap port_map_rgb444[] = {
 	VIP_CNTRL_VP3_0,
 	VIP_CNTRL_VP7_4,
@@ -1143,7 +1147,7 @@ static const struct vidfmt_desc {
 	{ 0,	0,	0,	0,	41,	2,	259,	28,	1,	VIDFORMAT_800x600p_60Hz },
 	{ 0,	0,	1,	1,	25,	2,	323,	36,	1,	VIDFORMAT_1024x768p_60Hz },
 	{ 0,	0,	0,	1,	65,	2,	387,	28,	1,	VIDFORMAT_1280x768p_60Hz },
-	{ 0,	0,	0,	0,	71,	2,	429,	31,	0,	VIDFORMAT_1366x768p_60Hz },
+	{ 0,	0,	0,	0,	71,	5,	429,	31,	0,	VIDFORMAT_1366x768p_60Hz },
 	{ 0,	0,	0,	0,	65,	2,	563,	50,	0,	VIDFORMAT_1600x1200p_60Hz },
 	{ 0,	0,	0,	0,	65,	2,	163,	35,	0,	VIDFORMAT_1920x1200p_60Hz },
 	{ /* Sentinel */ }
@@ -1761,6 +1765,157 @@ set_video_config(struct tda998x_dev *dev,
  * @{
  */
 
+
+
+
+/**
+*  Lookup table for each pixel clock frequency's CTS value in kHz
+*  according to SCS table "Audio Clock Recovery CTS Values"
+*/
+//static CONST_DAT UInt32 kPixClkToAcrCts[E_PIXCLK_NUM][HDMITX_AFS_NUM] =
+//{
+/* HDMITX_AFS_32k  _AFS_48K       _AFS_96K        _AFS_192K */
+/*         _AFS_44_1k      _AFS_88_2K      _AFS_176_4K       */
+//  { 28125,  31250,  28125,  31250,  28125,  31250,  28125}, /* E_PIXCLK_25175 */
+//  { 25200,  28000,  25200,  28000,  25200,  28000,  25200}, /* E_PIXCLK_25200 */
+//  { 27000,  30000,  27000,  30000,  27000,  30000,  27000}, /* E_PIXCLK_27000 */
+//  { 27027,  30030,  27027,  30030,  27027,  30030,  27027}, /* E_PIXCLK_27027 */
+//  { 54000,  60000,  54000,  60000,  54000,  60000,  54000}, /* E_PIXCLK_54000 */
+//  { 54054,  60060,  54054,  60060,  54054,  60060,  54054}, /* E_PIXCLK_54054 */
+//  { 59400,  65996,  59400,  65996,  59400,  65996,  59400}, /* E_PIXCLK_59400 */
+//  {210937, 234375, 140625, 234375, 140625, 234375, 140625}, /* E_PIXCLK_74175 */
+//  { 74250,  82500,  74250,  82500,  74250,  82500,  74250}, /* E_PIXCLK_74250 */
+//  {421875, 234375, 140625, 234375, 140625, 234375, 140625}, /* E_PIXCLK_148350*/
+//  {148500, 165000, 148500, 165000, 148500, 165000, 148500}  /* E_PIXCLK_148500*/
+//#ifdef FORMAT_PC
+// ,{ 31500,  35000,  31500,  35000,  31500,  35000,  31500}, /* E_PIXCLK_31500 */
+//  { 36000,  40000,  36000,  40000,  36000,  40000,  36000}, /* E_PIXCLK_36000 */
+//  { 40000,  44444,  40000,  44444,  40000,  44444,  40000}, /* E_PIXCLK_40000 */
+//  { 49500,  55000,  49500,  55000,  49500,  55000,  49500}, /* E_PIXCLK_49500 */
+//  { 50000,  55556,  50000,  55556,  50000,  55556,  50000}, /* E_PIXCLK_50000 */
+//  { 56250,  62500,  56250,  62500,  56250,  62500,  56250}, /* E_PIXCLK_56250 */
+//  { 65000,  72222,  65000,  72222,  65000,  72222,  65000}, /* E_PIXCLK_65000 */
+//  { 75000,  83333,  75000,  83333,  75000,  83333,  75000}, /* E_PIXCLK_75000 */
+//  { 78750,  87500,  78750,  87500,  78750,  87500,  78750}, /* E_PIXCLK_78750 */
+//  {162000, 180000, 162000, 180000, 162000, 180000, 162000}, /* E_PIXCLK_162000*/
+//  {157500, 175000, 157500, 175000, 157500, 175000, 157500}  /* E_PIXCLK_157500 */
+//#endif /* FORMAT_PC */
+//};
+
+/**
+*  Lookup table for each pixel clock frequency's Audio Clock Regeneration N,
+*  according to SCS Table "Audio Clock Recovery N Values"
+*/
+//static CONST_DAT UInt32 kPixClkToAcrN[E_PIXCLK_NUM][HDMITX_AFS_NUM] =
+//{
+/* HDMITX_AFS_32k  _AFS_48K       _AFS_96K        _AFS_192K */
+/*         _AFS_44_1k      _AFS_88_2K      _AFS_176_4K       */
+//  { 4576,   7007,   6864,  14014,  13728,  28028,  27456}, /* E_PIXCLK_25175 */
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_25200 */
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_27000 */
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_27027 */
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_54000 */
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_54054 */
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_59400 */
+//  {11648,  17836,  11648,  35672,  23296,  71344,  46592}, /* E_PIXCLK_74175 */
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_74250 */
+//  {11648,   8918,   5824,  17836,  11648,  35672,  23296}, /* E_PIXCLK_148350*/
+//  { 4096,   6272,   6144,  12544,  12288,  25088,  24576}  /* E_PIXCLK_148500*/
+//#ifdef FORMAT_PC
+// ,{ 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_31500 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_36000 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_40000 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_49500 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_50000 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_56250 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_65000 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_75000 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}, /* E_PIXCLK_78750 */
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576},  /* E_PIXCLK_162000*/
+//  { 4096,  6272,  6144,  12544,  12288,  25088,  24576}  /* E_PIXCLK_157500*/
+//#endif /* FORMAT_PC */
+//};
+
+/**
+*  Lookup table for each pixel clock frequency's Audio Divider, according to
+*  SCS Table "Audio Clock Recovery Divider Values"
+*/
+//static CONST_DAT UInt8 kPixClkToAdiv[E_PIXCLK_NUM][HDMITX_AFS_NUM] =
+//{
+/* HDMITX_AFS_32k  _AFS_48K       _AFS_96K        _AFS_192K */
+/*         _AFS_44_1k      _AFS_88_2K      _AFS_176_4K       */
+//  {2,      2,      2,      1,      1,      0,      0},     /* E_PIXCLK_25175 */
+//  {2,      2,      2,      1,      1,      0,      0},     /* E_PIXCLK_25200 */
+//  {2,      2,      2,      1,      1,      0,      0},     /* E_PIXCLK_27000 */
+//  {2,      2,      2,      1,      1,      0,      0},     /* E_PIXCLK_27027 */
+//  {3,      3,      3,      2,      2,      1,      1},     /* E_PIXCLK_54000 */
+//  {3,      3,      3,      2,      2,      1,      1},     /* E_PIXCLK_54054 */
+//  {3,      3,      3,      2,      2,      1,      1},     /* E_PIXCLK_59400 */
+//  {4,      3,      3,      2,      2,      1,      1},     /* E_PIXCLK_74175 */
+//  {4,      3,      3,      2,      2,      1,      1},     /* E_PIXCLK_74250 */
+//  {5,      4,      4,      3,      3,      2,      2},     /* E_PIXCLK_148350 */
+//  {5,      4,      4,      3,      3,      2,      2}      /* E_PIXCLK_148500 */
+//#ifdef FORMAT_PC
+// ,{2,      2,      2,      1,      1,      0,      0}, /* E_PIXCLK_31500  */
+//  {3,      2,      2,      1,      1,      0,      0}, /* E_PIXCLK_36000  */
+//  {3,      2,      2,      1,      1,      0,      0}, /* E_PIXCLK_40000  */
+//  {3,      3,      3,      2,      2,      1,      1}, /* E_PIXCLK_49500  */
+//  {3,      3,      3,      2,      2,      1,      1}, /* E_PIXCLK_50000  */
+//  {3,      3,      3,      2,      2,      1,      1}, /* E_PIXCLK_56250  */
+//  {4,      3,      3,      2,      2,      1,      1}, /* E_PIXCLK_65000  */
+//  {4,      3,      3,      2,      2,      1,      1}, /* E_PIXCLK_75000  */
+//  {4,      3,      3,      2,      2,      1,      1}, /* E_PIXCLK_78750  */
+//  {5,      4,      4,      3,      3,      2,      2}, /* E_PIXCLK_162000 */
+//  {5,      4,      4,      3,      3,      2,      2}  /* E_PIXCLK_157500 */
+//#endif /* FORMAT_PC */
+//};
+
+/**
+*  Lookup table for converting a sampling frequency into the values
+*  required in channel status byte 3 according to IEC60958-3
+*/
+//static CONST_DAT UInt8 kAfsToCSbyte3[HDMITX_AFS_NUM+1] =
+//{
+//   3,      /* HDMITX_AFS_32k */
+//   0,      /* HDMITX_AFS_44_1k */
+//   2,      /* HDMITX_AFS_48k */
+//   8,      /* HDMITX_AFS_88_2k */
+//   10,     /* HDMITX_AFS_96k */
+//   12,     /* HDMITX_AFS_176_4k */
+//   14,     /* HDMITX_AFS_192k */
+//   9,      /* HDMITX_AFS_768k */
+//   1,      /* HDMITX_AFS_NOT_INDICATED */
+//};
+
+/**
+*  Lookup table for each CTS X factor's k and m register values
+*/
+//static CONST_DAT UInt8 kCtsXToMK[HDMITX_CTSX_NUM][2] =
+//{
+/*   Register values    Actual values */
+/*   m  k               m, k */
+//   {3, 0},          /* 8, 1 */
+//   {3, 1},          /* 8, 2 */
+//   {3, 2},          /* 8, 3 */
+//   {3, 3},          /* 8, 4 */
+//   {0, 0}           /* 1, 1 */
+//};
+
+/**
+* Table of registers to reset and release the CTS generator
+*/
+//static CONST_DAT tmHdmiTxRegMaskVal_t kResetCtsGenerator[] =
+//{
+//   {E_REG_P11_AIP_CNTRL_0_RW,  E_MASKREG_P11_AIP_CNTRL_0_rst_cts,  1},
+//   {E_REG_P11_AIP_CNTRL_0_RW,  E_MASKREG_P11_AIP_CNTRL_0_rst_cts,  0},
+//   {0,0,0}
+//};
+
+
+
+
+
+
 /**
  * @brief	Set Audio Port Enable
  *
@@ -1824,7 +1979,7 @@ tda998x_aud_reset_cts(struct tda998x_dev *dev)
 //	return write_reg_mask_table(dev, &kResetCtsGenerator[0]);
 	return 0;
 }
- 
+
 /**
  * @brief	Set Audio Input Configuration
  *
@@ -2077,7 +2232,7 @@ tda998x_aud_set_cts(struct tda998x_dev *dev,
 //	#endif /* FORMAT_PC */
 //	};
 
-	acrN = 12288;
+	acrN = 6272;
 	/* Set ACR N multiplier [19 to 16] */
 	reg_val = (uint8_t) (acrN >> 16);
 	ret = write_reg (dev, ACR_N_2, reg_val);
@@ -2130,7 +2285,7 @@ tda998x_aud_set_cts(struct tda998x_dev *dev,
 //	#endif /* FORMAT_PC */
 //	};
 
-	ret = write_reg(dev, AUDIO_DIV, 2);
+	ret = write_reg(dev, AUDIO_DIV, 4);
 	if (ret < 0)
 		return ret;
 
@@ -2143,7 +2298,7 @@ tda998x_aud_set_cts(struct tda998x_dev *dev,
  
 	/* Set manual or pixel clock CTS */
 	if (cts != 0) {
-		/* Set manual ACR CTS [19 to 16 */
+		/* Set manual ACR CTS [19 to 16] */
 		reg_val = (uint8_t) (cts >> 16);
 		ret = write_reg (dev, ACR_CTS_2, reg_val);
 		if (ret < 0)
@@ -2301,6 +2456,143 @@ tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
 		return ret;
  
 	return 0;
+}
+
+
+
+
+
+
+
+
+/*****************************************************************************/
+/**
+    \brief Configures audio input parameters : format, rate, etc.
+           This function is similar to tmdlHdmiTxSetInputOutput except that
+           video is not reconfigured.
+           This function is synchronous.
+           This function is not ISR friendly.
+
+    \param instance          Instance identifier.
+    \param audioInputConfig  Configuration of the input audio.
+    \param sinkType          Type of sink connected to the output of the Tx.
+
+    \return The call result:
+            - TM_OK: the call was successful
+            - TMDL_ERR_DLHDMITX_BAD_INSTANCE: the instance number is wrong or
+              out of range
+            - TMDL_ERR_DLHDMITX_BAD_HANDLE: the handle number is wrong
+            - TMBSL_ERR_HDMI_BAD_UNIT_NUMBER: bad transmitter unit number
+            - TMBSL_ERR_HDMI_BAD_PARAMETER: a parameter was out of range
+            - TMBSL_ERR_HDMI_NOT_INITIALIZED: transmitter not initialized
+            - TMBSL_ERR_HDMI_I2C_WRITE: failed when writing to the I2C bus
+            - TMBSL_ERR_HDMI_I2C_READ: failed when reading to the I2C bus
+            - TMBSL_ERR_HDMI_OPERATION_NOT_PERMITTED: not allowed in DVI mode
+
+******************************************************************************/
+
+//struct tda998x_audin_cfg {
+//	enum tda998x_aud_fmt		format;			/**< Audio format (I2S, SPDIF, etc.) */
+//	enum tda998x_aud_rate		rate;			/**< Audio sampling rate */
+//	enum tda998x_aud_i2s_fmt	i2s_format;		/**< I2S format of the audio input */
+//	enum tda998x_aud_i2s_wlen	i2s_wlen;		/**< I2S qualifier of the audio input (8,16,32 bits) */
+//	enum tda998x_dst_rate		dst_rate;		/**< DST data transfer rate */
+//	uint8_t				ch_alloc;		/**< Ref to CEA-861D p85 */
+//	struct tda998x_aud_ch_status	ch_status;		/**< Ref to IEC 60958-3 */
+//};
+
+int
+tda998x_aud_set_input(struct tda998x_dev *dev,
+		struct tda998x_audin_cfg *audin_cfg)
+{
+	int ret;
+	uint8_t layout;					/* 0 or 1 */
+	uint16_t uCtsX;					/* CtsX value */
+	struct tda998x_aud_if_pkt aif_pkt;		/* Audio infoframe packet */
+
+	/* Set audio layout */
+	layout = 1;
+
+	/* Enable audio port for 8 channels */
+	ret = write_reg(dev, ENA_AP, 0x1F);
+	if (ret < 0)
+		return ret;
+
+//#define ENABLE_AUDIO_CLOCK_PORT     1
+
+	ret = write_reg(dev, ENA_ACLK, 0x01);
+	if (ret < 0)
+		return ret;
+
+        ret = tda998x_aud_set_config(dev,
+				audin_cfg->format,
+				audin_cfg->i2s_format,
+				audin_cfg->ch_alloc,
+				0,
+				0,
+				0,
+				layout,
+				0x80U,
+				audin_cfg->dst_rate);
+	if (ret < 0)
+		return ret;
+
+	ret = tda998x_aud_set_cts(dev,
+			CTSREF_ACLK,
+        		audin_cfg->rate,
+        		VFMT_16_1920x1080p_60Hz,
+        		VFREQ_60Hz,
+        		0,			/* Auto */
+        		uCtsX,
+        		CTSK_USE_CTSX,
+        		CTSMTS_USE_CTSX,
+        		audin_cfg->dst_rate);
+        if (ret < 0)
+        	return ret;
+
+        /**
+         * Set Channel Status registers
+         * No need to call tmbslTDA9984AudioOutSetChanStatusMapping, since
+         * default Byte 2 values of "Do not take into account" are adequate
+         */
+//        ret = tda998x_aud_set_chan_status(dev,
+//        			pcm_id,
+//				fmt_info,
+//				copyright,
+//				categoryCode,
+//				HDMITX_AFS_768K,
+//				clk_acc,
+//				maxword_len,
+//				word_len,
+//				origsamp_freq);
+//        if (ret < 0)
+        	return ret;
+
+	ret = tda998x_aud_set_mute(dev, true);
+	if (ret < 0)
+		return ret;
+
+	/* Wait 20ms */
+	usleep(1000 * 20);
+
+	ret = tda998x_aud_set_mute(dev, false);
+	if (ret < 0)
+		return ret;
+
+	aif_pkt.nchan = 7;			/**< Number of channels - 1 */
+	aif_pkt.type = 0;			/* refer to stream header */
+	aif_pkt.samp_size = 0;			/* refer to stream header */
+	aif_pkt.chan_alloc = audin_cfg->ch_alloc;	/**< Channel allocation code */
+	aif_pkt.lvl_shift = 0;			/* 0dB level shift */
+	aif_pkt.dmix_inhib = 0;		/* down-mix stereo permitted */
+	aif_pkt.samp_freq = 0;			/* refer to stream header */
+
+	ret = tda998x_aud_set_pkt_infoframe(dev, &aif_pkt, true);
+	if (ret < 0)
+		return ret;
+
+
+    return 0;
 }
 /**
  * @}
@@ -4643,12 +4935,12 @@ tda998x_set_input_output(struct tda998x_dev *dev,
 		return ret;
 
 	/* Only set audio for HDMI, not DVI */
-//	if (sink == SINK_HDMI) {
-//		/* Set audio parameters */
-//		ret = tda998x_aud_set_input(dev, audin_cfg);
-//		if (ret < 0)
-//			return ret;
-//	}
+	if (sink == SINK_HDMI) {
+		/* Set audio parameters */
+		ret = tda998x_aud_set_input(dev, audin_cfg);
+		if (ret < 0)
+			return ret;
+	}
 
 	if (sync == 0) {
 		/* External synchronization */
