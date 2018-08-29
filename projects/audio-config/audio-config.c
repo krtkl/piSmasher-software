@@ -177,9 +177,6 @@ main(int argc, char *argv[])
 {
 	int c, ret;
 	char *inpath, *outpath;
-	uint8_t invol = 47;			/**< Default input volume */
-	uint8_t outvol = 47;			/**< Default output volume */
-	uint8_t adc_pga = 0;
 
 	struct aic3x_gain *gains = malloc(sizeof(struct aic3x_gain));
 	if (!gains)

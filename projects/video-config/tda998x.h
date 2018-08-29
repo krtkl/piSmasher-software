@@ -433,6 +433,7 @@ struct tda998x_aud_ch_status {
 //    tmdlHdmiTxCSorigAfs_t          origSampleFreq;
 };
 
+
 struct tda998x_aud_if_pkt {
 	uint8_t		type;		/**< Coding type */
 	uint8_t		nchan;		/**< Channel count */

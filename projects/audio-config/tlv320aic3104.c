@@ -357,7 +357,7 @@ aic3x_configure_pll(struct aic3x_dev *codec)
 	uint16_t pll_p, pll_r, pll_j, pll_d;
 
 	pll_p = 1;
-	pll_r = 2;
+	pll_r = 1;
 	pll_j = 8;
 	pll_d = 1920;
 
@@ -442,7 +442,7 @@ aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg)
 		if (ret != 0)
 			return ret;
 
-		ret = aic3x_set_micbias(codec, AIC3X_MICBIAS_2V);
+		ret = aic3x_set_micbias(codec, AIC3X_MICBIAS_AVDD);
 		if (ret < 0)
 			return ret;
 

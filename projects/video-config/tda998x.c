@@ -2232,7 +2232,7 @@ tda998x_aud_set_cts(struct tda998x_dev *dev,
 //	#endif /* FORMAT_PC */
 //	};
 
-	acrN = 12288;
+	acrN = 6272;
 	/* Set ACR N multiplier [19 to 16] */
 	reg_val = (uint8_t) (acrN >> 16);
 	ret = write_reg (dev, ACR_N_2, reg_val);
@@ -2285,7 +2285,7 @@ tda998x_aud_set_cts(struct tda998x_dev *dev,
 //	#endif /* FORMAT_PC */
 //	};
 
-	ret = write_reg(dev, AUDIO_DIV, 2);
+	ret = write_reg(dev, AUDIO_DIV, 4);
 	if (ret < 0)
 		return ret;
 
@@ -2465,108 +2465,128 @@ tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
 
 
 
-/*****************************************************************************/
+
 /**
-    \brief Configures audio input parameters : format, rate, etc.
-           This function is similar to tmdlHdmiTxSetInputOutput except that
-           video is not reconfigured.
-           This function is synchronous.
-           This function is not ISR friendly.
-
-    \param instance          Instance identifier.
-    \param audioInputConfig  Configuration of the input audio.
-    \param sinkType          Type of sink connected to the output of the Tx.
-
-    \return The call result:
-            - TM_OK: the call was successful
-            - TMDL_ERR_DLHDMITX_BAD_INSTANCE: the instance number is wrong or
-              out of range
-            - TMDL_ERR_DLHDMITX_BAD_HANDLE: the handle number is wrong
-            - TMBSL_ERR_HDMI_BAD_UNIT_NUMBER: bad transmitter unit number
-            - TMBSL_ERR_HDMI_BAD_PARAMETER: a parameter was out of range
-            - TMBSL_ERR_HDMI_NOT_INITIALIZED: transmitter not initialized
-            - TMBSL_ERR_HDMI_I2C_WRITE: failed when writing to the I2C bus
-            - TMBSL_ERR_HDMI_I2C_READ: failed when reading to the I2C bus
-            - TMBSL_ERR_HDMI_OPERATION_NOT_PERMITTED: not allowed in DVI mode
-
-******************************************************************************/
-
-//struct tda998x_audin_cfg {
-//	enum tda998x_aud_fmt		format;			/**< Audio format (I2S, SPDIF, etc.) */
-//	enum tda998x_aud_rate		rate;			/**< Audio sampling rate */
-//	enum tda998x_aud_i2s_fmt	i2s_format;		/**< I2S format of the audio input */
-//	enum tda998x_aud_i2s_wlen	i2s_wlen;		/**< I2S qualifier of the audio input (8,16,32 bits) */
-//	enum tda998x_dst_rate		dst_rate;		/**< DST data transfer rate */
-//	uint8_t				ch_alloc;		/**< Ref to CEA-861D p85 */
-//	struct tda998x_aud_ch_status	ch_status;		/**< Ref to IEC 60958-3 */
-//};
-
+ * @todo Rework the audio configuration
+ */
 int
 tda998x_aud_set_input(struct tda998x_dev *dev,
 		struct tda998x_audin_cfg *audin_cfg)
 {
 	int ret;
+	uint8_t reg_val;
+	uint8_t buf[4];
 	uint8_t layout;					/* 0 or 1 */
 	uint16_t uCtsX;					/* CtsX value */
+	uint32_t acrN;
 	struct tda998x_aud_if_pkt aif_pkt;		/* Audio infoframe packet */
 
-	/* Set audio layout */
-	layout = 1;
-
-	/* Enable audio port for 8 channels */
-	ret = write_reg(dev, ENA_AP, 0x1F);
+	ret = write_reg(dev, ENA_AP, 0xFF);
 	if (ret < 0)
 		return ret;
-
-//#define ENABLE_AUDIO_CLOCK_PORT     1
 
 	ret = write_reg(dev, ENA_ACLK, 0x01);
 	if (ret < 0)
 		return ret;
 
-        ret = tda998x_aud_set_config(dev,
-				audin_cfg->format,
-				audin_cfg->i2s_format,
-				audin_cfg->ch_alloc,
-				0,
-				0,
-				0,
-				layout,
-				0x80U,
-				audin_cfg->dst_rate);
+	/* configure MUX_AP */
+	ret = write_reg(dev, MUX_AP, 0x64);
 	if (ret < 0)
 		return ret;
 
-	ret = tda998x_aud_set_cts(dev,
-			CTSREF_ACLK,
-        		audin_cfg->rate,
-        		VFMT_16_1920x1080p_60Hz,
-        		VFREQ_60Hz,
-        		0,			/* Auto */
-        		uCtsX,
-        		CTSK_USE_CTSX,
-        		CTSMTS_USE_CTSX,
-        		audin_cfg->dst_rate);
-        if (ret < 0)
-        	return ret;
+	/* Set the audio input processor format to aFmt. */
+	ret = write_reg_mask(dev, AIP_CLKSEL, 0x38, 0x08);
+	if (ret < 0)
+		return ret;
 
-        /**
-         * Set Channel Status registers
-         * No need to call tmbslTDA9984AudioOutSetChanStatusMapping, since
-         * default Byte 2 values of "Do not take into account" are adequate
-         */
-//        ret = tda998x_aud_set_chan_status(dev,
-//        			pcm_id,
-//				fmt_info,
-//				copyright,
-//				categoryCode,
-//				HDMITX_AFS_768K,
-//				clk_acc,
-//				maxword_len,
-//				word_len,
-//				origsamp_freq);
-//        if (ret < 0)
-        	return ret;
+	/* Channel status on 1 channel  */
+	ret = write_reg_mask(dev, CA_I2S, (1 << 5), 0);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg_mask(dev, CA_I2S, 0x1F, 0x1F);
+	if (ret < 0)
+		return ret;
+
+	/* Select the I2S format */
+	ret = write_reg_mask(dev, I2S_FORMAT, 0x0F, 0x0E);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg_mask(dev, AIP_CNTRL_0, (1 << 2), (1 << 2));
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, LATENCY_RD, 0x80);
+	if (ret < 0)
+		return ret;
+
+	/* Auto */
+	ret = write_reg_mask(dev, AIP_CNTRL_0, (1 << 5), 0);
+	if (ret < 0)
+		return ret;
+
+	/* Set the Post-divider measured timestamp factor */
+	ret = write_reg_mask(dev, CTS_N_RW, 0x30, 0x10);
+	if (ret < 0)
+		return ret;
+
+	/* Set the Pre-divider scale */
+	ret = write_reg_mask(dev, CTS_N_RW, 0x07, 0x01);
+	if (ret < 0)
+		return ret;
+
+	/* Set ACR N multiplier [19 to 16] */
+	ret = write_reg(dev, ACR_N_2, 0x00);
+	if (ret < 0)
+		return ret;
+
+	/* Set ACR N multiplier [15 to 8] */
+	ret = write_reg(dev, ACR_N_1, 0x18);
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg(dev, ACR_N_0, 0x00);
+	if (ret < 0)
+		return ret;
+
+	/*
+	 * Set the CDC Audio Divider register based on the audio sample
+	 * frequency afs and current pixel clock
+	 */
+	ret = write_reg(dev, AUDIO_DIV, 0x04);
+	if (ret < 0)
+		 return ret;
+
+	/* Set the CTS clock reference register according to ctsRef */
+	ret = write_reg_mask(dev, AIP_CLKSEL, 0x03, 0);
+	if (ret < 0)
+		return ret;
+
+	/* Reset and release the CTS generator */
+	ret = write_reg_mask(dev, AIP_CNTRL_0, (1 << 6), (1 << 6));
+	if (ret < 0)
+		return ret;
+
+	ret = write_reg_mask(dev, AIP_CNTRL_0, (1 << 6), 0);
+	if (ret < 0)
+		return ret;
+
+	/* Prepare Byte 0 */
+	buf[0] = 0x00; // ((UInt8)formatInfo << 3) | ((UInt8)copyright << 2) | ((UInt8)pcmIdentification<< 1);
+
+	/* Prepare Byte 1 */
+	buf[1] = 0x00; // categoryCode;
+
+	/* Prepare Byte 3  - note Byte 2 not in sequence in TDA9983 register map */
+	buf[2] = 0x02; // ((UInt8)clockAccuracy << 4) | 0x02;
+
+	/* Prepare Byte 4 */
+	buf[3] = (13 << 4) | (1 << 1);
+
+	ret = tda998x_write(dev, CH_STAT_B_0, 4, &buf[0]);
+	if (ret < 0)
+		return ret;
 
 	ret = tda998x_aud_set_mute(dev, true);
 	if (ret < 0)
@@ -2591,8 +2611,7 @@ tda998x_aud_set_input(struct tda998x_dev *dev,
 	if (ret < 0)
 		return ret;
 
-
-    return 0;
+	return 0;
 }
 /**
  * @}
