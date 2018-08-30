@@ -1736,7 +1736,7 @@ static uint8_t ddc_config[8] = {
 	0x44,						/* EDID_BLOCK_SELECT */
 	0x00,						/* empty */
 	0x04,						/* HPD_POWER */
-	0x08,						/* HPD_AUTO_CTRL */
+	0x18,						/* HPD_AUTO_CTRL */
 	0x00,						/* HPD_DURATION */
 	0x00						/* RX_HPD_HEAC */
 };
@@ -2253,7 +2253,7 @@ int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 		return err;
 
 	/* Configure audio selection */
-	err = write_reg(dev, AUDIO_SEL, 0x00);
+	err = write_reg(dev, AUDIO_SEL, 0x00); // AUDIO_SEL_TESTTONE
 	if (err < 0)
 		return err;
 
@@ -2262,10 +2262,10 @@ int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 			AUDIO_OUT_ENABLE,
 			AUDIO_OUT_ENABLE_ACLK |
 			AUDIO_OUT_ENABLE_WS |
-			AUDIO_OUT_ENABLE_AP0 |
-			AUDIO_OUT_ENABLE_AP1 |
-			AUDIO_OUT_ENABLE_AP2 |
-			AUDIO_OUT_ENABLE_AP3);
+			AUDIO_OUT_ENABLE_AP0);
+//			AUDIO_OUT_ENABLE_AP1 |
+//			AUDIO_OUT_ENABLE_AP2 |
+//			AUDIO_OUT_ENABLE_AP3);
 	if (err < 0)
 		return err;
 
@@ -2273,14 +2273,24 @@ int tda1997x_cfg_audio_fmt(struct tda1997x_dev *dev)
 	if (err < 0)
 		return err;
 
-	/* Reset test mode */
-	err = write_reg(dev, TEST_MODE, 0x00);
-	if (err < 0)
-		return err;
+	if (0) {
+		/* Set test mode */
+		err = write_reg(dev, TEST_MODE, 0x03);
+		if (err < 0)
+			return err;
 
-	err = write_reg_mask(dev, TEST_NCTS_CTRL, 0x03, 0);
-	if (err < 0)
-		return err;
+		err = write_reg(dev, TEST_AUDIO_FREQ, 0x0b);
+		if (err < 0)
+			return err;
+	} else {
+		err = write_reg(dev, TEST_MODE, 0x00);
+		if (err < 0)
+			return err;
+
+		err = write_reg_mask(dev, TEST_NCTS_CTRL, 0x03, 0);
+		if (err < 0)
+			return err;
+	}
 	/**
 	 * END: Configure Audio Formatter
 	 */
