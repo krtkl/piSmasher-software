@@ -1,0 +1,34 @@
+gpio clear 20
+gpio clear 16
+gpio clear 17
+gpio clear 18
+gpio clear 19
+gpio clear 52
+gpio clear 53
+sleep 1
+gpio set 20
+sleep 1
+gpio set 16
+gpio set 17
+gpio set 18
+gpio set 19
+gpio set 52
+gpio set 53
+
+if test -e mmc 0 ${bitstream_image}; then
+  echo Loading bitstream from ${bitstream_image}
+  load mmc 0 ${loadbit_addr} ${bitstream_image} && fpga loadb 0 ${loadbit_addr} ${filesize};
+else
+  echo No bitstream present. Bitstream will not be loaded.
+fi
+
+if test -e mmc 0 ${kernel_image}; then
+  fatload mmc 0 ${kernel_load_address} ${kernel_image};
+  fatload mmc 0 ${devicetree_load_address} ${devicetree_image};
+  if test -e mmc 0 ${ramdisk_image}; then
+    fatload mmc 0 ${ramdisk_load_address} ${ramdisk_image};
+    bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address};
+  else
+    bootm ${kernel_load_address} - ${devicetree_load_address};
+  fi
+fi
