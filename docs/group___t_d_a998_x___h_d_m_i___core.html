@@ -95,7 +95,9 @@ $(document).ready(function(){initNavTree('group___t_d_a998_x___h_d_m_i___core.ht
 
 <div class="header">
   <div class="summary">
-<a href="#groups">Modules</a>  </div>
+<a href="#groups">Modules</a> &#124;
+<a href="#nested-classes">Data Structures</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">TDA998X_HDMI_Core<div class="ingroups"><a class="el" href="group___t_d_a998_x.html">TDA998x HDMI Transmitter</a></div></div>  </div>
 </div><!--header-->
@@ -107,14 +109,119 @@ Modules</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:group___t_d_a998_x___functions"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a998_x___functions.html">TDA998x Device Control Functions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvidfmt__desc.html">vidfmt_desc</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvidfmt__map.html">vidfmt_map</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ga7ef152cfa6c77dd81f24668e8c563f84"><td class="memItemLeft" align="right" valign="top">static const struct <a class="el" href="structvidfmt__desc.html">vidfmt_desc</a>&#160;</td><td class="memItemRight" valign="bottom"><b>vidformat_desc</b> []</td></tr>
+<tr class="separator:ga7ef152cfa6c77dd81f24668e8c563f84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga73cafa001608cc22d0bad9066a681227"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtda998x__vid__frm.html">tda998x_vid_frm</a>&#160;</td><td class="memItemRight" valign="bottom"><b>vidformat_pc</b> []</td></tr>
+<tr class="separator:ga73cafa001608cc22d0bad9066a681227"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga22a08912cdaf96837073a95f5fb63046"><td class="memItemLeft" align="right" valign="top">static const struct <a class="el" href="structvidfmt__map.html">vidfmt_map</a>&#160;</td><td class="memItemRight" valign="bottom"><b>vidformat_map</b> []</td></tr>
+<tr class="separator:ga22a08912cdaf96837073a95f5fb63046"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="ga7ef152cfa6c77dd81f24668e8c563f84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7ef152cfa6c77dd81f24668e8c563f84">&#9670;&nbsp;</a></span>vidformat_desc</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const struct <a class="el" href="structvidfmt__desc.html">vidfmt_desc</a>  vidformat_desc[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;<a class="el" href="tda998x_8c.html">projects/lib/tda998x.c</a>&gt;</code></p>
+<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">    </div><div class="line">    { 0,    0,  1,  1,  17, 2,  161,    36, 2,  VIDFORMAT_640x480p_60Hz },</div><div class="line">    { 0,    0,  1,  1,  17, 8,  139,    43, 2,  VIDFORMAT_720x480p_60Hz },</div><div class="line">    { 0,    0,  0,  0,  111,    2,  371,    26, 1,  VIDFORMAT_1280x720p_60Hz },</div><div class="line">    { 1188, 0,  0,  0,  89, 2,  281,    21, 1,  VIDFORMAT_1920x1080i_60Hz },</div><div class="line">    { 448,  1,  1,  1,  20, 5,  139,    22, 3,  VIDFORMAT_720x480i_60Hz },</div><div class="line">    { 0,    1,  1,  1,  20, 5,  139,    22, 0,  VIDFORMAT_720x240p_60Hz },</div><div class="line">    { 0,    0,  0,  0,  89, 2,  281,    42, 0,  VIDFORMAT_1920x1080p_60Hz },</div><div class="line">    { 0,    0,  1,  1,  13, 2,  145,    45, 2,  VIDFORMAT_720x576p_50Hz },</div><div class="line">    { 0,    0,  0,  0,  441,    2,  701,    26, 1,  VIDFORMAT_1280x720p_50Hz },</div><div class="line">    { 1848, 0,  0,  0,  529,    2,  721,    21, 1,  VIDFORMAT_1920x1080i_50Hz },</div><div class="line">    { 444,  1,  1,  1,  13, 2,  145,    23, 3,  VIDFORMAT_720x576i_50Hz },</div><div class="line">    { 0,    1,  1,  1,  13, 2,  145,    23, 0,  VIDFORMAT_720x288p_50Hz },</div><div class="line">    { 0,    0,  0,  0,  529,    2,  721,    42, 0,  VIDFORMAT_1920x1080p_50Hz },</div><div class="line">    { 0,    0,  0,  0,  41, 2,  259,    28, 1,  VIDFORMAT_800x600p_60Hz },</div><div class="line">    { 0,    0,  1,  1,  25, 2,  323,    36, 1,  VIDFORMAT_1024x768p_60Hz },</div><div class="line">    { 0,    0,  0,  1,  65, 2,  387,    28, 1,  VIDFORMAT_1280x768p_60Hz },</div><div class="line">    { 0,    0,  0,  0,  71, 5,  429,    31, 0,  VIDFORMAT_1366x768p_60Hz },</div><div class="line">    { 0,    0,  0,  0,  65, 2,  563,    50, 0,  VIDFORMAT_1600x1200p_60Hz },</div><div class="line">    { 0,    0,  0,  0,  65, 2,  163,    35, 0,  VIDFORMAT_1920x1200p_60Hz },</div><div class="line">    {  }</div><div class="line">}</div></div><!-- fragment -->
+</div>
+</div>
+<a id="ga22a08912cdaf96837073a95f5fb63046"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga22a08912cdaf96837073a95f5fb63046">&#9670;&nbsp;</a></span>vidformat_map</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const struct <a class="el" href="structvidfmt__map.html">vidfmt_map</a>  vidformat_map[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;<a class="el" href="tda998x_8c.html">projects/lib/tda998x.c</a>&gt;</code></p>
+<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aa0381c9789a258d4ea53605874028234">VFMT_01_640x480p_60Hz</a>,    VIDFORMAT_640x480p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a21fccdffb7a957518a1d9483d51583bb">VFMT_02_720x480p_60Hz</a>,    VIDFORMAT_720x480p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66ad995e16ea72fbaee8159d4419d6f2c70">VFMT_03_720x480p_60Hz</a>,    VIDFORMAT_720x480p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a2c0d5073add8107be9a49db5829c2e1c">VFMT_04_1280x720p_60Hz</a>,   VIDFORMAT_1280x720p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a11c0973417f5b5e66b053c8705f14d28">VFMT_05_1920x1080i_60Hz</a>,  VIDFORMAT_1920x1080i_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a0d31547ba761582df40915be6c13d7d1">VFMT_06_720x480i_60Hz</a>,    VIDFORMAT_720x480i_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a35bf178267248bed90d3955f8cb47ba9">VFMT_07_720x480i_60Hz</a>,    VIDFORMAT_720x480i_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aa983519c378efee984a92e1c14d2c5d4">VFMT_08_720x240p_60Hz</a>,    VIDFORMAT_720x240p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aedeb7312fda4d87a822b84b4170b70e5">VFMT_09_720x240p_60Hz</a>,    VIDFORMAT_720x240p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aa43e8441be20920ff0a025f554abb07b">VFMT_16_1920x1080p_60Hz</a>,  VIDFORMAT_1920x1080p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66af1419762802acdd3a85c2f969158922b">VFMT_17_720x576p_50Hz</a>,    VIDFORMAT_720x576p_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a96077f52d619f48fed429f369e9a209d">VFMT_18_720x576p_50Hz</a>,    VIDFORMAT_720x576p_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a469c3f7b3c50f542e7149d70088a4349">VFMT_19_1280x720p_50Hz</a>,   VIDFORMAT_1280x720p_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a42fba4f03d67aafa7178b5a78b5bfa12">VFMT_20_1920x1080i_50Hz</a>,  VIDFORMAT_1920x1080i_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66ae537a0754769ab4bb7e2bbf31884d9f2">VFMT_21_720x576i_50Hz</a>,    VIDFORMAT_720x576i_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a0687e388260eb92da80c23f3b4a7e777">VFMT_22_720x576i_50Hz</a>,    VIDFORMAT_720x576i_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a5b234bfadc6bea29c5a55f0fba25ebc8">VFMT_23_720x288p_50Hz</a>,    VIDFORMAT_720x288p_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a5c173d0fc8f1f1f461c9a2a0aeb028f9">VFMT_24_720x288p_50Hz</a>,    VIDFORMAT_720x288p_50Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66abc95956c3a9bda181c0b5911ad1d75bf">VFMT_PC_800x600p_60Hz</a>,    VIDFORMAT_800x600p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a57bcee7b1e0a1f55925e9835066b4673">VFMT_PC_1024x768p_60Hz</a>,   VIDFORMAT_1024x768p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a15523b828892c0510fcdf97d81e4855f">VFMT_PC_1280x768p_60Hz</a>,   VIDFORMAT_1280x768p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a2994909977344e46448fa428e723c958">VFMT_PC_1366x768p_60Hz</a>,   VIDFORMAT_1366x768p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a62b43783d5613d870bccf93814344dd3">VFMT_PC_1600x1200p_60Hz</a>,  VIDFORMAT_1600x1200p_60Hz },</div><div class="line">    { <a class="code" href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a53e9aca2b76e3495da987555fd37633a">VFMT_PC_1920x1200p_60Hz</a>,  VIDFORMAT_1920x1200p_60Hz },</div><div class="line">    {  }</div><div class="line">}</div><div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66aa43e8441be20920ff0a025f554abb07b"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aa43e8441be20920ff0a025f554abb07b">VFMT_16_1920x1080p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:89</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a57bcee7b1e0a1f55925e9835066b4673"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a57bcee7b1e0a1f55925e9835066b4673">VFMT_PC_1024x768p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:118</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66aa0381c9789a258d4ea53605874028234"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aa0381c9789a258d4ea53605874028234">VFMT_01_640x480p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:74</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a469c3f7b3c50f542e7149d70088a4349"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a469c3f7b3c50f542e7149d70088a4349">VFMT_19_1280x720p_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:92</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66ad995e16ea72fbaee8159d4419d6f2c70"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66ad995e16ea72fbaee8159d4419d6f2c70">VFMT_03_720x480p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:76</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a5c173d0fc8f1f1f461c9a2a0aeb028f9"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a5c173d0fc8f1f1f461c9a2a0aeb028f9">VFMT_24_720x288p_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:97</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a96077f52d619f48fed429f369e9a209d"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a96077f52d619f48fed429f369e9a209d">VFMT_18_720x576p_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:91</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a0687e388260eb92da80c23f3b4a7e777"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a0687e388260eb92da80c23f3b4a7e777">VFMT_22_720x576i_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:95</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66aa983519c378efee984a92e1c14d2c5d4"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aa983519c378efee984a92e1c14d2c5d4">VFMT_08_720x240p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:81</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66abc95956c3a9bda181c0b5911ad1d75bf"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66abc95956c3a9bda181c0b5911ad1d75bf">VFMT_PC_800x600p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:116</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a15523b828892c0510fcdf97d81e4855f"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a15523b828892c0510fcdf97d81e4855f">VFMT_PC_1280x768p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:119</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a2c0d5073add8107be9a49db5829c2e1c"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a2c0d5073add8107be9a49db5829c2e1c">VFMT_04_1280x720p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:77</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a11c0973417f5b5e66b053c8705f14d28"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a11c0973417f5b5e66b053c8705f14d28">VFMT_05_1920x1080i_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:78</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66aedeb7312fda4d87a822b84b4170b70e5"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66aedeb7312fda4d87a822b84b4170b70e5">VFMT_09_720x240p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:82</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a35bf178267248bed90d3955f8cb47ba9"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a35bf178267248bed90d3955f8cb47ba9">VFMT_07_720x480i_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:80</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66ae537a0754769ab4bb7e2bbf31884d9f2"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66ae537a0754769ab4bb7e2bbf31884d9f2">VFMT_21_720x576i_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:94</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a42fba4f03d67aafa7178b5a78b5bfa12"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a42fba4f03d67aafa7178b5a78b5bfa12">VFMT_20_1920x1080i_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:93</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a5b234bfadc6bea29c5a55f0fba25ebc8"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a5b234bfadc6bea29c5a55f0fba25ebc8">VFMT_23_720x288p_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:96</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a62b43783d5613d870bccf93814344dd3"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a62b43783d5613d870bccf93814344dd3">VFMT_PC_1600x1200p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:123</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a2994909977344e46448fa428e723c958"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a2994909977344e46448fa428e723c958">VFMT_PC_1366x768p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:121</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a0d31547ba761582df40915be6c13d7d1"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a0d31547ba761582df40915be6c13d7d1">VFMT_06_720x480i_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:79</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a53e9aca2b76e3495da987555fd37633a"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a53e9aca2b76e3495da987555fd37633a">VFMT_PC_1920x1200p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:124</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66af1419762802acdd3a85c2f969158922b"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66af1419762802acdd3a85c2f969158922b">VFMT_17_720x576p_50Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:90</div></div>
+<div class="ttc" id="group___t_d_a998_x_html_gga2473e43e8d9011dd526b160da99ecb66a21fccdffb7a957518a1d9483d51583bb"><div class="ttname"><a href="group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a21fccdffb7a957518a1d9483d51583bb">VFMT_02_720x480p_60Hz</a></div><div class="ttdef"><b>Definition:</b> tda998x.h:75</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ga73cafa001608cc22d0bad9066a681227"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga73cafa001608cc22d0bad9066a681227">&#9670;&nbsp;</a></span>vidformat_pc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structtda998x__vid__frm.html">tda998x_vid_frm</a> vidformat_pc[]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;<a class="el" href="tda998x_8c.html">projects/lib/tda998x.c</a>&gt;</code></p>
+<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">    </div><div class="line">    { 1056,     628,    1,  40, 5,  40, 40, 168,    27, 627,    256,    1056 },     </div><div class="line">    { 1344,     806,    1,  24, 7,  24, 24, 160,    35, 803,    320,    1344 },     </div><div class="line">    { 1664,     798,    1,  64, 8,  64, 64, 192,    27, 795,    384,    1664 },     </div><div class="line">    { 1792,     798,    1,  70, 4,  70, 70, 213,    30, 798,    426,    1792 },     </div><div class="line">    { 2160,     1250,   1,  64, 4,  64, 64, 256,    49, 1249,   560,    2160 },     </div><div class="line">    { 2080,     1235,   1,  64, 4,  64, 40, 80, 35, 1235,   160,    2080 },     </div><div class="line">}</div></div><!-- fragment -->
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Aug 1 2018 13:53:16 for piSmasher Configuration Libraries by
+    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

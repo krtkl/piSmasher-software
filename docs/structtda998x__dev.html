@@ -126,20 +126,29 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>features</b></td><
 <tr class="memitem:ab6d7b6f8c2ceaba7acda80aaf05f4899"><td class="memItemLeft" align="right" valign="top"><a id="ab6d7b6f8c2ceaba7acda80aaf05f4899"></a>
 uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>version</b></td></tr>
 <tr class="separator:ab6d7b6f8c2ceaba7acda80aaf05f4899"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02abe402d92d7f91f892bc7c9972fbd4"><td class="memItemLeft" align="right" valign="top"><a id="a02abe402d92d7f91f892bc7c9972fbd4"></a>
+enum <a class="el" href="group___t_d_a998_x.html#ga1fa07e4e46b8e54bf62464a173acf7d0">tda998x_state</a>&#160;</td><td class="memItemRight" valign="bottom"><b>state</b></td></tr>
+<tr class="separator:a02abe402d92d7f91f892bc7c9972fbd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a478be168f2c5c0a1360a802632774c30"><td class="memItemLeft" align="right" valign="top"><a id="a478be168f2c5c0a1360a802632774c30"></a>
 enum <a class="el" href="group___t_d_a998_x.html#gad08fa447c674bbe3aeb29cbdaca69aca">tda998x_sink</a>&#160;</td><td class="memItemRight" valign="bottom"><b>sink</b></td></tr>
 <tr class="separator:a478be168f2c5c0a1360a802632774c30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae88a9ddd06c89c5a2c9dce0edaf9f3b6"><td class="memItemLeft" align="right" valign="top"><a id="ae88a9ddd06c89c5a2c9dce0edaf9f3b6"></a>
-enum <a class="el" href="group___t_d_a998_x.html#gad08fa447c674bbe3aeb29cbdaca69aca">tda998x_sink</a>&#160;</td><td class="memItemRight" valign="bottom"><b>edid_sink</b></td></tr>
-<tr class="separator:ae88a9ddd06c89c5a2c9dce0edaf9f3b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a029a4ec12513fef0cc150077344534ef"><td class="memItemLeft" align="right" valign="top"><a id="a029a4ec12513fef0cc150077344534ef"></a>
-enum tda998x_edid_state&#160;</td><td class="memItemRight" valign="bottom"><b>edid_state</b></td></tr>
-<tr class="separator:a029a4ec12513fef0cc150077344534ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff88cda2f1eaed6aab7d32e7c771d6b7"><td class="memItemLeft" align="right" valign="top"><a id="aff88cda2f1eaed6aab7d32e7c771d6b7"></a>
+struct <a class="el" href="structtda998x__edid.html">tda998x_edid</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>edid</b></td></tr>
+<tr class="separator:aff88cda2f1eaed6aab7d32e7c771d6b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa3628c8e26483bd4f7529bbad843d62"><td class="memItemLeft" align="right" valign="top"><a id="aaa3628c8e26483bd4f7529bbad843d62"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>int_level</b></td></tr>
+<tr class="separator:aaa3628c8e26483bd4f7529bbad843d62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a599ffdfa2ea4f5ac4505009b278718ae"><td class="memItemLeft" align="right" valign="top"><a id="a599ffdfa2ea4f5ac4505009b278718ae"></a>
+enum tda998x_hotplug_status&#160;</td><td class="memItemRight" valign="bottom"><b>hotplug_status</b></td></tr>
+<tr class="separator:a599ffdfa2ea4f5ac4505009b278718ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c84fc0479f5e52d50fde703859024fa"><td class="memItemLeft" align="right" valign="top"><a id="a1c84fc0479f5e52d50fde703859024fa"></a>
+int(*&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b> [<a class="el" href="group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467ae7bd0544fd0352f8ad1e3db17470abb8">CALLBACK_VS_RPT</a>])(struct <a class="el" href="structtda998x__dev.html">tda998x_dev</a> *dev)</td></tr>
+<tr class="separator:a1c84fc0479f5e52d50fde703859024fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>TDA998X device. </p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li>projects/hdmi-config/<a class="el" href="tda998x_8h_source.html">tda998x.h</a></li>
+<li>projects/lib/<a class="el" href="tda998x_8h_source.html">tda998x.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
@@ -147,7 +156,7 @@ enum tda998x_edid_state&#160;</td><td class="memItemRight" valign="bottom"><b>ed
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="structtda998x__dev.html">tda998x_dev</a></li>
-    <li class="footer">Generated on Wed Aug 1 2018 13:53:16 for piSmasher Configuration Libraries by
+    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

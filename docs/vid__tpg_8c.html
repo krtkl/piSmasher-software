@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>piSmasher Configuration Libraries: projects/vid-tpg-config/vid_tpg.c File Reference</title>
+<title>piSmasher Configuration Libraries: projects/lib/vid_tpg.c File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -168,18 +168,15 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af98290b3c80a1b1694bfb57e2572c9f2"><td class="memItemLeft" align="right" valign="top"><a id="af98290b3c80a1b1694bfb57e2572c9f2"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_regdump</b> (<a class="el" href="struct__vidtpg__t.html">vidtpg_t</a> *tpg)</td></tr>
-<tr class="separator:af98290b3c80a1b1694bfb57e2572c9f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7922587e0d457ff324efa7708a4e43c"><td class="memItemLeft" align="right" valign="top"><a id="af7922587e0d457ff324efa7708a4e43c"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_set_format</b> (<a class="el" href="struct__vidtpg__t.html">vidtpg_t</a> *tpg, int height, int width, enum <a class="el" href="vid__tpg_8h.html#a1c8c47bf15177583973479999429402b">vidtpg_color_fmt</a> color_fmt)</td></tr>
-<tr class="separator:af7922587e0d457ff324efa7708a4e43c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0617c8098ed18427d66e29dd0a71b79b"><td class="memItemLeft" align="right" valign="top"><a id="a0617c8098ed18427d66e29dd0a71b79b"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_set_pattern</b> (<a class="el" href="struct__vidtpg__t.html">vidtpg_t</a> *tpg, enum <a class="el" href="vid__tpg_8h.html#ac316d56d01cf3e290d5415b27cf77a1f">vidtpg_bgpat</a> bgpat, enum <a class="el" href="vid__tpg_8h.html#aa41f0880cf89bddc175e4ae3c4a073ba">vidtpg_fgpat</a> fgpat)</td></tr>
-<tr class="separator:a0617c8098ed18427d66e29dd0a71b79b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee9049e6b482740dbca4206c1a9fc094"><td class="memItemLeft" align="right" valign="top"><a id="aee9049e6b482740dbca4206c1a9fc094"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_init</b> (<a class="el" href="struct__vidtpg__t.html">vidtpg_t</a> *tpg)</td></tr>
-<tr class="separator:aee9049e6b482740dbca4206c1a9fc094"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a172754257959a904cfd0d0d118cbc8cf"><td class="memItemLeft" align="right" valign="top"><a id="a172754257959a904cfd0d0d118cbc8cf"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_set_format</b> (struct <a class="el" href="structvidtpg.html">vidtpg</a> *tpg, int height, int width, enum <a class="el" href="vid__tpg_8h.html#a1c8c47bf15177583973479999429402b">vidtpg_color_fmt</a> color_fmt)</td></tr>
+<tr class="separator:a172754257959a904cfd0d0d118cbc8cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a484a22b1ec1c2ede9d9bf9157298dd6b"><td class="memItemLeft" align="right" valign="top"><a id="a484a22b1ec1c2ede9d9bf9157298dd6b"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_set_pattern</b> (struct <a class="el" href="structvidtpg.html">vidtpg</a> *tpg, enum <a class="el" href="vid__tpg_8h.html#ac316d56d01cf3e290d5415b27cf77a1f">vidtpg_bgpat</a> bgpat, enum <a class="el" href="vid__tpg_8h.html#aa41f0880cf89bddc175e4ae3c4a073ba">vidtpg_fgpat</a> fgpat)</td></tr>
+<tr class="separator:a484a22b1ec1c2ede9d9bf9157298dd6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d8f0250212f85106a67d2b7a57b7038"><td class="memItemLeft" align="right" valign="top"><a id="a8d8f0250212f85106a67d2b7a57b7038"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_init</b> (struct <a class="el" href="structvidtpg.html">vidtpg</a> *tpg, const char *devname)</td></tr>
+<tr class="separator:a8d8f0250212f85106a67d2b7a57b7038"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Video Test Pattern Generator Userspace I/O Driver  FreeBSD. </p>
@@ -424,8 +421,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>vidtpg_init</b> (<a cl
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_e39cc260776bd386a60dfbf3292a43e3.html">vid-tpg-config</a></li><li class="navelem"><a class="el" href="vid__tpg_8c.html">vid_tpg.c</a></li>
-    <li class="footer">Generated on Wed Aug 1 2018 13:53:16 for piSmasher Configuration Libraries by
+    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_d2c8bb7959487ae6c146ed352a9d0a73.html">lib</a></li><li class="navelem"><a class="el" href="vid__tpg_8c.html">vid_tpg.c</a></li>
+    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

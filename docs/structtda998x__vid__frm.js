@@ -1,7 +1,5 @@
 var structtda998x__vid__frm =
 [
-    [ "act_space_end", "group___t_d_a998_x___functions.html#gaf87508a22064c791903f2dc1f006ffbc", null ],
-    [ "act_space_start", "group___t_d_a998_x___functions.html#ga63df072cdfd746c888b5fd08798d5297", null ],
     [ "act_vid_end", "group___t_d_a998_x___functions.html#gacc0c376319ba157ea8df1c10bb9fffbf", null ],
     [ "act_vid_start", "group___t_d_a998_x___functions.html#ga6197fa125808bba0fabfa538e9124b07", null ],
     [ "de_end", "group___t_d_a998_x___functions.html#gaf4fe6c7c2ef6829775d5cb3f64519e63", null ],

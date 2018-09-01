@@ -34,11 +34,13 @@ var tda1997x_8h =
     ] ],
     [ "tda1997x_cfg_audio_fmt", "group___t_d_a1997_x.html#ga21f7d1d77372bf984090b6ec30cb422c", null ],
     [ "tda1997x_cfg_audio_mode", "group___t_d_a1997_x.html#ga54ffae2e3741f814a1c7b67548f3f893", null ],
+    [ "tda1997x_cfg_edid", "group___t_d_a1997_x.html#ga2bf2c6100a6ad125b29b78768778d70c", null ],
     [ "tda1997x_cfg_prefilter", "group___t_d_a1997_x.html#ga7f5c1252495af54d5be37d4216d54ab0", null ],
     [ "tda1997x_cfg_vid_out", "group___t_d_a1997_x.html#ga1a1e20b9551118cc48c87f31dc4a2577", null ],
     [ "tda1997x_cfg_vp", "group___t_d_a1997_x.html#gad09667c62125b9d052a1b68db331a10e", null ],
     [ "tda1997x_get_audio_flags", "group___t_d_a1997_x.html#gaa7921149b3224a1fbb53bf133a25e099", null ],
     [ "tda1997x_get_audio_freq", "group___t_d_a1997_x.html#ga5590f7f1b3c3af1710ca9329c0cb67f2", null ],
+    [ "tda1997x_get_timing", "group___t_d_a1997_x.html#ga3f2787122583233a1d1475b1d06ab949", null ],
     [ "tda1997x_handle_irq", "group___t_d_a1997_x.html#ga913cf808d36ca75048e1841e9a76e495", null ],
-    [ "tda1997x_init", "group___t_d_a1997_x.html#gab90241aff942c68381d36726299204d1", null ]
+    [ "tda1997x_init", "group___t_d_a1997_x.html#ga83a6093aeae5ce94bb61accda1c9e218", null ]
 ];

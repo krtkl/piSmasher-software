@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['hdmi_2dconfig_2ec',['hdmi-config.c',['../hdmi-config_8c.html',1,'']]],
-  ['hdmi_5ftx_2ec',['hdmi_tx.c',['../hdmi__tx_8c.html',1,'']]],
-  ['hdmi_5ftx_2eh',['hdmi_tx.h',['../hdmi__tx_8h.html',1,'']]]
+  ['clk_5fwiz_2ec',['clk_wiz.c',['../clk__wiz_8c.html',1,'']]],
+  ['clk_5fwiz_2eh',['clk_wiz.h',['../clk__wiz_8h.html',1,'']]]
 ];

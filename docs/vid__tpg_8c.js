@@ -22,8 +22,7 @@ var vid__tpg_8c =
     [ "VIDTPG_REG_PASS_THRU_Y_END", "vid__tpg_8c.html#a90958d01ef4def94ba9bdfc9d74a6e0d", null ],
     [ "VIDTPG_REG_PASS_THRU_Y_START", "vid__tpg_8c.html#a6602b1e85bf0574c8c986834aa108d60", null ],
     [ "VIDTPG_REG_RGB_MASK_ID", "vid__tpg_8c.html#a9bc1d5518032889db21fa8ee95efdc73", null ],
-    [ "vidtpg_init", "vid__tpg_8c.html#aee9049e6b482740dbca4206c1a9fc094", null ],
-    [ "vidtpg_regdump", "vid__tpg_8c.html#af98290b3c80a1b1694bfb57e2572c9f2", null ],
-    [ "vidtpg_set_format", "vid__tpg_8c.html#af7922587e0d457ff324efa7708a4e43c", null ],
-    [ "vidtpg_set_pattern", "vid__tpg_8c.html#a0617c8098ed18427d66e29dd0a71b79b", null ]
+    [ "vidtpg_init", "vid__tpg_8c.html#a8d8f0250212f85106a67d2b7a57b7038", null ],
+    [ "vidtpg_set_format", "vid__tpg_8c.html#a172754257959a904cfd0d0d118cbc8cf", null ],
+    [ "vidtpg_set_pattern", "vid__tpg_8c.html#a484a22b1ec1c2ede9d9bf9157298dd6b", null ]
 ];

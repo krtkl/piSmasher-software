@@ -1,17 +1,29 @@
-proj	+= video-config/
-proj	+= hdmi-config/
-proj	+= hdmi-edid/
-proj	+= audio-config/
-proj	+= vid-tpg-config/
-proj	+= uio-vdma/
-proj	+= uio-vtc/
-proj	+= uio-clk-wiz/
+export CC = arm-linux-gnueabihf-gcc
 
-all: $(proj)
+export OK_COLOR    = \033[0;32m
+export ERROR_COLOR = \033[0;31m
+export WARN_COLOR  = \033[0;33m
+export NO_COLOR    = \033[m
 
-clean: $(proj)
+targets		+= video-config
+targets		+= hdmi-config
+targets		+= hdmi-edid
+targets		+= audio-config
+targets		+= vid-tpg-config
+targets		+= uio-vdma
+targets		+= uio-vtc
+targets		+= uio-clk-wiz
 
-$(proj):
-	+$(MAKE) -C $@ $(MAKECMDGOALS)
+export BUILDDIR	= build
+export LIBDIR = lib
 
-.PHONY: all clean $(proj)
+MAKEFLAGS	+= --no-print-directory
+
+all: $(targets)
+
+clean: $(targets)
+
+$(targets):
+	@$(MAKE) -C $@ $(MAKECMDGOALS)
+
+.PHONY: all clean $(targets)

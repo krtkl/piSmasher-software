@@ -170,7 +170,7 @@ var group___t_d_a1997_x =
     [ "tda1997x_cfg_audio_fmt", "group___t_d_a1997_x.html#ga21f7d1d77372bf984090b6ec30cb422c", null ],
     [ "tda1997x_cfg_audio_mode", "group___t_d_a1997_x.html#ga54ffae2e3741f814a1c7b67548f3f893", null ],
     [ "tda1997x_cfg_conv", "group___t_d_a1997_x.html#ga2457f43fdd213bad3cb5653998613f8b", null ],
-    [ "tda1997x_cfg_edid", "group___t_d_a1997_x.html#gacfc3bcbe0bd1ff88b09f0b87eb9a5f6e", null ],
+    [ "tda1997x_cfg_edid", "group___t_d_a1997_x.html#ga2bf2c6100a6ad125b29b78768778d70c", null ],
     [ "tda1997x_cfg_prefilter", "group___t_d_a1997_x.html#ga7f5c1252495af54d5be37d4216d54ab0", null ],
     [ "tda1997x_cfg_spa", "group___t_d_a1997_x.html#ga9a68790659a5af6feb4abb1b7f4766e2", null ],
     [ "tda1997x_cfg_vid_out", "group___t_d_a1997_x.html#ga1a1e20b9551118cc48c87f31dc4a2577", null ],
@@ -180,10 +180,11 @@ var group___t_d_a1997_x =
     [ "tda1997x_get_audio_flags", "group___t_d_a1997_x.html#gaa7921149b3224a1fbb53bf133a25e099", null ],
     [ "tda1997x_get_audio_freq", "group___t_d_a1997_x.html#ga5590f7f1b3c3af1710ca9329c0cb67f2", null ],
     [ "tda1997x_get_chan_status", "group___t_d_a1997_x.html#ga9f80d8b08cf2c228938c39e11961e0af", null ],
+    [ "tda1997x_get_timing", "group___t_d_a1997_x.html#ga3f2787122583233a1d1475b1d06ab949", null ],
     [ "tda1997x_handle_irq", "group___t_d_a1997_x.html#ga913cf808d36ca75048e1841e9a76e495", null ],
     [ "tda1997x_info_rst", "group___t_d_a1997_x.html#ga56f475ca26b11b53857d00b16f569595", null ],
     [ "tda1997x_infoframe_irq", "group___t_d_a1997_x.html#ga70725fe955b467e9fa666690cf766fea", null ],
-    [ "tda1997x_init", "group___t_d_a1997_x.html#gab90241aff942c68381d36726299204d1", null ],
+    [ "tda1997x_init", "group___t_d_a1997_x.html#ga83a6093aeae5ce94bb61accda1c9e218", null ],
     [ "tda1997x_parse_aud_infoframe", "group___t_d_a1997_x.html#ga5b2d431cedf7a5aa9389f0ff0437fdca", null ],
     [ "tda1997x_parse_infoframe", "group___t_d_a1997_x.html#ga17ff8eb8c2847da29103b6cb2dee6a49", null ],
     [ "tda1997x_print_infoframe", "group___t_d_a1997_x.html#ga00d883840aff303a46195adee9214a92", null ],
@@ -194,7 +195,5 @@ var group___t_d_a1997_x =
     [ "tda1997x_sus_irq", "group___t_d_a1997_x.html#ga37fb28916c22e02eb7cf65f0e41c4f00", null ],
     [ "tda1997x_write", "group___t_d_a1997_x.html#ga4eac88d445514b6b6f97bd40c84bbf47", null ],
     [ "write_reg", "group___t_d_a1997_x.html#ga90d2fc018b9a9acebf8238fc5a8d781f", null ],
-    [ "write_reg_mask", "group___t_d_a1997_x.html#ga44918a927b38f992c3e84f244c3591f6", null ],
-    [ "edid_block", "group___t_d_a1997_x.html#gaeb4adac80839f5f67e8cf2f194dfdc66", null ],
-    [ "edid_ext", "group___t_d_a1997_x.html#ga663014cc6a85f12f94806511874cc29b", null ]
+    [ "write_reg_mask", "group___t_d_a1997_x.html#ga44918a927b38f992c3e84f244c3591f6", null ]
 ];

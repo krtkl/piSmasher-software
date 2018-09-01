@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>piSmasher Configuration Libraries: projects/hdmi-config/tda1997x.c File Reference</title>
+<title>piSmasher Configuration Libraries: projects/lib/tda1997x.c File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -131,6 +131,9 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:aa0ac39657eaf52a5550c3b336cb8c139"><td class="memItemLeft" align="right" valign="top"><a id="aa0ac39657eaf52a5550c3b336cb8c139"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>DEBUG_PRINT</b>(__format__, ...)&#160;&#160;&#160;printf(&quot;[DEBUG] %s() %s %d: &quot; __format__ &quot;\r\n&quot;, __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)</td></tr>
+<tr class="separator:aa0ac39657eaf52a5550c3b336cb8c139"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab603f0c8ab95978b6721105c1228a6d7"><td class="memItemLeft" align="right" valign="top">
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TDA1997X_HDCP_DDC_ADDR</b>&#160;&#160;&#160;(0x74U)</td></tr>
 <tr class="separator:gab603f0c8ab95978b6721105c1228a6d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2167,9 +2170,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gaa374c7306641878138073000248fa907"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#gaa374c7306641878138073000248fa907">tda1997x_edid_cksum</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t *edid, uint8_t *cksum)</td></tr>
 <tr class="memdesc:gaa374c7306641878138073000248fa907"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate EDID Block Checksum.  <a href="group___t_d_a1997_x.html#gaa374c7306641878138073000248fa907">More...</a><br /></td></tr>
 <tr class="separator:gaa374c7306641878138073000248fa907"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacfc3bcbe0bd1ff88b09f0b87eb9a5f6e"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#gacfc3bcbe0bd1ff88b09f0b87eb9a5f6e">tda1997x_cfg_edid</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t *edid, uint8_t *<a class="el" href="group___t_d_a1997_x.html#ga663014cc6a85f12f94806511874cc29b">edid_ext</a>)</td></tr>
-<tr class="memdesc:gacfc3bcbe0bd1ff88b09f0b87eb9a5f6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure EDID.  <a href="group___t_d_a1997_x.html#gacfc3bcbe0bd1ff88b09f0b87eb9a5f6e">More...</a><br /></td></tr>
-<tr class="separator:gacfc3bcbe0bd1ff88b09f0b87eb9a5f6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2bf2c6100a6ad125b29b78768778d70c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga2bf2c6100a6ad125b29b78768778d70c">tda1997x_cfg_edid</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t *edid, uint8_t *edid_ext)</td></tr>
+<tr class="memdesc:ga2bf2c6100a6ad125b29b78768778d70c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure EDID.  <a href="group___t_d_a1997_x.html#ga2bf2c6100a6ad125b29b78768778d70c">More...</a><br /></td></tr>
+<tr class="separator:ga2bf2c6100a6ad125b29b78768778d70c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9a68790659a5af6feb4abb1b7f4766e2"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga9a68790659a5af6feb4abb1b7f4766e2">tda1997x_cfg_spa</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t *edid1, uint8_t offset, uint16_t *spa)</td></tr>
 <tr class="memdesc:ga9a68790659a5af6feb4abb1b7f4766e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure Source Physical Address.  <a href="group___t_d_a1997_x.html#ga9a68790659a5af6feb4abb1b7f4766e2">More...</a><br /></td></tr>
 <tr class="separator:ga9a68790659a5af6feb4abb1b7f4766e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2185,9 +2188,12 @@ Functions</h2></td></tr>
 <tr class="memitem:ga00d883840aff303a46195adee9214a92"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga00d883840aff303a46195adee9214a92">tda1997x_print_infoframe</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev)</td></tr>
 <tr class="memdesc:ga00d883840aff303a46195adee9214a92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print Infoframe.  <a href="group___t_d_a1997_x.html#ga00d883840aff303a46195adee9214a92">More...</a><br /></td></tr>
 <tr class="separator:ga00d883840aff303a46195adee9214a92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab90241aff942c68381d36726299204d1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#gab90241aff942c68381d36726299204d1">tda1997x_init</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, struct <a class="el" href="structtda1997x__cfg.html">tda1997x_cfg</a> *cfg)</td></tr>
-<tr class="memdesc:gab90241aff942c68381d36726299204d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize TDA1997x HDMI Receiver.  <a href="group___t_d_a1997_x.html#gab90241aff942c68381d36726299204d1">More...</a><br /></td></tr>
-<tr class="separator:gab90241aff942c68381d36726299204d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3f2787122583233a1d1475b1d06ab949"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga3f2787122583233a1d1475b1d06ab949">tda1997x_get_timing</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t *data)</td></tr>
+<tr class="memdesc:ga3f2787122583233a1d1475b1d06ab949"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get Timing Values Sets an data memory block to the video timing register values.  <a href="group___t_d_a1997_x.html#ga3f2787122583233a1d1475b1d06ab949">More...</a><br /></td></tr>
+<tr class="separator:ga3f2787122583233a1d1475b1d06ab949"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga83a6093aeae5ce94bb61accda1c9e218"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga83a6093aeae5ce94bb61accda1c9e218">tda1997x_init</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, struct <a class="el" href="structtda1997x__cfg.html">tda1997x_cfg</a> *cfg, uint8_t *edid_block, uint8_t *edid_ext)</td></tr>
+<tr class="memdesc:ga83a6093aeae5ce94bb61accda1c9e218"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize TDA1997x HDMI Receiver.  <a href="group___t_d_a1997_x.html#ga83a6093aeae5ce94bb61accda1c9e218">More...</a><br /></td></tr>
+<tr class="separator:ga83a6093aeae5ce94bb61accda1c9e218"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga37fb28916c22e02eb7cf65f0e41c4f00"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga37fb28916c22e02eb7cf65f0e41c4f00">tda1997x_sus_irq</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t flags)</td></tr>
 <tr class="memdesc:ga37fb28916c22e02eb7cf65f0e41c4f00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Startup Sequence Interrupt Handler.  <a href="group___t_d_a1997_x.html#ga37fb28916c22e02eb7cf65f0e41c4f00">More...</a><br /></td></tr>
 <tr class="separator:ga37fb28916c22e02eb7cf65f0e41c4f00"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2237,13 +2243,6 @@ Variables</h2></td></tr>
 <tr class="separator:ga5429f7088e3787e78aff5eca56e0c29f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5fa4831dd0f7df753bd24eb2ec9842c3"><td class="memItemLeft" align="right" valign="top">const struct <a class="el" href="structtda1997x__mtp__seed.html">tda1997x_mtp_seed</a>&#160;</td><td class="memItemRight" valign="bottom"><b>hdcp_seed_tab</b> [TDA1997X_SEED_TABLE_LEN]</td></tr>
 <tr class="separator:ga5fa4831dd0f7df753bd24eb2ec9842c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeb4adac80839f5f67e8cf2f194dfdc66"><td class="memItemLeft" align="right" valign="top">static uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#gaeb4adac80839f5f67e8cf2f194dfdc66">edid_block</a> [127]</td></tr>
-<tr class="memdesc:gaeb4adac80839f5f67e8cf2f194dfdc66"><td class="mdescLeft">&#160;</td><td class="mdescRight">EDID block.  <a href="group___t_d_a1997_x.html#gaeb4adac80839f5f67e8cf2f194dfdc66">More...</a><br /></td></tr>
-<tr class="separator:gaeb4adac80839f5f67e8cf2f194dfdc66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga663014cc6a85f12f94806511874cc29b"><td class="memItemLeft" align="right" valign="top">
-static uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga663014cc6a85f12f94806511874cc29b">edid_ext</a> [127]</td></tr>
-<tr class="memdesc:ga663014cc6a85f12f94806511874cc29b"><td class="mdescLeft">&#160;</td><td class="mdescRight">EDID extension block. <br /></td></tr>
-<tr class="separator:ga663014cc6a85f12f94806511874cc29b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga372948c8cd5649e8b70ba83304874232"><td class="memItemLeft" align="right" valign="top">static uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>ddc_config</b> [8]</td></tr>
 <tr class="separator:ga372948c8cd5649e8b70ba83304874232"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga079ecdf83b26295f610ed6070cce752b"><td class="memItemLeft" align="right" valign="top">static uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>rt_config</b> [6]</td></tr>
@@ -2268,8 +2267,8 @@ static uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_bbfa28346c5af686e68aafabc2fc88c5.html">hdmi-config</a></li><li class="navelem"><a class="el" href="tda1997x_8c.html">tda1997x.c</a></li>
-    <li class="footer">Generated on Wed Aug 1 2018 13:53:15 for piSmasher Configuration Libraries by
+    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_d2c8bb7959487ae6c146ed352a9d0a73.html">lib</a></li><li class="navelem"><a class="el" href="tda1997x_8c.html">tda1997x.c</a></li>
+    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

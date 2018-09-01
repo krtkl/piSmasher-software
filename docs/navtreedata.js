@@ -39,10 +39,9 @@ var NAVTREE =
       [ "Globals", "globals.html", [
         [ "All", "globals.html", "globals_dup" ],
         [ "Functions", "globals_func.html", null ],
-        [ "Variables", "globals_vars.html", null ],
         [ "Enumerations", "globals_enum.html", null ],
         [ "Enumerator", "globals_eval.html", "globals_eval" ],
-        [ "Macros", "globals_defs.html", null ]
+        [ "Macros", "globals_defs.html", "globals_defs" ]
       ] ]
     ] ]
   ] ]
@@ -51,19 +50,21 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"group___t_d_a1997_x.html#ga7f908acfbadd096923406113f5d1b9b2",
-"group___t_d_a1997_x.html#gga1afcc51fb93597278946b759e1ffa11ea9b19112572b0a8a7c4767ca1f6871cc6",
-"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6a33e0a080b9a71da9f07cb92cdca01696",
-"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6a72bb9110b09fd8d29be3a54e7556257f",
-"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6ab5380a3e2f10a21f7d3595b7b2e7b0b8",
-"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6af716fe845060e7fce62ce50a7c033d26",
-"group___t_d_a998_x.html#gga5ec9cd530784f5fd881b21ddc7b518dea835fb7d66e5f0471d9ea19c4ccbcc7a9",
-"group___t_d_a998_x___functions___video___input.html#gaa766ddb01f727618cbd639ee84d2c563",
-"group___t_d_a998_x___h_d_m_i___core___registers.html#gac17449ceba175f02b6c3e8775815e87d",
-"group___t_d_a998_x___h_d_m_i___core___registers.html#ggaa0faa9e24cdd92d195448fc79f841477a1d4aa360698d42e9e1bffbb5d7ac6e00",
-"group___t_d_a998_x___h_d_m_i___core___registers.html#ggaaf323551c5a1755fd38c7693c6d1f811a26e36f52c80ac3a0b71e0f6bc74fc5f1",
-"structtda1997x__info__spd.html#a5723e60ffd628510c699eddbce90be23",
-"tlv320aic3104_8h.html#a7699cd3beec5ffb7a5af79c458a80627ad8e6a9605427f10352f4b593d8f1e087"
+"group___t_d_a1997_x.html#ga5b0564a885442dae2a23512adef2d316",
+"group___t_d_a1997_x.html#gga05430e67d4ad4dc578863c9d0c4fdd3fab8be33a6c7329dfb2d97b20a54ac29cb",
+"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6a2a82a1a21c868cfb85552dd05bbd9a55",
+"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6a6886ca27240cd3c9ac657ad3c297ad20",
+"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6aa9bf3eec2882eeed47fd13aa3caf6c5b",
+"group___t_d_a1997_x.html#gga7be5ed28bb1d63e0ff4a6dca4336dad6aed03e869f9b1d8514bbda5856b06968b",
+"group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a2c0d5073add8107be9a49db5829c2e1c",
+"group___t_d_a998_x___c_e_c___core.html#gae097202b4129d956caf3b65725db3b9d",
+"group___t_d_a998_x___h_d_m_i___core___registers.html#ga4bce836f40b578bd8eaaacc3cac9f24d",
+"group___t_d_a998_x___h_d_m_i___core___registers.html#gga1ddd79ec11255de5361e9065c449ef7eadcd4deca12421f8be088263f27db69ee",
+"group___t_d_a998_x___h_d_m_i___core___registers.html#ggaa0faa9e24cdd92d195448fc79f841477a9b05ea45ce921ef24cea32fe2d9169dc",
+"group___t_d_a998_x___video_out.html#ga69142df920f8f09049f18cfcac462686",
+"structvtc__polarity.html#a1196e170e242f04e8ee8ab20dff42d6a",
+"tlv320aic3104_8h.html#ac1bca709dee2af7febf0154035228441a4e1090e597eb1bb437862eb7784beb4c",
+"vtc_8c.html#aae3b36a44f3c23a2c6e50e5b3c30dea7"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reg_5fmask_5fval',['reg_mask_val',['../structreg__mask__val.html',1,'']]]
+  ['mtx_5foffset',['mtx_offset',['../structmtx__offset.html',1,'']]]
 ];

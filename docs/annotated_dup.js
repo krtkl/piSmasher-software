@@ -1,10 +1,12 @@
 var annotated_dup =
 [
     [ "_AxiVdma", "struct___axi_vdma.html", "struct___axi_vdma" ],
-    [ "_vidtpg_t", "struct__vidtpg__t.html", "struct__vidtpg__t" ],
     [ "aic3x_asd_if_cfg", "structaic3x__asd__if__cfg.html", "structaic3x__asd__if__cfg" ],
     [ "aic3x_cfg", "structaic3x__cfg.html", "structaic3x__cfg" ],
     [ "aic3x_dev", "structaic3x__dev.html", "structaic3x__dev" ],
+    [ "aic3x_gain", "structaic3x__gain.html", "structaic3x__gain" ],
+    [ "clk_cfg", "structclk__cfg.html", "structclk__cfg" ],
+    [ "clk_wiz_dev", "structclk__wiz__dev.html", "structclk__wiz__dev" ],
     [ "i2c_addr_fd", "structi2c__addr__fd.html", "structi2c__addr__fd" ],
     [ "i2c_msg", "structi2c__msg.html", "structi2c__msg" ],
     [ "i2c_rdwr_ioctl_data", "structi2c__rdwr__ioctl__data.html", "structi2c__rdwr__ioctl__data" ],
@@ -31,6 +33,7 @@ var annotated_dup =
     [ "tda998x_audin_cfg", "structtda998x__audin__cfg.html", "structtda998x__audin__cfg" ],
     [ "tda998x_cfg", "structtda998x__cfg.html", "structtda998x__cfg" ],
     [ "tda998x_dev", "structtda998x__dev.html", "structtda998x__dev" ],
+    [ "tda998x_edid", "structtda998x__edid.html", "structtda998x__edid" ],
     [ "tda998x_mpeg_pkt", "structtda998x__mpeg__pkt.html", "structtda998x__mpeg__pkt" ],
     [ "tda998x_mtx_coeff", "structtda998x__mtx__coeff.html", "structtda998x__mtx__coeff" ],
     [ "tda998x_pkt", "structtda998x__pkt.html", "structtda998x__pkt" ],
@@ -39,5 +42,11 @@ var annotated_dup =
     [ "tda998x_vidin_cfg", "structtda998x__vidin__cfg.html", "structtda998x__vidin__cfg" ],
     [ "tda998x_vidout_cfg", "structtda998x__vidout__cfg.html", "structtda998x__vidout__cfg" ],
     [ "vidfmt_desc", "structvidfmt__desc.html", "structvidfmt__desc" ],
-    [ "vidfmt_map", "structvidfmt__map.html", "structvidfmt__map" ]
+    [ "vidfmt_map", "structvidfmt__map.html", "structvidfmt__map" ],
+    [ "vidtpg", "structvidtpg.html", "structvidtpg" ],
+    [ "vtc_dev", "structvtc__dev.html", "structvtc__dev" ],
+    [ "vtc_hoffset", "structvtc__hoffset.html", "structvtc__hoffset" ],
+    [ "vtc_polarity", "structvtc__polarity.html", "structvtc__polarity" ],
+    [ "vtc_signal", "structvtc__signal.html", "structvtc__signal" ],
+    [ "vtc_timing", "structvtc__timing.html", "structvtc__timing" ]
 ];

@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['hbr',['hbr',['../structtda998x__aud__packet.html#ab375c286a941a37406ad701d4a82294f',1,'tda998x_aud_packet']]],
-  ['header',['header',['../structtda998x__pkt.html#a9209483c92f24394cf9a0a4cf412e7a7',1,'tda998x_pkt']]]
+  ['i2s_5fformat',['i2s_format',['../structtda998x__audin__cfg.html#a3e699eaa06d8ee9aa2a3e5af58693df3',1,'tda998x_audin_cfg']]],
+  ['i2s_5fwlen',['i2s_wlen',['../structtda998x__audin__cfg.html#a1dc0737c1ae989845131575481b5fac2',1,'tda998x_audin_cfg']]],
+  ['interlaced',['interlaced',['../structvtc__signal.html#a80da32d44c756401aaae94f084d8c637',1,'vtc_signal::interlaced()'],['../structvtc__timing.html#a80da32d44c756401aaae94f084d8c637',1,'vtc_timing::interlaced()']]]
 ];

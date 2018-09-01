@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>piSmasher Configuration Libraries: projects/audio-config/tlv320aic3104.h File Reference</title>
+<title>piSmasher Configuration Libraries: projects/lib/tlv320aic3104.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -115,6 +115,8 @@ $(document).ready(function(){initNavTree('tlv320aic3104_8h.html','');});
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaic3x__asd__if__cfg.html">aic3x_asd_if_cfg</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaic3x__gain.html">aic3x_gain</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaic3x__cfg.html">aic3x_cfg</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaic3x__dev.html">aic3x_dev</a></td></tr>
@@ -188,16 +190,16 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_DEFAULT_GAIN</b>&#160;&#160;&#160;(0x20U)</td></tr>
 <tr class="separator:ad25c787fd58280145771cca32aa39cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace33d3a4404550f5264be98bda341287"><td class="memItemLeft" align="right" valign="top"><a id="ace33d3a4404550f5264be98bda341287"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_ROUTE_ON</b>&#160;&#160;&#160;(0x80U)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_ROUTE_ON</b>&#160;&#160;&#160;(1 &lt;&lt; 7)</td></tr>
 <tr class="separator:ace33d3a4404550f5264be98bda341287"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfe8400e77d18a9864d3d19d152fa5cb"><td class="memItemLeft" align="right" valign="top"><a id="acfe8400e77d18a9864d3d19d152fa5cb"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_UNMUTE</b>&#160;&#160;&#160;(0x08U)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_UNMUTE</b>&#160;&#160;&#160;(1 &lt;&lt; 3)</td></tr>
 <tr class="separator:acfe8400e77d18a9864d3d19d152fa5cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d64f5778c243285ba7bfe2aec5d7587"><td class="memItemLeft" align="right" valign="top"><a id="a1d64f5778c243285ba7bfe2aec5d7587"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_MUTE_ON</b>&#160;&#160;&#160;(0x80U)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_MUTE_ON</b>&#160;&#160;&#160;(1 &lt;&lt; 7)</td></tr>
 <tr class="separator:a1d64f5778c243285ba7bfe2aec5d7587"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa8ad0fd4bbcc5e2cf5e393f54fbc00d2"><td class="memItemLeft" align="right" valign="top"><a id="aa8ad0fd4bbcc5e2cf5e393f54fbc00d2"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_POWER_ON</b>&#160;&#160;&#160;(0x01U)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>AIC3X_POWER_ON</b>&#160;&#160;&#160;(1 &lt;&lt; 0)</td></tr>
 <tr class="separator:aa8ad0fd4bbcc5e2cf5e393f54fbc00d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd0a046bfc34aa3490b580ff71276ab8"><td class="memItemLeft" align="right" valign="top"><a id="abd0a046bfc34aa3490b580ff71276ab8"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>MIC2LINE2_RADC_CTRL_MASK</b>&#160;&#160;&#160;(0x0FU)</td></tr>
@@ -294,142 +296,6 @@ Enumerations</h2></td></tr>
 <b>CLKGEN_SOURCE_BCLK</b> = 0x02
  }</td></tr>
 <tr class="separator:af79d7421229d9540f9fee9d6b1338eed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3991224c1a160341884a3953928621f1"><td class="memItemLeft" align="right" valign="top"><a id="a3991224c1a160341884a3953928621f1"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_page</b> { <b>AIC3X_P0</b> = 0x00, 
-<b>AIC3X_P1</b> = 0x01, 
-<b>AIC3X_PNONE</b> = 0xFF
- }</td></tr>
-<tr class="separator:a3991224c1a160341884a3953928621f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7699cd3beec5ffb7a5af79c458a80627"><td class="memItemLeft" align="right" valign="top"><a id="a7699cd3beec5ffb7a5af79c458a80627"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_reg</b> { <br />
-&#160;&#160;<b>AIC3X_P0_PAGE_SELECT</b> = PAGE_REG_ADDR(AIC3X_P0, 0), 
-<b>AIC3X_P0_RESET</b> = PAGE_REG_ADDR(AIC3X_P0, 1), 
-<b>AIC3X_P0_SAMPLE_RATE_SEL</b> = PAGE_REG_ADDR(AIC3X_P0, 2), 
-<b>AIC3X_P0_PLL_PROGA</b> = PAGE_REG_ADDR(AIC3X_P0, 3), 
-<br />
-&#160;&#160;<b>AIC3X_P0_PLL_PROGB</b> = PAGE_REG_ADDR(AIC3X_P0, 4), 
-<b>AIC3X_P0_PLL_PROGC</b> = PAGE_REG_ADDR(AIC3X_P0, 5), 
-<b>AIC3X_P0_PLL_PROGD</b> = PAGE_REG_ADDR(AIC3X_P0, 6), 
-<b>AIC3X_P0_CODEC_DATAPATH</b> = PAGE_REG_ADDR(AIC3X_P0, 7), 
-<br />
-&#160;&#160;<b>AIC3X_P0_ASD_INTF_CTRLA</b> = PAGE_REG_ADDR(AIC3X_P0, 8), 
-<b>AIC3X_P0_ASD_INTF_CTRLB</b> = PAGE_REG_ADDR(AIC3X_P0, 9), 
-<b>AIC3X_P0_ASD_INTF_CTRLC</b> = PAGE_REG_ADDR(AIC3X_P0, 10), 
-<b>AIC3X_OVRF_STATUS_AND_PLLR</b> = PAGE_REG_ADDR(AIC3X_P0, 11), 
-<br />
-&#160;&#160;<b>AIC3X_CODEC_DFILT_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 12), 
-<b>AIC3X_HEADSET_DETECT_CTRL_A</b> = PAGE_REG_ADDR(AIC3X_P0, 13), 
-<b>AIC3X_HEADSET_DETECT_CTRL_B</b> = PAGE_REG_ADDR(AIC3X_P0, 14), 
-<b>AIC3X_P0_LADC_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 15), 
-<br />
-&#160;&#160;<b>AIC3X_P0_RADC_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 16), 
-<b>AIC3X_P0_MIC2LR_2_LADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 17), 
-<b>AIC3X_P0_MIC2LR_2_RADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 18), 
-<b>AIC3X_P0_LINE1L_2_LADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 19), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LINE1R_2_LADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 21), 
-<b>AIC3X_P0_LINE1R_2_RADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 22), 
-<b>AIC3X_P0_LINE1L_2_RADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 24), 
-<b>AIC3X_P0_LINE2L_2_LADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 20), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LINE2R_2_RADC_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 23), 
-<b>AIC3X_P0_MICBIAS_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 25), 
-<b>AIC3X_P0_LAGC_CTRL_A</b> = PAGE_REG_ADDR(AIC3X_P0, 26), 
-<b>AIC3X_P0_LAGC_CTRL_B</b> = PAGE_REG_ADDR(AIC3X_P0, 27), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LAGC_CTRL_C</b> = PAGE_REG_ADDR(AIC3X_P0, 28), 
-<b>AIC3X_P0_RAGC_CTRL_A</b> = PAGE_REG_ADDR(AIC3X_P0, 29), 
-<b>AIC3X_P0_RAGC_CTRL_B</b> = PAGE_REG_ADDR(AIC3X_P0, 30), 
-<b>AIC3X_P0_RAGC_CTRL_C</b> = PAGE_REG_ADDR(AIC3X_P0, 31), 
-<br />
-&#160;&#160;<b>AIC3X_P0_DAC_PWR</b> = PAGE_REG_ADDR(AIC3X_P0, 37), 
-<b>AIC3X_P0_HPLCOM_CFG</b> = PAGE_REG_ADDR(AIC3X_P0, 37), 
-<b>AIC3X_P0_HPRCOM_CFG</b> = PAGE_REG_ADDR(AIC3X_P0, 38), 
-<b>AIC3X_P0_HPOUT_SC</b> = PAGE_REG_ADDR(AIC3X_P0, 40), 
-<br />
-&#160;&#160;<b>AIC3X_P0_DAC_LINE_MUX</b> = PAGE_REG_ADDR(AIC3X_P0, 41), 
-<b>AIC3X_P0_HPOUT_POP_REDUCTION</b> = PAGE_REG_ADDR(AIC3X_P0, 42), 
-<b>AIC3X_P0_LDAC_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 43), 
-<b>AIC3X_P0_RDAC_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 44), 
-<br />
-&#160;&#160;<b>AIC3X_P0_PGAL_2_HPLOUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 46), 
-<b>AIC3X_P0_DACL1_2_HPLOUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 47), 
-<b>AIC3X_P0_LINE2R_2_HPLOUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 48), 
-<b>AIC3X_P0_PGAR_2_HPLOUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 49), 
-<br />
-&#160;&#160;<b>AIC3X_P0_DACR1_2_HPLOUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 50), 
-<b>AIC3X_P0_HPLOUT_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 51), 
-<b>AIC3X_P0_LINE2L_2_HPLCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 52), 
-<b>AIC3X_P0_PGAL_2_HPLCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 53), 
-<br />
-&#160;&#160;<b>AIC3X_P0_DACL1_2_HPLCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 54), 
-<b>AIC3X_P0_LINE2R_2_HPLCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 55), 
-<b>AIC3X_P0_PGAR_2_HPLCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 56), 
-<b>AIC3X_P0_DACR1_2_HPLCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 57), 
-<br />
-&#160;&#160;<b>AIC3X_P0_HPLCOM_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 58), 
-<b>AIC3X_P0_LINE2L_2_HPROUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 59), 
-<b>AIC3X_P0_PGAL_2_HPROUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 60), 
-<b>AIC3X_P0_DACL1_2_HPROUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 61), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LINE2R_2_HPROUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 62), 
-<b>AIC3X_P0_PGAR_2_HPROUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 63), 
-<b>AIC3X_P0_DACR1_2_HPROUT_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 64), 
-<b>AIC3X_P0_HPROUT_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 65), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LINE2L_2_HPRCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 66), 
-<b>AIC3X_P0_PGAL_2_HPRCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 67), 
-<b>AIC3X_P0_DACL1_2_HPRCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 68), 
-<b>AIC3X_P0_LINE2R_2_HPRCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 69), 
-<br />
-&#160;&#160;<b>AIC3X_P0_PGAR_2_HPRCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 70), 
-<b>AIC3X_P0_DACR1_2_HPRCOM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 71), 
-<b>AIC3X_P0_HPRCOM_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 72), 
-<b>AIC3X_P0_LINE2L_2_MONOLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 73), 
-<br />
-&#160;&#160;<b>AIC3X_P0_PGAL_2_MONOLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 74), 
-<b>AIC3X_P0_DACL1_2_MONOLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 75), 
-<b>AIC3X_P0_LINE2R_2_MONOLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 76), 
-<b>AIC3X_P0_PGAR_2_MONOLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 77), 
-<br />
-&#160;&#160;<b>AIC3X_P0_DACR1_2_MONOLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 78), 
-<b>AIC3X_P0_MONOLOPM_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 79), 
-<b>AIC3X_P0_LINE2L_2_LLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 80), 
-<b>AIC3X_P0_PGAL_2_LLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 81), 
-<br />
-&#160;&#160;<b>AIC3X_P0_DACL1_2_LLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 82), 
-<b>AIC3X_P0_LINE2R_2_LLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 83), 
-<b>AIC3X_P0_PGAR_2_LLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 84), 
-<b>AIC3X_P0_DACR1_2_LLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 85), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LLOPM_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 86), 
-<b>AIC3X_P0_LINE2L_2_RLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 87), 
-<b>AIC3X_P0_PGAL_2_RLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 88), 
-<b>AIC3X_P0_DACL1_2_RLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 89), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LINE2R_2_RLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 90), 
-<b>AIC3X_P0_PGAR_2_RLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 91), 
-<b>AIC3X_P0_DACR1_2_RLOPM_VOL</b> = PAGE_REG_ADDR(AIC3X_P0, 92), 
-<b>AIC3X_P0_RLOPM_CTRL</b> = PAGE_REG_ADDR(AIC3X_P0, 93), 
-<br />
-&#160;&#160;<b>AIC3X_P0_STICKY_IRQ_FLAGS_REG</b> = PAGE_REG_ADDR(AIC3X_P0, 96), 
-<b>AIC3X_P0_RT_IRQ_FLAGS_REG</b> = PAGE_REG_ADDR(AIC3X_P0, 97), 
-<b>AIC3X_P0_GPIO1_REG</b> = PAGE_REG_ADDR(AIC3X_P0, 98), 
-<b>AIC3X_P0_GPIO2_REG</b> = PAGE_REG_ADDR(AIC3X_P0, 99), 
-<br />
-&#160;&#160;<b>AIC3X_P0_GPIOA_REG</b> = PAGE_REG_ADDR(AIC3X_P0, 100), 
-<b>AIC3X_P0_GPIOB_REG</b> = PAGE_REG_ADDR(AIC3X_P0, 101), 
-<b>AIC3X_P0_CLKGEN_CTRL_REG</b> = PAGE_REG_ADDR(AIC3X_P0, 102), 
-<b>AIC3X_P0_LAGCN_ATTACK</b> = PAGE_REG_ADDR(AIC3X_P0, 103), 
-<br />
-&#160;&#160;<b>AIC3X_P0_LAGCN_DECAY</b> = PAGE_REG_ADDR(AIC3X_P0, 104), 
-<b>AIC3X_P0_RAGCN_ATTACK</b> = PAGE_REG_ADDR(AIC3X_P0, 105), 
-<b>AIC3X_P0_RAGCN_DECAY</b> = PAGE_REG_ADDR(AIC3X_P0, 106), 
-<b>AIC3X_P0_NEW_ADC_DIGITALPATH</b> = PAGE_REG_ADDR(AIC3X_P0, 107), 
-<br />
-&#160;&#160;<b>AIC3X_P0_PASSIVE_BYPASS</b> = PAGE_REG_ADDR(AIC3X_P0, 108), 
-<b>AIC3X_P0_DAC_ICC_ADJ</b> = PAGE_REG_ADDR(AIC3X_P0, 109)
-<br />
- }</td></tr>
-<tr class="separator:a7699cd3beec5ffb7a5af79c458a80627"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb8ee637803eedbeee68891b6b747ae9"><td class="memItemLeft" align="right" valign="top"><a id="acb8ee637803eedbeee68891b6b747ae9"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_outroute</b> { <b>AIC3X_LINE_OUT_STEREO</b>, 
 <b>AIC3X_HP_OUT_STEREO</b>
  }</td></tr>
@@ -460,9 +326,6 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_set_sample_rate<
 <tr class="memitem:a53600191d6bfaf4fbc42926c27ab6092"><td class="memItemLeft" align="right" valign="top"><a id="a53600191d6bfaf4fbc42926c27ab6092"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_enable_dac_pwr</b> (struct <a class="el" href="structaic3x__dev.html">aic3x_dev</a> *codec, enum aic3x_dac_pwr_dac dac, unsigned char en)</td></tr>
 <tr class="separator:a53600191d6bfaf4fbc42926c27ab6092"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab44002cc5494c43e6affd6a9c9c6955e"><td class="memItemLeft" align="right" valign="top"><a id="ab44002cc5494c43e6affd6a9c9c6955e"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_configure_clock_source</b> (struct <a class="el" href="structaic3x__dev.html">aic3x_dev</a> *codec, enum aic3x_clkgen_ctrl clk_in, enum aic3x_clkgen_ctrl_source source)</td></tr>
-<tr class="separator:ab44002cc5494c43e6affd6a9c9c6955e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>TLV320AIC3104 Audio Codec  FreeBSD. </p>
@@ -514,10 +377,10 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_configure_clock_
 <tr><td class="fieldname"><a id="ac94e8932befd2f29bd86f93c12b2ec6aa538b62f86b53a75938f1de9dddbf4d4e"></a>DATAPATH_MONO_MIX&#160;</td><td class="fielddoc"><p>ADC plays mono mix of both channels </p>
 </td></tr>
 </table>
-<div class="fragment"><div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;                         {</div><div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aade4afeef702cee23627686b9207c4b05">DATAPATH_MUTED</a> = 0x00,          </div><div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa71d64734f45d0d4be82f9225fadd5fb1">DATAPATH_STRAIGHT</a> = 0x01,       </div><div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa47515d0c917cc0bfbed7dc68ac85c194">DATAPATH_SWAPPED</a> = 0x02,        </div><div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa538b62f86b53a75938f1de9dddbf4d4e">DATAPATH_MONO_MIX</a> = 0x03,       </div><div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;};</div><div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aa71d64734f45d0d4be82f9225fadd5fb1"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa71d64734f45d0d4be82f9225fadd5fb1">DATAPATH_STRAIGHT</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:82</div></div>
-<div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aa47515d0c917cc0bfbed7dc68ac85c194"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa47515d0c917cc0bfbed7dc68ac85c194">DATAPATH_SWAPPED</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:83</div></div>
-<div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aade4afeef702cee23627686b9207c4b05"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aade4afeef702cee23627686b9207c4b05">DATAPATH_MUTED</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:81</div></div>
-<div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aa538b62f86b53a75938f1de9dddbf4d4e"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa538b62f86b53a75938f1de9dddbf4d4e">DATAPATH_MONO_MIX</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:84</div></div>
+<div class="fragment"><div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;                         {</div><div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aade4afeef702cee23627686b9207c4b05">DATAPATH_MUTED</a> = 0x00,          </div><div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa71d64734f45d0d4be82f9225fadd5fb1">DATAPATH_STRAIGHT</a> = 0x01,       </div><div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa47515d0c917cc0bfbed7dc68ac85c194">DATAPATH_SWAPPED</a> = 0x02,        </div><div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa538b62f86b53a75938f1de9dddbf4d4e">DATAPATH_MONO_MIX</a> = 0x03,       </div><div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;};</div><div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aa71d64734f45d0d4be82f9225fadd5fb1"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa71d64734f45d0d4be82f9225fadd5fb1">DATAPATH_STRAIGHT</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:81</div></div>
+<div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aa47515d0c917cc0bfbed7dc68ac85c194"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa47515d0c917cc0bfbed7dc68ac85c194">DATAPATH_SWAPPED</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:82</div></div>
+<div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aade4afeef702cee23627686b9207c4b05"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aade4afeef702cee23627686b9207c4b05">DATAPATH_MUTED</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:80</div></div>
+<div class="ttc" id="tlv320aic3104_8h_html_ac94e8932befd2f29bd86f93c12b2ec6aa538b62f86b53a75938f1de9dddbf4d4e"><div class="ttname"><a href="tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6aa538b62f86b53a75938f1de9dddbf4d4e">DATAPATH_MONO_MIX</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:83</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -538,8 +401,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_configure_clock_
 <tr><td class="fieldname"><a id="a80c6ac1f60e85c41c8087f38a633973ba3bb9d578566cc3b1e155b71476a2239e"></a>MIC2LINE2_LEFT_RADC&#160;</td><td class="fielddoc"><p>Offset of MIC2L/LINE2L to RADC bits </p>
 </td></tr>
 </table>
-<div class="fragment"><div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;                               {</div><div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba86b9b02bf02fef57c308759359de5720">MIC2LINE2_RIGHT_RADC</a> = 0x00,            </div><div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba3bb9d578566cc3b1e155b71476a2239e">MIC2LINE2_LEFT_RADC</a> = 0x04          </div><div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;};</div><div class="ttc" id="tlv320aic3104_8h_html_a80c6ac1f60e85c41c8087f38a633973ba3bb9d578566cc3b1e155b71476a2239e"><div class="ttname"><a href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba3bb9d578566cc3b1e155b71476a2239e">MIC2LINE2_LEFT_RADC</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:153</div></div>
-<div class="ttc" id="tlv320aic3104_8h_html_a80c6ac1f60e85c41c8087f38a633973ba86b9b02bf02fef57c308759359de5720"><div class="ttname"><a href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba86b9b02bf02fef57c308759359de5720">MIC2LINE2_RIGHT_RADC</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:152</div></div>
+<div class="fragment"><div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;                               {</div><div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba86b9b02bf02fef57c308759359de5720">MIC2LINE2_RIGHT_RADC</a> = 0x00,            </div><div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;    <a class="code" href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba3bb9d578566cc3b1e155b71476a2239e">MIC2LINE2_LEFT_RADC</a> = 0x04          </div><div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;};</div><div class="ttc" id="tlv320aic3104_8h_html_a80c6ac1f60e85c41c8087f38a633973ba3bb9d578566cc3b1e155b71476a2239e"><div class="ttname"><a href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba3bb9d578566cc3b1e155b71476a2239e">MIC2LINE2_LEFT_RADC</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:151</div></div>
+<div class="ttc" id="tlv320aic3104_8h_html_a80c6ac1f60e85c41c8087f38a633973ba86b9b02bf02fef57c308759359de5720"><div class="ttname"><a href="tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973ba86b9b02bf02fef57c308759359de5720">MIC2LINE2_RIGHT_RADC</a></div><div class="ttdef"><b>Definition:</b> tlv320aic3104.h:150</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -548,8 +411,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>aic3x_configure_clock_
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_c33ad2e89e14149e669ef61ceeb81ad0.html">audio-config</a></li><li class="navelem"><a class="el" href="tlv320aic3104_8h.html">tlv320aic3104.h</a></li>
-    <li class="footer">Generated on Wed Aug 1 2018 13:53:15 for piSmasher Configuration Libraries by
+    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_d2c8bb7959487ae6c146ed352a9d0a73.html">lib</a></li><li class="navelem"><a class="el" href="tlv320aic3104_8h.html">tlv320aic3104.h</a></li>
+    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

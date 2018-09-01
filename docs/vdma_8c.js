@@ -43,5 +43,6 @@ var vdma_8c =
     [ "REG_READ", "vdma_8c.html#a68a4d723b0af169ad73d21c26e0d68db", null ],
     [ "REG_WRITE", "vdma_8c.html#aa0b4b3bf845c58c8ce83c833a174e32b", null ],
     [ "vdma_config", "vdma_8c.html#a7792b6a3bd02a86cf4e50b492ac72700", null ],
-    [ "vdma_init", "vdma_8c.html#ab3407f7e07a287b2109009f543902e97", null ]
+    [ "vdma_get_status", "vdma_8c.html#abdfa0ebe29df519ee5143f31c5fe7255", null ],
+    [ "vdma_init", "vdma_8c.html#abe0e703c4ff7461422f578677bc5d275", null ]
 ];

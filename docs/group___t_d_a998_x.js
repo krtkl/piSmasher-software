@@ -3,6 +3,7 @@ var group___t_d_a998_x =
     [ "Matrix Control", "group___t_d_a9998_x___matrix___control.html", "group___t_d_a9998_x___matrix___control" ],
     [ "TDA998X_Audio", "group___t_d_a998_x___audio.html", "group___t_d_a998_x___audio" ],
     [ "TDA998X_CEC_Core", "group___t_d_a998_x___c_e_c___core.html", "group___t_d_a998_x___c_e_c___core" ],
+    [ "TDA998X_EDID", "group___t_d_a998_x___e_d_i_d.html", "group___t_d_a998_x___e_d_i_d" ],
     [ "TDA998X_HDMI_Core", "group___t_d_a998_x___h_d_m_i___core.html", "group___t_d_a998_x___h_d_m_i___core" ],
     [ "TDA998X_Video_In", "group___t_d_a998_x___video___in.html", "group___t_d_a998_x___video___in" ],
     [ "TDA998X_Video_Out", "group___t_d_a998_x___video___out.html", "group___t_d_a998_x___video___out" ],
@@ -29,15 +30,33 @@ var group___t_d_a998_x =
       [ "id", "structtda998x__cfg.html#a1e6927fa1486224044e568f9c370519b", null ]
     ] ],
     [ "tda998x_dev", "structtda998x__dev.html", [
+      [ "callback", "structtda998x__dev.html#a1c84fc0479f5e52d50fde703859024fa", null ],
       [ "cfg", "structtda998x__dev.html#af641f39ec7f78cea5769cd79646b4cda", null ],
-      [ "edid_sink", "structtda998x__dev.html#ae88a9ddd06c89c5a2c9dce0edaf9f3b6", null ],
-      [ "edid_state", "structtda998x__dev.html#a029a4ec12513fef0cc150077344534ef", null ],
+      [ "edid", "structtda998x__dev.html#aff88cda2f1eaed6aab7d32e7c771d6b7", null ],
       [ "features", "structtda998x__dev.html#aa6b1dd1bb9c0c2e9967e4a7f61644db1", null ],
+      [ "hotplug_status", "structtda998x__dev.html#a599ffdfa2ea4f5ac4505009b278718ae", null ],
       [ "id", "structtda998x__dev.html#a7441ef0865bcb3db9b8064dd7375c1ea", null ],
+      [ "int_level", "structtda998x__dev.html#aaa3628c8e26483bd4f7529bbad843d62", null ],
       [ "sink", "structtda998x__dev.html#a478be168f2c5c0a1360a802632774c30", null ],
+      [ "state", "structtda998x__dev.html#a02abe402d92d7f91f892bc7c9972fbd4", null ],
       [ "version", "structtda998x__dev.html#ab6d7b6f8c2ceaba7acda80aaf05f4899", null ],
       [ "vin_cfg", "structtda998x__dev.html#a98d21dc0a42bc2b81715fcb9b84a53d5", null ],
       [ "vout_cfg", "structtda998x__dev.html#abb38c3770babb365962e4bb7b37a48e5", null ]
+    ] ],
+    [ "tda998x_callback", "group___t_d_a998_x.html#ga0dcc7b282bb1eb95d8eff57cb3f24467", [
+      [ "CALLBACK_ENCRYPT", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467a62cddf3190000eccddeb9f1ea2b4e2aa", null ],
+      [ "CALLBACK_HPD", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467a1b4a57875f1972e419e4d7e632dd68d7", null ],
+      [ "CALLBACK_T0", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467ab5d4587aed6ed889d456155fb422dc08", null ],
+      [ "CALLBACK_BCAPS", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467a9936137e22ff18f2f7edb2d96ebd2db7", null ],
+      [ "CALLBACK_BSTATUS", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467a7aa83ea25398d5081d810b32c4634d0d", null ],
+      [ "CALLBACK_SHA_1", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467aa639d60c42cd66cfa5a20e0fafd90cd6", null ],
+      [ "CALLBACK_PJ", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467a408fcabcf67b1f9b60ec05961e1a716a", null ],
+      [ "CALLBACK_R0", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467aeac1c10009652d07c5479e5bbf89497a", null ],
+      [ "CALLBACK_SW_INT", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467affebbef810579069be6f9ad81920415b", null ],
+      [ "CALLBACK_RX_SENSE", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467ab545d9ff462ff87b951be4ca0750bbb2", null ],
+      [ "CALLBACK_EDID_BLK_READ", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467ab5cdad4bf9f218142161bb53aed02fe1", null ],
+      [ "CALLBACK_PLL_LOCK", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467a5ace7945c3da14ef3f6f2245271d8d16", null ],
+      [ "CALLBACK_VS_RPT", "group___t_d_a998_x.html#gga0dcc7b282bb1eb95d8eff57cb3f24467ae7bd0544fd0352f8ad1e3db17470abb8", null ]
     ] ],
     [ "tda998x_color_depth", "group___t_d_a998_x.html#gaf67cf9012f0ed04171cc374e2dc804a3", [
       [ "COLORDEPTH_24", "group___t_d_a998_x.html#ggaf67cf9012f0ed04171cc374e2dc804a3ad682da0987de96eab10692cadba5e216", null ],
@@ -71,6 +90,12 @@ var group___t_d_a998_x =
       [ "SINK_DVI", "group___t_d_a998_x.html#ggad08fa447c674bbe3aeb29cbdaca69acaa3c8ea074f10f188f39bff0bf157fa3b6", null ],
       [ "SINK_HDMI", "group___t_d_a998_x.html#ggad08fa447c674bbe3aeb29cbdaca69acaa789dd80264a30ba9c638b03dd776e7ef", null ],
       [ "SINK_EDID", "group___t_d_a998_x.html#ggad08fa447c674bbe3aeb29cbdaca69acaa45d415f6bba580febdca6c55a1998b6f", null ]
+    ] ],
+    [ "tda998x_state", "group___t_d_a998_x.html#ga1fa07e4e46b8e54bf62464a173acf7d0", [
+      [ "TDA998X_STATE_ON", "group___t_d_a998_x.html#gga1fa07e4e46b8e54bf62464a173acf7d0ae86ba38610202cc6126052c602439878", null ],
+      [ "TDA998X_STATE_STANDBY", "group___t_d_a998_x.html#gga1fa07e4e46b8e54bf62464a173acf7d0a2d58b319f7e2381811c22cb18bc28e56", null ],
+      [ "TDA998X_STATE_SUSPEND", "group___t_d_a998_x.html#gga1fa07e4e46b8e54bf62464a173acf7d0aae29f027ad4387cbf70dd15226a6070d", null ],
+      [ "TDA998X_STATE_OFF", "group___t_d_a998_x.html#gga1fa07e4e46b8e54bf62464a173acf7d0a0d1b391b5b8d33fe0bdd10dea4f663c3", null ]
     ] ],
     [ "tda998x_sync_src", "group___t_d_a998_x.html#ga5ec9cd530784f5fd881b21ddc7b518de", [
       [ "SYNCSRC_EMBEDDED", "group___t_d_a998_x.html#gga5ec9cd530784f5fd881b21ddc7b518dea835fb7d66e5f0471d9ea19c4ccbcc7a9", null ],
@@ -119,7 +144,17 @@ var group___t_d_a998_x =
       [ "VFMT_38_2880x576p_50Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a9a0865f8a706000753efa547581ebf6e", null ],
       [ "VFMT_60_1280x720p_24Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a8bd2c8154766a6f635a08aa0b921aeda", null ],
       [ "VFMT_61_1280x720p_25Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a4d52c31a7aa7272d9df8655bb0aec2b9", null ],
-      [ "VFMT_62_1280x720p_30Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66afb842a2ba3d8fd7e9208d58d2d8e51a2", null ]
+      [ "VFMT_62_1280x720p_30Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66afb842a2ba3d8fd7e9208d58d2d8e51a2", null ],
+      [ "VFMT_PC_640x480p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a1a38927625de5d0697ae5e040d9ccbca", null ],
+      [ "VFMT_PC_800x600p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66abc95956c3a9bda181c0b5911ad1d75bf", null ],
+      [ "VFMT_PC_1152x960p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66ac04273cbbe10b23f266d019127558b06", null ],
+      [ "VFMT_PC_1024x768p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a57bcee7b1e0a1f55925e9835066b4673", null ],
+      [ "VFMT_PC_1280x768p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a15523b828892c0510fcdf97d81e4855f", null ],
+      [ "VFMT_PC_1280x1024p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a494f16304a9b10847e089ebf8a98cffe", null ],
+      [ "VFMT_PC_1366x768p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a2994909977344e46448fa428e723c958", null ],
+      [ "VFMT_PC_1400x1050p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66ac459f21b583cdf465bb46ce1abbb9d58", null ],
+      [ "VFMT_PC_1600x1200p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a62b43783d5613d870bccf93814344dd3", null ],
+      [ "VFMT_PC_1920x1200p_60Hz", "group___t_d_a998_x.html#gga2473e43e8d9011dd526b160da99ecb66a53e9aca2b76e3495da987555fd37633a", null ]
     ] ],
     [ "tda998x_vidin_mode", "group___t_d_a998_x.html#ga0f8c7fe575665299987dc4f981066709", [
       [ "VINMODE_CCIR656", "group___t_d_a998_x.html#gga0f8c7fe575665299987dc4f981066709a7d1adf09b215bfd624aa9112e621e5ad", null ],
@@ -137,5 +172,6 @@ var group___t_d_a998_x =
       [ "VQR_RGB_FULL", "group___t_d_a998_x.html#gga4837fe23b4135c2bcf88601bd877be11a3ba8afbb4f46178b42bf6844a10398e5", null ],
       [ "VQR_RGB_LIMITED", "group___t_d_a998_x.html#gga4837fe23b4135c2bcf88601bd877be11a19e4365af9631163e4de581c5c2ee309", null ]
     ] ],
+    [ "tda998x_edid_get_block", "group___t_d_a998_x.html#ga9e8d65cf8ac3ac58798963b7e79e47bb", null ],
     [ "tda998x_set_input_output", "group___t_d_a998_x.html#ga853e6b002297d06bd53b18a557e434a2", null ]
 ];

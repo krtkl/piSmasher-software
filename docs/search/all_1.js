@@ -1,5 +1,7 @@
 var searchData=
 [
+  ['act_5fchroma',['act_chroma',['../structvtc__polarity.html#acd812868f7235da4d219b26f4991cc2e',1,'vtc_polarity']]],
+  ['act_5fvideo',['act_video',['../structvtc__polarity.html#ab53312db7a918146f5d4f3890741f91a',1,'vtc_polarity']]],
   ['afmt_5fdst',['AFMT_DST',['../group___t_d_a998_x___audio.html#ggaaa8fcf3ddbe3619646406ca59bbc7ae3aadd7b4c648d42a3e354005d8ba289c35',1,'tda998x.h']]],
   ['afmt_5fhbr',['AFMT_HBR',['../group___t_d_a998_x___audio.html#ggaaa8fcf3ddbe3619646406ca59bbc7ae3adbf4a97001ff2311f64e1ef7d9d974e2',1,'tda998x.h']]],
   ['afmt_5fi2s',['AFMT_I2S',['../group___t_d_a998_x___audio.html#ggaaa8fcf3ddbe3619646406ca59bbc7ae3ad2a3dd7ba0be80a4503d1e75db587766',1,'tda998x.h']]],
@@ -15,8 +17,10 @@ var searchData=
   ['aic3x_5faddr',['AIC3X_ADDR',['../tlv320aic3104_8h.html#a69fab0024bd048c7b8cb664c3a622a5b',1,'tlv320aic3104.h']]],
   ['aic3x_5fasd_5fif_5fcfg',['aic3x_asd_if_cfg',['../structaic3x__asd__if__cfg.html',1,'']]],
   ['aic3x_5fcfg',['aic3x_cfg',['../structaic3x__cfg.html',1,'']]],
+  ['aic3x_5fconfigure_5fpll',['aic3x_configure_pll',['../tlv320aic3104_8c.html#a9c712b8bbc86154cd120ea4fdfbd1e25',1,'tlv320aic3104.c']]],
   ['aic3x_5fdatapath_5fctrl',['aic3x_datapath_ctrl',['../tlv320aic3104_8h.html#ac94e8932befd2f29bd86f93c12b2ec6a',1,'tlv320aic3104.h']]],
   ['aic3x_5fdev',['aic3x_dev',['../structaic3x__dev.html',1,'']]],
+  ['aic3x_5fgain',['aic3x_gain',['../structaic3x__gain.html',1,'']]],
   ['aic3x_5finit',['aic3x_init',['../tlv320aic3104_8c.html#a5eb8b19711c5857ac7c66ae7dbf178c2',1,'aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg):&#160;tlv320aic3104.c'],['../tlv320aic3104_8h.html#a5eb8b19711c5857ac7c66ae7dbf178c2',1,'aic3x_init(struct aic3x_dev *codec, struct aic3x_cfg *cfg):&#160;tlv320aic3104.c']]],
   ['aic3x_5fmic2line2_5fradc_5fctrl',['aic3x_mic2line2_radc_ctrl',['../tlv320aic3104_8h.html#a80c6ac1f60e85c41c8087f38a633973b',1,'tlv320aic3104.h']]],
   ['any',['any',['../uniontda1997x__infoframe.html#a57d3b71e7430e547b979d6a9cb00a1c8',1,'tda1997x_infoframe']]],

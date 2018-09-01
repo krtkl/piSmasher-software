@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('todo.html','');});
 <div class="textblock"><dl class="reflist">
 <dt><a class="anchor" id="_todo000001"></a>Global <a class="el" href="group___t_d_a1997_x.html#ga21f7d1d77372bf984090b6ec30cb422c">tda1997x_cfg_audio_fmt</a>  (struct <a class="el" href="structtda1997x__dev.html" title="TDA1997X device structure. ">tda1997x_dev</a> *dev)</dt>
 <dd>Determine the correct register setting for FIFO_LATENCY_CTRL that will eliminate glitches and interruptions in audio stream  </dd>
-<dt><a class="anchor" id="_todo000002"></a>Global <a class="el" href="group___t_d_a1997_x.html#gab90241aff942c68381d36726299204d1">tda1997x_init</a>  (struct <a class="el" href="structtda1997x__dev.html" title="TDA1997X device structure. ">tda1997x_dev</a> *dev, struct <a class="el" href="structtda1997x__cfg.html" title="TDA1997X driver configuration. ">tda1997x_cfg</a> *cfg)</dt>
+<dt><a class="anchor" id="_todo000002"></a>Global <a class="el" href="group___t_d_a1997_x.html#ga83a6093aeae5ce94bb61accda1c9e218">tda1997x_init</a>  (struct <a class="el" href="structtda1997x__dev.html" title="TDA1997X device structure. ">tda1997x_dev</a> *dev, struct <a class="el" href="structtda1997x__cfg.html" title="TDA1997X driver configuration. ">tda1997x_cfg</a> *cfg, uint8_t *edid_block, uint8_t *edid_ext)</dt>
 <dd><p class="startdd">HDCP configuration and activation </p>
 <p>Configure video output with structure data </p>
 <p class="enddd">Pass audio configuration data to tda1997x_cfg_audio_fmt  </p>
@@ -112,15 +112,19 @@ $(document).ready(function(){initNavTree('todo.html','');});
 </dd>
 <dt><a class="anchor" id="_todo000007"></a>Global <a class="el" href="group___t_d_a998_x___functions___audio.html#gabc8f15481514e30fa1cea510e89ae1b9">tda998x_aud_set_cts</a>  (struct <a class="el" href="structtda998x__dev.html" title="TDA998X device. ">tda998x_dev</a> *dev, enum tda998x_cts_ref cts_ref, enum tda998x_aud_rate afs, enum tda998x_vid_fmt vout_fmt, enum tda998x_vert_freq vout_freq, uint32_t cts, uint16_t ctsX, enum tda998x_ctsk ctsK, enum tda998x_ctsm ctsM, enum tda998x_dst_rate dst_rate)</dt>
 <dd><p class="startdd">Define CTS values </p>
-<p class="enddd">Reset and release the CTS generator </p>
+<p class="enddd">Reset and release the CTS generator  </p>
 </dd>
+<dt><a class="anchor" id="_todo000009"></a>Global <a class="el" href="group___t_d_a998_x___functions___audio.html#ga3779a1bc1504e16c37ee0f7a258e2b2b">tda998x_aud_set_input</a>  (struct <a class="el" href="structtda998x__dev.html" title="TDA998X device. ">tda998x_dev</a> *dev, struct <a class="el" href="structtda998x__audin__cfg.html">tda998x_audin_cfg</a> *audin_cfg)</dt>
+<dd>Rework the audio configuration  </dd>
+<dt><a class="anchor" id="_todo000010"></a>Global <a class="el" href="group___t_d_a998_x___video_out.html#ga853e6b002297d06bd53b18a557e434a2">tda998x_set_input_output</a>  (struct <a class="el" href="structtda998x__dev.html" title="TDA998X device. ">tda998x_dev</a> *dev, struct <a class="el" href="structtda998x__vidin__cfg.html" title="Video Input Configuration. ">tda998x_vidin_cfg</a> *vidin_cfg, struct <a class="el" href="structtda998x__vidout__cfg.html" title="Video Output Configuration. ">tda998x_vidout_cfg</a> *vidout_cfg, struct <a class="el" href="structtda998x__audin__cfg.html">tda998x_audin_cfg</a> *audin_cfg, enum tda998x_sink sink)</dt>
+<dd>BEGIN VIDO INPUT SYNCHRONIZATION </dd>
 </dl>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Aug 1 2018 13:53:16 for piSmasher Configuration Libraries by
+    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

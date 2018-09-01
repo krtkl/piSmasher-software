@@ -1,20 +1,26 @@
-CC = arm-linux-gnueabihf-gcc
-APPLICATION = video-config
-OBJS	+= i2c.o
-OBJS	+= tda998x.o
-OBJS	+= tda1997x.o
+target = video-config
+
+DEPS	+= i2c.o
+DEPS	+= tda998x.o
+DEPS	+= tda1997x.o
+DEPS	+= vtc.o
+DEPS	+= vid_tpg.o
+
 OBJS	+= hdmi_tx.o
 OBJS	+= hdmi_rx.o
-OBJS	+= vtc.o
-OBJS	+= vid_tpg.o
 OBJS	+= video-config.o
+OBJS	+= $(addprefix ../$(LIBDIR)/, $(DEPS))
+
+CFLAGS	+= $(addprefix -I ,../$(LIBDIR))
 
 all: $(OBJS)
-	$(CC) -o $(APPLICATION) $(OBJS)
+	@printf "APP $(target)\n"
+	@$(CC) -o $(addprefix ../$(BUILDDIR)/, $(target)) $(OBJS)
 
 %.o: %.c
-	$(CC) -c $< -o $@
+	@printf "CC $(notdir $@)\n"
+	@$(CC) -c $(CFLAGS) $< -o $@
 
 .PHONY: clean
 clean:
-	-rm $(APPLICATION) $(OBJS)
+	@rm -f $(addprefix ../$(BUILDDIR)/, $(target)) $(OBJS)

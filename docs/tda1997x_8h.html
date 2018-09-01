@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>piSmasher Configuration Libraries: projects/hdmi-config/tda1997x.h File Reference</title>
+<title>piSmasher Configuration Libraries: projects/lib/tda1997x.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -168,9 +168,9 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gab90241aff942c68381d36726299204d1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#gab90241aff942c68381d36726299204d1">tda1997x_init</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, struct <a class="el" href="structtda1997x__cfg.html">tda1997x_cfg</a> *cfg)</td></tr>
-<tr class="memdesc:gab90241aff942c68381d36726299204d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize TDA1997x HDMI Receiver.  <a href="group___t_d_a1997_x.html#gab90241aff942c68381d36726299204d1">More...</a><br /></td></tr>
-<tr class="separator:gab90241aff942c68381d36726299204d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga83a6093aeae5ce94bb61accda1c9e218"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga83a6093aeae5ce94bb61accda1c9e218">tda1997x_init</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, struct <a class="el" href="structtda1997x__cfg.html">tda1997x_cfg</a> *cfg, uint8_t *edid_block, uint8_t *edid_ext)</td></tr>
+<tr class="memdesc:ga83a6093aeae5ce94bb61accda1c9e218"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize TDA1997x HDMI Receiver.  <a href="group___t_d_a1997_x.html#ga83a6093aeae5ce94bb61accda1c9e218">More...</a><br /></td></tr>
+<tr class="separator:ga83a6093aeae5ce94bb61accda1c9e218"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga913cf808d36ca75048e1841e9a76e495"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga913cf808d36ca75048e1841e9a76e495">tda1997x_handle_irq</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev)</td></tr>
 <tr class="memdesc:ga913cf808d36ca75048e1841e9a76e495"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle TDA1997x Interrupt.  <a href="group___t_d_a1997_x.html#ga913cf808d36ca75048e1841e9a76e495">More...</a><br /></td></tr>
 <tr class="separator:ga913cf808d36ca75048e1841e9a76e495"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -195,6 +195,12 @@ Functions</h2></td></tr>
 <tr class="memitem:ga5590f7f1b3c3af1710ca9329c0cb67f2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga5590f7f1b3c3af1710ca9329c0cb67f2">tda1997x_get_audio_freq</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, enum tda1997x_audio_freq *freq)</td></tr>
 <tr class="memdesc:ga5590f7f1b3c3af1710ca9329c0cb67f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get Audio Frequency.  <a href="group___t_d_a1997_x.html#ga5590f7f1b3c3af1710ca9329c0cb67f2">More...</a><br /></td></tr>
 <tr class="separator:ga5590f7f1b3c3af1710ca9329c0cb67f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2bf2c6100a6ad125b29b78768778d70c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga2bf2c6100a6ad125b29b78768778d70c">tda1997x_cfg_edid</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t *edid, uint8_t *edid_ext)</td></tr>
+<tr class="memdesc:ga2bf2c6100a6ad125b29b78768778d70c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure EDID.  <a href="group___t_d_a1997_x.html#ga2bf2c6100a6ad125b29b78768778d70c">More...</a><br /></td></tr>
+<tr class="separator:ga2bf2c6100a6ad125b29b78768778d70c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3f2787122583233a1d1475b1d06ab949"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___t_d_a1997_x.html#ga3f2787122583233a1d1475b1d06ab949">tda1997x_get_timing</a> (struct <a class="el" href="structtda1997x__dev.html">tda1997x_dev</a> *dev, uint8_t *data)</td></tr>
+<tr class="memdesc:ga3f2787122583233a1d1475b1d06ab949"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get Timing Values Sets an data memory block to the video timing register values.  <a href="group___t_d_a1997_x.html#ga3f2787122583233a1d1475b1d06ab949">More...</a><br /></td></tr>
+<tr class="separator:ga3f2787122583233a1d1475b1d06ab949"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>TDA1997x HDMI Receiver  FreeBSD. </p>
@@ -213,8 +219,8 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_bbfa28346c5af686e68aafabc2fc88c5.html">hdmi-config</a></li><li class="navelem"><a class="el" href="tda1997x_8h.html">tda1997x.h</a></li>
-    <li class="footer">Generated on Wed Aug 1 2018 13:53:15 for piSmasher Configuration Libraries by
+    <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_d2c8bb7959487ae6c146ed352a9d0a73.html">lib</a></li><li class="navelem"><a class="el" href="tda1997x_8h.html">tda1997x.h</a></li>
+    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

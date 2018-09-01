@@ -46,9 +46,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "vid_tpg.h"
+
+#define ERROR_PRINT(__format__, ...)		fprintf(stderr, "[ERROR] %s() %s %d: %s - " __format__ "\r\n", __FUNCTION__, __FILE__, __LINE__, strerror(errno), ##__VA_ARGS__)
+#define INFO_PRINT(__format__, ...)		printf("[INFO]: " __format__ "\r\n", ##__VA_ARGS__)
+
+#ifdef DEBUG
+# define DEBUG_PRINT(__format__, ...)		printf("[DEBUG] %s() %s %d: " __format__ "\r\n", __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+# define DEBUG_PRINT(...)			do {} while (0)
+#endif
 
 static void
 usage(void)
@@ -70,7 +81,7 @@ main(int argc, char *argv[])
 	int c;
 	int ret;
 	int height = 768, width = 1366;
-	vidtpg_t *tpg;
+	struct vidtpg *tpg;
 	int devnum = -1;
 	char devname[16];
 	enum vidtpg_bgpat bgpat = BGPAT_COLORBARS;
@@ -111,18 +122,32 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
-
-	tpg = malloc(sizeof(vidtpg_t));
-	if (!tpg)
-		return -9;
+	/**
+	 * Initialize the test pattern generator
+	 */
+	tpg = malloc(sizeof (struct vidtpg));
+	if (tpg == NULL) {
+		ERROR_PRINT("allocating TPG data");
+		goto out;
+	}
 
 	ret = vidtpg_init(tpg, devname);
-	if (ret < 0)
+	if (ret < 0) {
+		ERROR_PRINT("initializing TPG (%d)", ret);
 		goto out;
+	}
 
-	vidtpg_set_format(tpg, height, width, COLORFMT_RGB);
-	vidtpg_set_pattern(tpg, bgpat, fgpat);
+	ret = vidtpg_set_format(tpg, height, width, COLORFMT_RGB);
+	if (ret < 0) {
+		ERROR_PRINT("setting TPG format (%d)", ret);
+		goto out;
+	}
 
+	ret = vidtpg_set_pattern(tpg, bgpat, fgpat);
+	if (ret < 0) {
+		ERROR_PRINT("setting TPG pattern (%d)", ret);
+		goto out;
+	}
 out:
 	close(tpg->fd);
 	free(tpg);

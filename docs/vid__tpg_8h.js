@@ -1,7 +1,6 @@
 var vid__tpg_8h =
 [
-    [ "_vidtpg_t", "struct__vidtpg__t.html", "struct__vidtpg__t" ],
-    [ "vidtpg_t", "vid__tpg_8h.html#adc1c8e5477853d5a615971a80a434843", null ],
+    [ "vidtpg", "structvidtpg.html", "structvidtpg" ],
     [ "vidtpg_bgpat", "vid__tpg_8h.html#ac316d56d01cf3e290d5415b27cf77a1f", [
       [ "BGPAT_VIDEOIN", "vid__tpg_8h.html#ac316d56d01cf3e290d5415b27cf77a1fae50365c2cb0b824b2245fd1ed76639cb", null ],
       [ "BGPAT_HORZRAMP", "vid__tpg_8h.html#ac316d56d01cf3e290d5415b27cf77a1fab645d00bbdbf2b9058df3c9aa90721b1", null ],
@@ -45,7 +44,7 @@ var vid__tpg_8h =
       [ "RGBMASK_GREEN", "vid__tpg_8h.html#ab847b015efd850e819d142cdec45915da3aa0c2ea02db8364fe1a1919805edf0d", null ],
       [ "RGBMASK_BLUE", "vid__tpg_8h.html#ab847b015efd850e819d142cdec45915da5bc6d9c4b0a65e2d1059f374c4a2282f", null ]
     ] ],
-    [ "vidtpg_init", "vid__tpg_8h.html#aee9049e6b482740dbca4206c1a9fc094", null ],
-    [ "vidtpg_set_format", "vid__tpg_8h.html#af7922587e0d457ff324efa7708a4e43c", null ],
-    [ "vidtpg_set_pattern", "vid__tpg_8h.html#a0617c8098ed18427d66e29dd0a71b79b", null ]
+    [ "vidtpg_init", "vid__tpg_8h.html#a8d8f0250212f85106a67d2b7a57b7038", null ],
+    [ "vidtpg_set_format", "vid__tpg_8h.html#a172754257959a904cfd0d0d118cbc8cf", null ],
+    [ "vidtpg_set_pattern", "vid__tpg_8h.html#a484a22b1ec1c2ede9d9bf9157298dd6b", null ]
 ];

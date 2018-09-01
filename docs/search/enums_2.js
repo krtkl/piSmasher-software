@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['feat_5fsupport',['feat_support',['../group___t_d_a998_x___h_d_m_i___core___registers.html#gaaf323551c5a1755fd38c7693c6d1f811',1,'tda998x.c']]]
+  ['clk_5fwiz_5fmode',['clk_wiz_mode',['../clk__wiz_8h.html#ac87fbbcf0eb1d61941664c658f98cea4',1,'clk_wiz.h']]]
 ];

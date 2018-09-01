@@ -1,14 +1,20 @@
-CC = arm-linux-gnueabihf-gcc
-APPLICATION = vid-tpg-config
-OBJS	+= vid_tpg.o
+target = vid-tpg-config
+
+DEPS	+= vid_tpg.o
+
 OBJS	+= vid-tpg-config.o
+OBJS	+= $(addprefix ../$(LIBDIR)/, $(DEPS))
+
+CFLAGS	+= $(addprefix -I ,../$(LIBDIR))
 
 all: $(OBJS)
-	$(CC) -o $(APPLICATION) $(OBJS)
+	@printf "APP $(target)\n"
+	@$(CC) -o $(addprefix ../$(BUILDDIR)/, $(target)) $(OBJS)
 
 %.o: %.c
-	$(CC) -c $< -o $@
+	@printf "CC $(notdir $@)\n"
+	@$(CC) -c $(CFLAGS) $< -o $@
 
 .PHONY: clean
 clean:
-	-rm $(APPLICATION) $(OBJS)
+	@rm -f $(addprefix ../$(BUILDDIR)/, $(target)) $(OBJS)
