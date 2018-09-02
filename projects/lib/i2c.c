@@ -30,7 +30,6 @@ struct i2c_addr_fd {
 static struct i2c_addr_fd i2c_fd[I2C_NDEVS];
 static int i2c_ndevs = 0;
 
-
 static int i2c_addr_fd_lookup(struct i2c_addr_fd *tab, int len, uint8_t addr)
 {
 	int i;
@@ -192,9 +191,22 @@ int i2c_init(uint8_t addr)
 
 	i2c_ndevs++;
 
-	printf("[I2C]: New I2C device registered %d - 0x%02x\n", fd, addr);
-
 	return fd;
+}
+
+int i2c_close(uint8_t sl_addr)
+{
+	int fd;
+
+	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
+	if (fd < 0) {
+		perror("lookup bus %x", sl_addr);
+		return fd;
+	}
+
+	close(fd);
+
+	return 0;
 }
 
 /**
@@ -211,7 +223,7 @@ int i2c_write_reg(uint16_t sl_addr, uint8_t reg_addr, uint8_t *data)
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
 	if (fd < 0) {
-		perror("Failed to acquire bus access and/or talk to slave");
+		perror("lookup bus %x", sl_addr);
 		return fd;
 	}
 
@@ -237,7 +249,7 @@ int i2c_read_reg(uint16_t sl_addr, uint8_t reg_addr, uint8_t *data)
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
 	if (fd < 0) {
-		perror("Failed to acquire bus access and/or talk to slave");
+		perror("lookup bus %x", sl_addr);
 		return fd;
 	}
 
@@ -249,14 +261,13 @@ int i2c_read_reg(uint16_t sl_addr, uint8_t reg_addr, uint8_t *data)
 	return 0;
 }
 
-
 int i2c_write_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *data)
 {
 	int tmp, fd;
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
 	if (fd < 0) {
-		perror("Failed to acquire bus access and/or talk to slave");
+		perror("lookup bus %x", sl_addr);
 		return fd;
 	}
 
@@ -267,7 +278,6 @@ int i2c_write_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *da
 	return 0;
 }
 
-
 int i2c_read_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *data)
 {
 	int i, fd, err;
@@ -275,7 +285,7 @@ int i2c_read_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *dat
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
 	if (fd < 0) {
-		perror("Failed to acquire bus access and/or talk to slave");
+		perror("lookup bus %x", sl_addr);
 		return fd;
 	}
 
@@ -285,4 +295,7 @@ int i2c_read_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *dat
 
 	return 0;
 }
+
+
+
 
