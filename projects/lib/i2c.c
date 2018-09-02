@@ -10,12 +10,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
-#include <err.h>
+#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
 
-#include "i2c-dev.h"
 #include "i2c.h"
 
 #define I2C_NDEVS		(16)
@@ -39,6 +41,132 @@ static int i2c_addr_fd_lookup(struct i2c_addr_fd *tab, int len, uint8_t addr)
 			fd = tab->fd;
 
 	return fd;
+}
+
+static inline __s32 i2c_smbus_access(int fd, char read_write, __u8 cmd, 
+                                     int size, union i2c_smbus_data *data)
+{
+	struct i2c_smbus_ioctl_data args;
+
+	args.read_write = read_write;
+	args.command = cmd;
+	args.size = size;
+	args.data = data;
+
+	return ioctl(fd, I2C_SMBUS, &args);
+}
+
+static inline __s32 i2c_smbus_read_byte_data(int fd, __u8 cmd)
+{
+	union i2c_smbus_data data;
+
+	if (i2c_smbus_access(fd, I2C_SMBUS_READ, cmd, I2C_SMBUS_BYTE_DATA, &data))
+		return -1;
+	else
+		return 0x0FF & data.byte;
+}
+
+static inline __s32 i2c_smbus_write_byte_data(int fd, __u8 cmd, 
+                                              __u8 val)
+{
+	union i2c_smbus_data data;
+
+	data.byte = val;
+
+	return i2c_smbus_access(fd, I2C_SMBUS_WRITE, cmd,
+	                        I2C_SMBUS_BYTE_DATA, &data);
+}
+
+static inline __s32 i2c_smbus_read_word_data(int fd, __u8 cmd)
+{
+	union i2c_smbus_data data;
+
+	if (i2c_smbus_access(fd, I2C_SMBUS_READ, cmd, I2C_SMBUS_WORD_DATA, &data))
+		return -1;
+	else
+		return 0x0FFFF & data.word;
+}
+
+static inline __s32 i2c_smbus_write_word_data(int fd, __u8 cmd, 
+                                              __u16 val)
+{
+	union i2c_smbus_data data;
+	data.word = val;
+
+	return i2c_smbus_access(fd, I2C_SMBUS_WRITE, cmd, I2C_SMBUS_WORD_DATA, &data);
+}
+
+static inline __s32 i2c_smbus_read_block_data(int fd, __u8 cmd, 
+                                              __u8 *block)
+{
+	int i;
+	union i2c_smbus_data data;
+
+	if (i2c_smbus_access(fd, I2C_SMBUS_READ, cmd,
+	                     I2C_SMBUS_BLOCK_DATA, &data))
+		return -1;
+
+	for (i = 1; i <= data.block[0]; i++)
+		block[i-1] = data.block[i];
+
+	return data.block[0];
+}
+
+static inline __s32 i2c_smbus_write_block_data(int fd, __u8 cmd, 
+                                               __u8 len, __u8 *block)
+{
+	int i;
+	union i2c_smbus_data data;
+
+	if (len > 32)
+		len = 32;
+
+	for (i = 1; i <= len; i++)
+		data.block[i] = block[i-1];
+
+	data.block[0] = len;
+
+	return i2c_smbus_access(fd, I2C_SMBUS_WRITE, cmd, I2C_SMBUS_BLOCK_DATA, &data);
+}
+
+static inline __s32 i2c_smbus_read_i2c_block_data(int fd, __u8 cmd,
+                                                  __u8 len, __u8 *block)
+{
+	int i;
+	union i2c_smbus_data data;
+
+	if (len > 32)
+		len = 32;
+
+	data.block[0] = len;
+
+	if (i2c_smbus_access(fd, I2C_SMBUS_READ, cmd,
+	                     len == 32 ? I2C_SMBUS_I2C_BLOCK_BROKEN :
+	                      I2C_SMBUS_I2C_BLOCK_DATA, &data))
+		return -1;
+
+	for (i = 1; i <= data.block[0]; i++)
+		block[i-1] = data.block[i];
+
+	return data.block[0];
+}
+
+static inline __s32 i2c_smbus_write_i2c_block_data(int fd, __u8 cmd,
+                                               __u8 len, __u8 *block)
+{
+	int i;
+	union i2c_smbus_data data;
+
+	if (len > 32)
+		len = 32;
+
+	for (i = 1; i <= len; i++)
+		data.block[i] = block[i-1];
+
+	data.block[0] = len;
+
+	return i2c_smbus_access(fd, I2C_SMBUS_WRITE, cmd,
+	                        I2C_SMBUS_I2C_BLOCK_BROKEN, &data);
 }
 
 /**
@@ -88,10 +216,8 @@ int i2c_write_reg(uint16_t sl_addr, uint8_t reg_addr, uint8_t *data)
 	}
 
 	error = i2c_smbus_write_byte_data(fd, reg_addr, *data);
-	if (error < 0) {
-		warn("writing I2C bus %d", error);
+	if (error < 0)
 		return error;
-	}
 
 	return 0;
 }
@@ -159,6 +285,4 @@ int i2c_read_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *dat
 
 	return 0;
 }
-
-
 
