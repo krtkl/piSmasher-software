@@ -199,10 +199,8 @@ int i2c_close(uint8_t sl_addr)
 	int fd;
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
-	if (fd < 0) {
-		perror("lookup bus %x", sl_addr);
+	if (fd < 0)
 		return fd;
-	}
 
 	close(fd);
 
@@ -222,10 +220,8 @@ int i2c_write_reg(uint16_t sl_addr, uint8_t reg_addr, uint8_t *data)
 	int fd, error;
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
-	if (fd < 0) {
-		perror("lookup bus %x", sl_addr);
+	if (fd < 0)
 		return fd;
-	}
 
 	error = i2c_smbus_write_byte_data(fd, reg_addr, *data);
 	if (error < 0)
@@ -233,7 +229,6 @@ int i2c_write_reg(uint16_t sl_addr, uint8_t reg_addr, uint8_t *data)
 
 	return 0;
 }
-
 
 /**
  * @brief	Read a byte value from a register on an I2C slave device
@@ -248,10 +243,8 @@ int i2c_read_reg(uint16_t sl_addr, uint8_t reg_addr, uint8_t *data)
 	int tmp, fd;
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
-	if (fd < 0) {
-		perror("lookup bus %x", sl_addr);
+	if (fd < 0)
 		return fd;
-	}
 
 	tmp = i2c_smbus_read_byte_data(fd, reg_addr);
 	if (tmp < 0)
@@ -266,10 +259,8 @@ int i2c_write_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *da
 	int tmp, fd;
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
-	if (fd < 0) {
-		perror("lookup bus %x", sl_addr);
+	if (fd < 0)
 		return fd;
-	}
 
 	tmp = i2c_smbus_write_block_data(fd, reg_addr, len, data);
 	if (tmp < 0)
@@ -284,10 +275,8 @@ int i2c_read_block(uint16_t sl_addr, uint8_t reg_addr, uint8_t len, uint8_t *dat
 	union i2c_smbus_data bus_data;
 
 	fd = i2c_addr_fd_lookup(i2c_fd, i2c_ndevs, sl_addr);
-	if (fd < 0) {
-		perror("lookup bus %x", sl_addr);
+	if (fd < 0)
 		return fd;
-	}
 
 	err = i2c_smbus_read_i2c_block_data(fd, reg_addr, len, data);
 	if (err < 0)
