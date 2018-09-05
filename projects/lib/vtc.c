@@ -987,6 +987,17 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 		vsync_end = 1088;
 		break;
 
+    case VTC_MODE_1920x1200:
+        hact = 1920;
+        vact = 1200;
+        htotal = 2080;
+        vtotal = 1235;
+        hsync_st = 1968;
+        hsync_end = 2000;
+        vsync_st = 1202;
+        vsync_end = 1208;
+        break;
+            
 	case VTC_MODE_WXGA:
 		hact = 1366;
 		vact = 768;

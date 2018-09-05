@@ -53,6 +53,7 @@ extern "C" {
 enum vtc_mode {
 	VTC_MODE_720p = 0,	/**< Video mode 720P */
 	VTC_MODE_1080p,		/**< Video mode 1080P */
+    VTC_MODE_1920x1200, /**< Video mode 1920x1200 */
 	VTC_MODE_480p,		/**< Video mode 480P */
 	VTC_MODE_576p,		/**< Video mode 576P */
 	VTC_MODE_VGA,		/**< Video mode VGA */
