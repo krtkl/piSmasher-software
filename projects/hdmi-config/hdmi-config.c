@@ -79,10 +79,10 @@ usage(void)
 		"    -m MODE   - Configure transmitter format mode\n"
 		"\n"
 		"Modes:\n"
-        "    1280x720\n"
-        "    1366x768\n"
+		"    1280x720\n"
+		"    1366x768\n"
 		"    1920x1080\n"
-        "    1920x1200\n"
+		"    1920x1200\n"
 		"\n"
 	);
 }
@@ -94,9 +94,9 @@ const struct vid_fmt_str {
 	enum tda998x_vid_fmt fmt;
 } fmt_str[] = {
 	{ "1280x720", VFMT_04_1280x720p_60Hz },
-    { "1366x768", VFMT_PC_1366x768p_60Hz },
+	{ "1366x768", VFMT_PC_1366x768p_60Hz },
 	{ "1920x1080", VFMT_16_1920x1080p_60Hz },
-    { "1920x1200", VFMT_PC_1920x1200p_60Hz },
+	{ "1920x1200", VFMT_PC_1920x1200p_60Hz },
 	{ /* Sentinel */ }
 };
 
