@@ -65,9 +65,10 @@ usage(void)
 		"    -d        - Configure detector\n"
 		"\n"
 		"Modes:\n"
-		"    720p\n"
-		"    1080p\n"
-		"    WXGA\n"
+		"    1280x720\n"
+		"    1366x768\n"
+		"    1920x1080\n"
+		"    1920x1200\n"
 		"\n"
 	);
 }
@@ -76,9 +77,10 @@ const struct vtc_mode_str {
 	const char *str;
 	enum vtc_mode mode;
 } modestr[] = {
-	{ "720p", VTC_MODE_720p },
-	{ "1080p", VTC_MODE_1080p },
-	{ "WXGA", VTC_MODE_WXGA },
+	{ "1280x720", VTC_MODE_720p },
+	{ "1366x768", VTC_MODE_WXGA },
+	{ "1920x1080", VTC_MODE_1080p },
+	{ "1920x1200", VTC_MODE_1920x1200 },
 	{ /* Sentinel */ }
 };
 
@@ -107,7 +109,7 @@ main(int argc, char *argv[])
 	bool isgen = true;
 	int devnum = -1;
 	char devname[16];
-	enum vtc_mode mode = VTC_MODE_WXGA;
+	enum vtc_mode mode = VTC_MODE_1080p;
 	struct vtc_dev *vtc;
 
 	while ((c = getopt(argc, argv, "gdm:")) != -1) {

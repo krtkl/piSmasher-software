@@ -987,16 +987,16 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 		vsync_end = 1088;
 		break;
 
-    case VTC_MODE_1920x1200:
-        hact = 1920;
-        vact = 1200;
-        htotal = 2080;
-        vtotal = 1235;
-        hsync_st = 1968;
-        hsync_end = 2000;
-        vsync_st = 1202;
-        vsync_end = 1208;
-        break;
+	case VTC_MODE_1920x1200:
+		hact = 1920;
+		vact = 1200;
+		htotal = 2080;
+		vtotal = 1235;
+		hsync_st = 1968;
+		hsync_end = 2000;
+		vsync_st = 1202;
+		vsync_end = 1208;
+		break;
             
 	case VTC_MODE_WXGA:
 		hact = 1366;
@@ -1060,22 +1060,24 @@ int
 vtc_init(struct vtc_dev *dev, const char *devname)
 {
 	int fd, ret;
-	void *base;
+	uint8_t *base;
 
 	if ((dev == NULL) || (devname == NULL))
 		return -1;
 
-	fd = open(devname, O_RDWR);
+	fd = open(devname, O_RDWR | O_SYNC);
 	if (fd < 0)
 		return fd;
 
-	base = mmap(NULL, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	base = (uint8_t *) mmap(NULL, 0x10000000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if (base == MAP_FAILED) {
 		ret = -2;
 		goto out;
 	}
 
-	dev->base = base;
+	base += 0x3c10000;			/* Device register address offset */ 
+
+	dev->base = (void *) base;
 	dev->fd = fd;
 
 	/* Perform a reset */
