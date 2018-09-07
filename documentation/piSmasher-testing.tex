@@ -1,0 +1,151 @@
+
+\documentclass[sfsidenotes, justified]{tufte-handout}
+
+%
+% Author and title information
+%
+\title{piSmasher Testing Instructions}
+\author{krtkl inc.}
+
+\makeatletter
+
+\input{preamble.tex}
+
+\renewcommand{\maketitle}{%
+  \newpage
+  \thispagestyle{plain} 
+  \begin{fullwidth}
+    \par{\LARGE\scshape\@title}
+    \hfill
+    \includegraphics[width=0.3\textwidth]{images/krtkl.pdf} \\ 
+    \rule{\linewidth}{0.5pt} \\
+  \end{fullwidth}
+}
+
+\begin{document}
+  \maketitle
+  
+  \section{Summary}
+  
+  Subsystem testing instructions for HDMI transmit, HDMI receive, audio codec, USB and Ethernet.
+  
+  \tableofcontents
+  \listoffigures
+
+	% DMD Probe Rework
+	\newpage
+  \section{HDMI Transmit/Receive}
+  
+  A simple HDMI video stream is configured in the programmable logic with a common pixel clock between the HDMI receiver and HDMI transmitter. The source of this pixel clock is the HDMI receiver video bus clock. This clock is driven by logic within the HDMI receiver and the frequency is dependent on the input (TMDS) bus format. This restricts the HDMI transmitter to video formats that can be driven by the input clock frequency. For further simplification, the HDMI transmitter format configuration should be set identical to the received video format on the HDMI receiver. \\
+  
+  A video timing generator (VTC) is responsible for generating the appropriate timing signals (blanking and syncing) using the incoming pixel clock and a specified format. The VTC has a set of registers that are used to set the timing specifications and control the timing generator behavior. \\
+  
+  Between the HDMI receiver video stream and the output stream sent to the HDMI transmitter is a video test pattern generator (TPG). This is configurable to allow the incoming video stream to be passed through to the output stream or use a test pattern as the output video.
+
+	\begin{figure}
+		\includegraphics{images/hdmi-videotest.pdf}
+		\caption{HDMI Pass-Through Video Programmable Logic Configuration}
+	\end{figure}
+	
+	\subsection{Enable HDMI Transceivers}
+	
+	The HDMI transceivers can be enabled and disabled using the connected active high GPIO pins. Control of these pins is possible through the Linux sysfs which much be accessed with root level permissions. To enable both HDMI transceivers by setting their respective enable pins to high, the following process can be used.
+	
+	\begin{lstlisting}[style=text]
+root@pismasher:~# echo 958 > /sys/class/gpio/export
+root@pismasher:~# echo 959 > /sys/class/gpio/export
+root@pismasher:~# echo out > /sys/class/gpio/gpio958/direction
+root@pismasher:~# echo out > /sys/class/gpio/gpio959/direction
+root@pismasher:~# echo 1 > /sys/class/gpio/gpio958/value
+root@pismasher:~# echo 1 > /sys/class/gpio/gpio959/value
+	\end{lstlisting}
+	
+	\subsection{Configuration Software}
+	
+	The software required to configure the video blocks can be found at \url{http://github.com/krtkl/piSmasher-software}. This contains software for configuring the HDMI transceivers, VTC and TPG as well as some additional test utilities that can be used for further development. The software can be built all at once and on a snickerdoodle or on a cross-compilation host. A set of commands for cloning and building the software utilities is found below.
+	
+	\begin{fullwidth}
+	\begin{lstlisting}[caption=Clone piSmasher Software Repository, captionpos=b]
+admin@pismasher:~$ git clone https://github.com/krtkl/piSmasher-software
+	\end{lstlisting}
+	\end{fullwidth}
+
+\texttt{make} can be used to build the projects. A top level makefile is used to call the build process for the device driver dependencies as well as the individual project makefiles. The resulting executable applications are placed in the \texttt{build} directory.
+	
+	\begin{fullwidth}
+	\begin{lstlisting}[style=text]
+admin@pismasher:~$ cd piSmasher-software/projects
+admin@pismasher:~/piSmasher-software/projects$ make clean && make
+	\end{lstlisting}
+	\end{fullwidth}
+
+	\subsection{Configuring HDMI Transceivers}    
+    
+  The HDMI configuration utility (\texttt{hdmi-config}) exists to configure both HDMI transceivers.
+         
+	\begin{lstlisting}[style=text]
+hdmi-config [OPTIONS]
+Options:
+    -m MODE   - Configure transmitter format mode
+
+Modes:
+    1280x720
+    1366x768
+    1920x1080
+    1920x1200
+	\end{lstlisting}
+	
+	To run the HDMI configuration utility and initialize the HDMI transceivers:
+
+\begin{fullwidth}
+\begin{lstlisting}
+admin@pismasher:~/piSmasher-software/projects$ sudo build/hdmi-config -m 1920x1080
+\end{lstlisting}
+\end{fullwidth}
+    
+	Configure the test pattern generator to use the video input stream from the HDMI receiver to output to the HDMI transmitter. The \texttt{-w} and \texttt{-h} options should be followed by the active frame width and height values, respectively. These dimensions are in pixels and do not include the blanking area. 
+	
+\begin{fullwidth}
+\begin{lstlisting}
+admin@pismasher:~/piSmasher-software/projects$ build/vid-tpg-config -w 1920 -h 1080 -b 0 13
+\end{lstlisting}
+\end{fullwidth}
+
+
+	\subsection{Configuring Video Timing Controller}
+
+	\begin{lstlisting}[style=text]
+Usage: uio-vtc [OPTIONS] UIONUM
+
+Options:
+    -g        - Configure generator (default)
+    -m MODE   - Configure generator for format MODE
+    -d        - Configure detector
+
+Modes:
+    1280x720
+    1366x768
+    1920x1080
+    1920x1200
+	\end{lstlisting}
+
+	Configure the video timing controller for the desired video format. This format should match the selected format in the HDMI configuration when running \texttt{hdmi-config}
+
+\begin{fullwidth}
+\begin{lstlisting}
+admin@pismasher:~/piSmasher-software/projects$ build/uio-vtc -m 1920x1080 12
+\end{lstlisting}
+\end{fullwidth}
+
+\section{Audio Codec}
+
+Configure the input and output paths for the audio codec.
+
+\begin{fullwidth}
+\begin{lstlisting}
+admin@pismasher:~/piSmasher-software/projects$ build/audio-config -i linein -o lineout
+\end{lstlisting}
+\end{fullwidth}
+
+\end{document}
+
