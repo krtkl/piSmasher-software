@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;axis-switch/src/axivdma.c&apos; to &apos;axissw.c&apos;" description="Rename resource &apos;axivdma.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/axivdma.c" name="axissw.c" stamp="1531246386505" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;axis-switch/src/helloworld.c&apos; to &apos;axis-switch.c&apos;" description="Rename resource &apos;helloworld.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/helloworld.c" name="axis-switch.c" stamp="1531248591032" updateReferences="true"/>
-</session>

@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;hdmi-config/src/tda998x_NEW.c&apos;" deleteContents="false" description="Delete resource &apos;hdmi-config/src/tda998x_NEW.c&apos;" element1="/hdmi-config/src/tda998x_NEW.c" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1532033656905"/>&#x0A;<refactoring comment="Delete 3 resources" deleteContents="true" description="Delete 3 resources" element1="/base_wrapper_hw_platform_0" element2="/fsbl" element3="/fsbl_bsp" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="3" stamp="1532117020533"/>
-</session>

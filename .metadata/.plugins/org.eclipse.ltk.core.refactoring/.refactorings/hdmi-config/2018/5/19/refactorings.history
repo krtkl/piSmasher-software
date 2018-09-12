@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;hdmi-config/src/tmNxCompId.h&apos; to &apos;tmNxCompid.h&apos;" description="Rename resource &apos;tmNxCompId.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/tmNxCompId.h" name="tmNxCompid.h" stamp="1525834243574" updateReferences="true"/>
-</session>

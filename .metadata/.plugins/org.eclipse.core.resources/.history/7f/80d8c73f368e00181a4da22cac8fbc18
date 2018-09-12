@@ -1,4941 +1,0 @@
-/**
- *******************************************************************************
- *******************************************************************************
- *
- * @file	tda998x.c
- * @author	R. Bush
- * @email	bush@krtkl.com
- * @version	v1.0
- * @date	2017 November 10
- * @brief	TDA998x HDMI Transmitter
- * @license	FreeBSD
- *
- *******************************************************************************
- *
- * Copyright (c) 2017, krtkl inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *	  this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *	  this list of conditions and the following disclaimer in the documentation
- *	  and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * The views and conclusions contained in the software and documentation are
- * those of the authors and should not be interpreted as representing official
- * policies, either expressed or implied, of the FreeBSD Project.
- *
- *******************************************************************************
- */
-
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <unistd.h>
-
-#include "tda998x.h"
-
-/**
- * @defgroup	TDA998X TDA998x HDMI Transmitter
- * @{
- */
-#define PAGE_ADDR(__PAGE__, __ADDR__)		(((__PAGE__) << 8) | ((__ADDR__) & 0xFFU))
-#define PAGE_OF(__REG__)			((uint8_t)(((__REG__) >> 8) & 0xFFU))
-
-#define ERR_BAD_PARAM				(0x009U)
-#define ERR_NOT_PERMITTED			(0x00AU)
-#define ERR_NULL_PARAM				(0x00BU)
-#define ERR_ILLEGAL_PARAMS			(0x010U)
-
-/**
- * @addtogroup	TDA998X_CEC_Core
- * @{
- */
-#define INTERRUPTSTATUS_CEC			(1 << 0)
-#define INTERRUPTSTATUS_HDMI			(1 << 1)
-
-#define RXSHPDINTENA_ENA_RXS_INT		(1 << 0)
-#define RXSHPDINTENA_ENA_HPD_INT		(1 << 1)
-
-#define RXSHPDINT_RXS_INT			(1 << 0)
-#define RXSHPDINT_HPD_INT			(1 << 1)
-
-#define RXSHPDLEV_RXS_LEVEL			(1 << 0)
-#define RXSHPDLEV_HPD_LEVEL			(1 << 1)
-
-#define ENAMODS_ENA_CEC				(1 << 0)
-#define ENAMODS_ENA_HDMI			(1 << 1)
-#define ENAMODS_ENA_RXS				(1 << 2)
-#define ENAMODS_DIS_CCLK			(1 << 5)
-#define ENAMODS_DIS_FRO				(1 << 6)
-
-#define FRO_IM_CLK_CTRL_FRO_DIV			(1 << 0)
-#define FRO_IM_CLK_CTRL_IMCLK_SEL		(1 << 1)
-#define FRO_IM_CLK_CTRL_ENA_OTP			(1 << 6)
-#define FRO_IM_CLK_CTRL_GHOST_DIS		(1 << 7)
-
-/**
- * @brief	CEC Core Registers
- */
-enum tda998x_cec_reg {
-	INTERRUPTSTATUS = 0xEE,
-	RXSHPDINTENA = 0xFC,
-	RXSHPDINT = 0xFD,
-	RXSHPDLEV = 0xFE,
-	ENAMODS = 0xFF,
-	FRO_IM_CLK_CTRL = 0xFB,
-};
-/**
- * @}
- */
-
-/**
- * @addtogroup	TDA998X_HDMI_Core
- * @{
- */
-
-/**
- * @addtogroup	TDA998X_HDMI_Core_Registers
- * @{
- */
-
-/**
- * @brief	HDMI Core Register Pages
- */
-enum tda998x_hdmi_page {
-	PAGE_00 = 0x00,
-	PAGE_01 = 0x01,
-	PAGE_02 = 0x02,
-	PAGE_09 = 0x09,
-	PAGE_10 = 0x10,
-	PAGE_11 = 0x11,
-	PAGE_12 = 0x12,
-	PAGE_13 = 0x13,
-	PAGE_INVALID = 0xFF
-};
-
-#define VERSION_NOT_SCALER			(1 << 4)
-#define VERSION_NOT_HDCP			(1 << 5)
-
-#define MAIN_CNTRL0_SR				(1 << 0)
-#define MAIN_CNTRL0_DECS			(1 << 1)
-#define MAIN_CNTRL0_DEHS			(1 << 2)
-#define MAIN_CNTRL0_CECS			(1 << 3)
-#define MAIN_CNTRL0_CEHS			(1 << 4)
-#define MAIN_CNTRL0_SCALER			(1 << 7)
-
-#define SR_REG_SR_AUDIO				(1 << 0)
-#define SR_REG_SR_I2C_MS			(1 << 1)
-
-#define DDC_DISABLE_DDC_DIS			(1 << 0)
-
-#define CCLK_ON_CCLK_DDC_ON			(1 << 0)
-
-#define I2C_MASTER_DIS_MM			(1 << 0)
-#define I2C_MASTER_DIS_FILT			(1 << 1)
-#define I2C_MASTER_APP_STRT_LAT			(1 << 2)
-
-#define INT_FLAGS_0_ENCRYPT			(1 << 0)
-#define INT_FLAGS_0_HPD				(1 << 1)
-#define INT_FLAGS_0_T0				(1 << 2)
-#define INT_FLAGS_0_BCAPS			(1 << 3)
-#define INT_FLAGS_0_BSTATUS			(1 << 4)
-#define INT_FLAGS_0_SHA_1			(1 << 5)
-#define INT_FLAGS_0_PJ				(1 << 6)
-#define INT_FLAGS_0_R0				(1 << 7)
-
-#define INT_FLAGS_1_VS_RPT			(1 << 0)
-#define INT_FLAGS_1_OTP				(1 << 1)
-#define INT_FLAGS_1_SC_IN			(1 << 2)
-#define INT_FLAGS_1_SC_OUT			(1 << 3)
-#define INT_FLAGS_1_SC_VID			(1 << 4)
-#define INT_FLAGS_1_SC_DEIL			(1 << 5)
-#define INT_FLAGS_1_SW_INT			(1 << 6)
-#define INT_FLAGS_1_HPD_IN			(1 << 7)
-
-#define INT_FLAGS_2_RX_SENSE			(1 << 0)
-#define INT_FLAGS_2_EDID_BLK_RD			(1 << 1)
-
-#define INT_FLAGS_3_RXS_FIL			(1 << 0)
-
-#define SW_INT_SW_INT				(1 << 0)
-
-#define ENA_ACLK_ENA_ACLK			(1 << 0)
-#define GND_ACLK_GND_ACLK			(1 << 0)
-
-#define ENA_VP_0_ENA_VP0			(1 << 0)
-#define ENA_VP_0_ENA_VP1			(1 << 1)
-#define ENA_VP_0_ENA_VP2			(1 << 2)
-#define ENA_VP_0_ENA_VP3			(1 << 3)
-#define ENA_VP_0_ENA_VP4			(1 << 4)
-#define ENA_VP_0_ENA_VP5			(1 << 5)
-#define ENA_VP_0_ENA_VP6			(1 << 6)
-#define ENA_VP_0_ENA_VP7			(1 << 7)
-
-#define ENA_VP_1_ENA_VP8			(1 << 0)
-#define ENA_VP_1_ENA_VP9			(1 << 1)
-#define ENA_VP_1_ENA_VP10			(1 << 2)
-#define ENA_VP_1_ENA_VP11			(1 << 3)
-#define ENA_VP_1_ENA_VP12			(1 << 4)
-#define ENA_VP_1_ENA_VP13			(1 << 5)
-#define ENA_VP_1_ENA_VP14			(1 << 6)
-#define ENA_VP_1_ENA_VP15			(1 << 7)
-
-#define ENA_VP_2_ENA_VP16			(1 << 0)
-#define ENA_VP_2_ENA_VP17			(1 << 1)
-#define ENA_VP_2_ENA_VP18			(1 << 2)
-#define ENA_VP_2_ENA_VP19			(1 << 3)
-#define ENA_VP_2_ENA_VP20			(1 << 4)
-#define ENA_VP_2_ENA_VP21			(1 << 5)
-#define ENA_VP_2_ENA_VP22			(1 << 6)
-#define ENA_VP_2_ENA_VP23			(1 << 7)
-
-#define ENA_AP_ENA_AP0				(1 << 0)
-#define ENA_AP_ENA_AP1				(1 << 1)
-#define ENA_AP_ENA_AP2				(1 << 2)
-#define ENA_AP_ENA_AP3				(1 << 3)
-#define ENA_AP_ENA_AP4				(1 << 4)
-#define ENA_AP_ENA_AP5				(1 << 5)
-#define ENA_AP_ENA_AP6				(1 << 6)
-#define ENA_AP_ENA_AP7				(1 << 7)
-
-#define VIP_CNTRL_LEN				(3)
-#define VIP_CNTRL_SWAP_L_SHIFT			(0)
-#define VIP_CNTRL_MIRR_L			(1 << 3)
-#define VIP_CNTRL_SWAP_H_SHIFT			(4)
-#define VIP_CNTRL_MIRR_H			(1 << 7)
-
-#define VIP_CNTRL_SWAP_MASK			(0x77U)
-enum vip_cntrl_swap {
-	VIP_CNTRL_VP23_20 = 0x00,
-	VIP_CNTRL_VP19_16 = 0x01,
-	VIP_CNTRL_VP15_12 = 0x02,
-	VIP_CNTRL_VP11_8 = 0x03,
-	VIP_CNTRL_VP7_4 = 0x04,
-	VIP_CNTRL_VP3_0 = 0x05
-};
-
-enum vip_cntrl_mirr {
-	VIP_CNTRL_NOT_MIRRORED = 0,		/**< No action */
-	VIP_CNTRL_MIRRORED = 1			/**< Mirrored (i.e. In[a:b] -> Out[b:a]) */
-};
-
-#define VIP_CNTRL_3_X_TGL			(1 << 0)
-#define VIP_CNTRL_3_H_TGL			(1 << 1)
-#define VIP_CNTRL_3_V_TGL			(1 << 2)
-#define VIP_CNTRL_3_EMB				(1 << 3)
-enum vip_cntrl_3_emb {
-	EMB_DISABLE = 0,			/**< No action */
-	EMB_ENABLE = VIP_CNTRL_3_EMB		/**< Use embedded syncronization codes */
-};
-
-#define VIP_CNTRL_3_SP_SYNC_MASK		(0x30U)
-enum vip_cntrl_3_sp_sync {
-	SPSYNC_HEMB = 0,
-    	SPSYNC_RISING_DE = 0x10,
-    	SPSYNC_RISING_HS = 0x20,
-    	SPSYNC_FIXED = 0x30
-};
-
-#define VIP_CNTRL_3_DE_INT			(1 << 6)
-#define VIP_CNTRL_3_EDGE			(1 << 7)
-enum vip_cntrl_3_edge {
-	PIXEDGE_POS = 0,        		/**< Pixel Clock Positive Edge */
-	PIXEDGE_NEG = VIP_CNTRL_3_EDGE,		/**< Pixel Clock Negative Edge */
-};
-
-#define VIP_CNTRL_4_BLC_MASK			(0x03U)
-enum vip_cntrl_4_blc {
-	BLNKCODE_ALL_0 = 0x00,			/**< All Zero */
-	BLNKCODE_RGB444 = 0x01,			/**< RGB444 */
-	BLNKCODE_YUV444 = 0x02,			/**< YUV444 */
-	BLNKCODE_YUV422 = 0x03			/**< YUV422 */
-};
-
-#define VIP_CNTRL_4_BLNKIT_MASK			(0x0CU)
-enum vip_cntrl_4_blnkit {
-	BLNKSRC_NOT_DE = 0x00,			/**< Not DE */
-	BLNKSRC_VS_HS = 0x04,			/**< VS AND HS */
-	BLNKSRC_VS_NOT_HS = 0x08,		/**< VS AND NOT HS */
-	BLNKSRC_VS_HEMB_VEMB = 0x0C		/**< Hemb AND Vemb */
-};
-
-#define VIP_CNTRL_4_CCIR656			(1 << 4)
-#define VIP_CNTRL_4_656_ALT			(1 << 5)
-#define VIP_CNTRL_4_TST_656			(1 << 6)
-#define VIP_CNTRL_4_TST_PAT			(1 << 7)
-
-#ifdef TDA19989
-# define VIDFORMAT_3D_NEG_VS			(1 << 6)
-# define VIDFORMAT_3D				(1 << 7)
-#endif
-#define VIDFORMAT_FMT_MASK			(0x1FU)
-enum vidformat_fmt {
-	VIDFORMAT_640x480p_60Hz = 0x00,
-	VIDFORMAT_720x480p_60Hz = 0x01,
-	VIDFORMAT_1280x720p_60Hz = 0x02,
-	VIDFORMAT_1920x1080i_60Hz = 0x03,
-	VIDFORMAT_720x480i_60Hz = 0x04,
-	VIDFORMAT_720x240p_60Hz = 0x05,
-	VIDFORMAT_1920x1080p_60Hz = 0x06,
-	VIDFORMAT_720x576p_50Hz = 0x07,
-	VIDFORMAT_1280x720p_50Hz = 0x08,
-	VIDFORMAT_1920x1080i_50Hz = 0x09,
-	VIDFORMAT_720x576i_50Hz = 0x0A,
-	VIDFORMAT_720x288p_50Hz = 0x0B,
-	VIDFORMAT_1920x1080p_50Hz = 0x0C
-};
-
-#define REFPIX_MIN				(0x0000U)
-#define REFPIX_MAX				(0x1FFFU)
-
-#define REFLINE_MIN				(0x0000U)
-#define REFLINE_MAX				(0x07FFU)
-
-#define VIP_CNTRL_5_CLKPOL			(1 << 0)
-enum vip_cntrl_5_clkpol {
-	TGLCLK_LOW = 0,				/**< Clock polarity low */
-	TGLCLK_HIGH = VIP_CNTRL_5_CLKPOL	/**< Clock polarity high */
-};
-
-#define VIP_CNTRL_5_SP_CNT_MASK			(0x06U)
-#define VIP_CNTRL_5_SP_CNT_SHIFT		(1)
-
-#define MUX_AP_SELECT_I2S			(0x64)
-#define MUX_AP_SELECT_SPDIF			(0x24)
-
-#define MTX_CNTRL_MTX_SC			(0x03U)
-enum mtx_cntrl_scale {
-	MTXSCALE_256 = 0,			/**< Factor 1/256  */
-	MTXSCALE_512 = 1,			/**< Factor 1/512  */
-	MTXSCALE_1024 = 2,			/**< Factor 1/1024 */
-};
-
-#define MTX_CNTRL_MTX_BP			(1 << 2)	/**< Matrix bypass */
-enum mtx_cntrl_bp {
-	MTXBYPASS_OFF = 0,			/**< Matrix bypass off */
-	MTXBYPASS_ON = MTX_CNTRL_MTX_BP		/**< Matrix bypass on */
-};
-
-#define MTX_OFFSET_LEN				(3)		/**< Matrix offset (in or out) length */
-struct mtx_offset {
-	int16_t offset[MTX_OFFSET_LEN];
-};
-
-#define TBG_CNTRL_0_SYNC			(1 << 7)
-#define TBG_CNTRL_0_SYNC_MTHD			(1 << 6)
-#define TBG_CNTRL_0_FRAME_DIS			(1 << 5)
-
-#define TBG_CNTRL_1_VH_TGL_MASK			(0x07U)
-#define TBG_CNTRL_1_VH_TGL_0			(1 << 0)
-#define TBG_CNTRL_1_VH_TGL_1			(1 << 1)
-#define TBG_CNTRL_1_VH_TGL_2			(1 << 2)
-#define TBG_CNTRL_1_VHX_EXT_MASK		(0x38U)
-#define TBG_CNTRL_1_VHX_EXT_DE			(1 << 3)
-#define TBG_CNTRL_1_VHX_EXT_HS			(1 << 4)
-#define TBG_CNTRL_1_VHX_EXT_VS			(1 << 5)
-
-#define TBG_CNTRL_1_DWIN_DIS			(1 << 6)
-
-#define I2C_TIMER_RI_MASK			(0x0FU)
-#define I2C_TIMER_PJ_MASK			(0xF0U)
-
-#define HVF_CNTRL_0_INTPOL_MASK			(0x03U)		/**< Interpolation */
-#define HVF_CNTRL_0_PREFIL_MASK			(0x0CU)		/**< Prefilter */
-enum hvf_cntrl_0_prefil {
-	PREFIL_OFF = 0,
-	PREFIL_121 = 0x04,
-	PREFIL_109 = 0x08,
-	PREFIL_CCIR601 = 0x0C
-};
-
-#define HVF_CNTRL_0_CLRBAR			(1 << 6)	/**< Color bar mode */
-enum hvf_cntrl_0_clrbar {
-	CLRBAR_4BAR = 0,			/**< 4-bar colorbar (R/W/B/Bl) */
-	CLRBAR_8BAR = HVF_CNTRL_0_CLRBAR	/**< 8-bar colorbar (W/Y/Mg/R/Cy/G/B/Bl) */
-};
-
-#define HVF_CNTRL_0_SM				(1 << 7)	/**< Service mode (color bar enable ) */
-
-#define HVF_CNTRL_1_FOR				(1 << 0)	/**< Format bypass */
-#define HVF_CNTRL_1_YUVBLK			(1 << 1)	/**< YUV blanking level */
-enum hvf_cntrl_1_yuv_blk {
-	YUVBLK_16 = 0,				/**< Blanking level set to '16' */
-	YUVBLK_0 = HVF_CNTRL_1_YUVBLK,		/**< Blanking level set to '0' */
-};
-
-#define HVF_CNTRL_1_VQR_MASK			(0x0CU)		/**< Video quantization range */
-enum hvf_cntrl_1_vqr {
-	QRANGE_FS = 0,				/**< Full Scale */
-	QRANGE_RGB_YUV = 0x04,			/**< Limited RGB or YUV */
-	QRANGE_YUV = 0x08,			/**< YUV */
-};
-
-#define HVF_CNTRL_1_PAD_MASK			(0x30U)
-enum hvf_cntrl_1_pad {
-	DATAPATH_BITS_12 = 0,			/**< 12 bits */
-	DATAPATH_BITS_8 = 0x40,			/**< 8 bits  */
-	DATAPATH_BITS_10 = 0x80,		/**< 10 bits */
-};
-
-#define HVF_CNTRL_1_SEMI_PLANAR			(1 << 6)
-
-#define TIMER_H_TIM_H_MASK			(0x03U)
-#define TIMER_H_WD_CLKSEL			(1 << 6)
-
-#define DEBUG_PROBE_WOO_EN			(1 << 0)
-#define DEBUG_PROBE_DI_DE			(1 << 1)
-#define DEBUG_PROBE_VID_DE			(1 << 2)
-#define DEBUG_PROBE_BYPASS			(1 << 3)
-#define DEBUG_PROBE_SEL_MASK			(0x30U)
-
-#define I2S_FORMAT_I2S_FORMAT_MASK		(0x0FU)
-#define I2S_FORMAT_I2S_DATA_SIZE_MASK		(0x0CU)
-
-#define AIP_CLKSEL_DST_RATE       		(1 << 6)
-// AIP_CLKSEL_SEL_AIP_SHIFT	(3)
-#define AIP_CLKSEL_SEL_AIP_MASK			(0x38U)
-#define AIP_CLKSEL_SEL_POL_CLK			(1 << 2)
-#define AIP_CLKSEL_SEL_FS_MASK			(0x03U)
-
-#define SC_VIDFORMAT_LUT_SEL_MASK		(0xC0U)
-#define SC_VIDFORMAT_VID_FORMAT_O_MASK		(0x38U)
-#define SC_VIDFORMAT_VID_FORMAT_I_MASK		(0x0FU)
-
-#define SC_CNTRL_PHASES_H			(1 << 4)
-#define SC_CNTRL_IL_OUT_ON			(1 << 3)
-#define SC_CNTRL_PHASES_V			(1 << 2)
-#define SC_CNTRL_VS_ON				(1 << 1)
-#define SC_CNTRL_DEIL_ON			(1 << 0)
-
-#define TBG_CNTRL_0_SYNC			(1 << 7)
-enum tbg_cntrl_0_sync {
-	SYNC_EACH_FRAME = 0,
-	SYNC_ONCE = TBG_CNTRL_0_SYNC
-};
-
-#define TBG_CNTRL_0_SYNC_MTHD			(1 << 6)
-enum tbg_cntrl_0_sync_mthd {
-	SYNCMTHD_V_H = 0,			/**< V and H    */
-	SYNCMTHD_V_XDE = TBG_CNTRL_0_SYNC_MTHD,	/**< V and X-DE */
-};
-
-#define TBG_CNTRL_0_FRAME_DIS			(1 << 5)
-#define TBG_CNTRL_0_TOP_EXT			(1 << 3)
-#define TBG_CNTRL_0_DE_EXT			(1 << 2)
-#define TBG_CNTRL_0_TOP_SEL			(1 << 1)
-#define TBG_CNTRL_0_TOP_TGL			(1 << 0)
-
-#define PLL_SERIAL_1_SRL_FDN			(1 << 0)
-#define PLL_SERIAL_1_SRL_IZ_MASK		(0x06U)
-#define PLL_SERIAL_1_SRL_MAN_IZ			(1 << 6)
-
-#define PLL_SERIAL_2_SRL_NOSC_MASK		(0x03U)
-#define PLL_SERIAL_2_SRL_PR_MASK		(0xF0U)
-
-#define PLL_SERIAL_3_SRL_CCIR			(1 << 0)
-#define PLL_SERIAL_3_SRL_DE			(1 << 1)
-#define PLL_SERIAL_3_SRL_PXIN_SEL		(1 << 4)
-
-#define SERIALIZER_SRL_PHASE2_MASK		(0x0FU)
-#define SERIALIZER_SRL_PHASE3_MASK		(0xF0U)
-
-#define BUFFER_OUT_SRL_CLK_MASK			(0x03U)
-#define BUFFER_OUT_SRL_FORCE_MASK		(0x0CU)
-enum buffer_out_srl_force {
-	TMDSOUT_NORMAL = 0x00,
-	TMDSOUT_NORMAL1 = 0x04,
-	TMDSOUT_FORCED0 = 0x08,
-	TMDSOUT_FORCED1 = 0x0C
-};
-
-#define PLL_SCG1_SCG_FDN			(1 << 0)
-
-#define PLL_SCG2_SCG_NOSC_MASK			(0x03U)
-#define PLL_SCG2_SELPLLCLKIN			(1 << 4)
-#define PLL_SCG2_BYPASS_SCG			(1 << 7)
-
-#define VAI_PLL_PLLSRL_LOCK			(1 << 0)
-#define VAI_PLL_PLLSCG_LOCK			(1 << 1)
-#define VAI_PLL_PLLSRL_HVP			(1 << 4)
-#define VAI_PLL_PLLSCG_HVP			(1 << 5)
-#define VAI_PLL_PLLDE_HVP			(1 << 6)
-
-#define AUDIO_DIV_AUDIO_DIV_MASK		(0x07U)
-
-#define AIP_CNTRL_0_RST_FIFO			(1 << 0)
-#define AIP_CNTRL_0_SWAP			(1 << 1)
-#define AIP_CNTRL_0_LAYOUT			(1 << 2)
-#define AIP_CNTRL_0_ACR_MAN			(1 << 5)
-#define AIP_CNTRL_0_RST_CTS			(1 << 6)
-
-#define TEST1_TST_ENAHVP			(1 << 0)
-#define TEST1_TST_NOSC				(1 << 1)
-#define TEST1_SRLDAT_MASK			(0xC0U)
-
-#define TEST2_DIVTESTOE				(1 << 0)
-#define TEST2_PWD1V8				(1 << 1)
-
-#define SEL_CLK_SEL_CLK1			(1 << 0)
-#define SEL_CLK_SEL_VRF_CLK_MASK		(0x06U)
-#define SEL_CLK_ENA_SC_CLK			(1 << 3)
-
-
-#define BUFF_OUT2_FORCE_DAT0_MASK		(0x03U)
-#define BUFF_OUT2_FORCE_DAT1_MASK		(0x0CU)
-#define BUFF_OUT2_FORCE_DAT2_MASK		(0x30U)
-
-#define EDID_CTRL_EDID_RD			(1 << 0)
-
-#define CA_I2S_CA_I2S_MASK			(0x1FU)
-#define CA_I2S_HBR_CHSTAT_4			(1 << 5)
-
-#define GC_AVMUTE_SETCLR_MUTE			(0x0CU)
-#define GC_AVMUTE_CLR_MUTE			(1 << 0)
-#define GC_AVMUTE_SET_MUTE			(1 << 1)
-
-#define CTS_N_M_SEL_MASK			(0x30U)
-#define CTS_N_K_SEL_MASK			(0x07U)
-
-#define ENC_CNTRL_RST_ENC			(1 << 0)
-#define ENC_CNTRL_RST_SEL			(1 << 1)
-#define ENC_CNTRL_CTL_CODE_MASK			(0x0CU)
-
-#define DIP_FLAGS_ACR				(1 << 0)
-#define DIP_FLAGS_GC				(1 << 1)
-#define DIP_FLAGS_ISRC1				(1 << 2)
-#define DIP_FLAGS_ISRC2				(1 << 3)
-#define DIP_FLAGS_ACP				(1 << 4)
-#define DIP_FLAGS_NULL				(1 << 6)
-#define DIP_FLAGS_FORCE_NULL			(1 << 7)
-
-#define DIP_IF_FLAGS_IF1			(1 << 1)
-#define DIP_IF_FLAGS_IF2			(1 << 2)
-#define DIP_IF_FLAGS_IF3			(1 << 3)
-#define DIP_IF_FLAGS_IF4			(1 << 4)
-#define DIP_IF_FLAGS_IF5			(1 << 5)
-
-#define OTP_TX0_SR_HDCP				(1 << 0)
-#define DDC_SPEED_FACTOR			(39)
-#define OTP_TX33_HDMI				(1 << 1)
-
-#define GMD_CONTROL_ENABLE			(1 << 0)
-#define GMD_CONTROL_BUF_SEL			(1 << 1)
-
-#define SSD_UNUSED_VALUE 0xF0
-
-#define REG_VAL_SEL_AIP_SPDIF   0
-#define REG_VAL_SEL_AIP_I2S     1
-#define REG_VAL_SEL_AIP_OBA     2
-#define REG_VAL_SEL_AIP_DST     3
-#define REG_VAL_SEL_AIP_HBR     5
-
-//CH_STAT_B_0		= PAGE_ADDR(PAGE_11, 0x14),
-//CH_STAT_B_1		= PAGE_ADDR(PAGE_11, 0x15),
-//CH_STAT_B_3		= PAGE_ADDR(PAGE_11, 0x16),
-//CH_STAT_B_4		= PAGE_ADDR(PAGE_11, 0x17),
-
-//	buf[0] = ((uint8_t) formatInfo << 3) |
-//			((uint8_t) copyright << 2) |
-//			((uint8_t) pcmIdentification << 1);
-
-#define CH_STAT_B_0_DATA_PCM			(1 << 1)	/**< PCM data field */
-#define CH_STAT_B_0_COPYRIGHT			(1 << 2)	/**< Copyright protection */
-#define CH_STAT_B_0_FMT_MASK			(0x38U)
-
-///** BYTE 0: Channel Status Format information */
-//typedef enum
-//{
-//    HDMITX_CSFI_PCM_2CHAN_NO_PRE    = 0,  /**< PCM 2 channels without pre-emphasis           */
-//    HDMITX_CSFI_PCM_2CHAN_PRE       = 1,  /**< PCM 2 channels with 50us/15us pre-emphasis    */
-//    HDMITX_CSFI_PCM_2CHAN_PRE_RSVD1 = 2,  /**< PCM Reserved for 2 channels with pre-emphasis */
-//    HDMITX_CSFI_PCM_2CHAN_PRE_RSVD2 = 3,  /**< PCM Reserved for 2 channels with pre-emphasis */
-//    HDMITX_CSFI_NOTPCM_DEFAULT      = 4,  /**< Non-PCM Default state                         */
-//    HDMITX_CSFI_INVALID             = 5   /**< Invalid value                                 */
-//} tmbslHdmiTxCSformatInfo_t;
-
-///** BYTE 3: Channel Status Clock Accuracy */
-//typedef enum
-//{
-//    HDMITX_CSCLK_LEVEL_II    = 0,     /**< Level II                     */
-//    HDMITX_CSCLK_LEVEL_I     = 1,     /**< Level I                      */
-//    HDMITX_CSCLK_LEVEL_III   = 2,     /**< Level III                    */
-//    HDMITX_CSCLK_NOT_MATCHED = 3,     /**< Not matched to sample freq.  */
-//    HDMITX_CSCLK_INVALID     = 4      /**< Invalid                      */
-//} tmbslHdmiTxCSclkAcc_t;
-
-//	buf[2] = ((uint8_t) clockAccuracy << 4) | kAfsToCSbyte3[sampleFreq];
-
-
-//	buf[3] = ((uint8_t) origSampleFreq << 4) |
-//			((uint8_t) wordLength << 1) |
-//			(uint8_t) maxWordLength;
-
-///** BYTE 4: Channel Status Maximum sample word length */
-//typedef enum
-//{
-//    HDMITX_CSMAX_LENGTH_20   = 0,  /**< Max word length is 20 bits   */
-//    HDMITX_CSMAX_LENGTH_24   = 1,  /**< Max word length is 24 bits   */
-//    HDMITX_CSMAX_INVALID     = 2   /**< Invalid value                */
-//} tmbslHdmiTxCSmaxWordLength_t;
-//
-///** BYTE 4: Channel Status Sample word length */
-//typedef enum
-//{
-//    HDMITX_CSWORD_DEFAULT          = 0,     /**< Word length is not indicated                    */
-//    HDMITX_CSWORD_20_OF_24         = 1,     /**< Sample length is 20 bits out of max 24 possible */
-//    HDMITX_CSWORD_16_OF_20         = 1,     /**< Sample length is 16 bits out of max 20 possible */
-//    HDMITX_CSWORD_22_OF_24         = 2,     /**< Sample length is 22 bits out of max 24 possible */
-//    HDMITX_CSWORD_18_OF_20         = 2,     /**< Sample length is 18 bits out of max 20 possible */
-//    HDMITX_CSWORD_RESVD            = 3,     /**< Reserved - shall not be used */
-//    HDMITX_CSWORD_23_OF_24         = 4,     /**< Sample length is 23 bits out of max 24 possible */
-//    HDMITX_CSWORD_19_OF_20         = 4,     /**< Sample length is 19 bits out of max 20 possible */
-//    HDMITX_CSWORD_24_OF_24         = 5,     /**< Sample length is 24 bits out of max 24 possible */
-//    HDMITX_CSWORD_20_OF_20         = 5,     /**< Sample length is 20 bits out of max 20 possible */
-//    HDMITX_CSWORD_21_OF_24         = 6,     /**< Sample length is 21 bits out of max 24 possible */
-//    HDMITX_CSWORD_17_OF_20         = 6,     /**< Sample length is 17 bits out of max 20 possible */
-//    HDMITX_CSWORD_INVALID          = 7      /**< Invalid */
-//} tmbslHdmiTxCSwordLength_t;
-//
-//
-///** BYTE 4: Channel Status Original sample frequency */
-//typedef enum
-//{
-//    HDMITX_CSOFREQ_NOT_INDICATED = 0,   /**< Not Indicated */
-//    HDMITX_CSOFREQ_192k          = 1,   /**< 192kHz        */
-//    HDMITX_CSOFREQ_12k           = 2,   /**< 12kHz         */
-//    HDMITX_CSOFREQ_176_4k        = 3,   /**< 176.4kHz      */
-//    HDMITX_CSOFREQ_RSVD1         = 4,   /**< Reserved      */
-//    HDMITX_CSOFREQ_96k           = 5,   /**< 96kHz         */
-//    HDMITX_CSOFREQ_8k            = 6,   /**< 8kHz          */
-//    HDMITX_CSOFREQ_88_2k         = 7,   /**< 88.2kHz       */
-//    HDMITX_CSOFREQ_16k           = 8,   /**< 16kHz         */
-//    HDMITX_CSOFREQ_24k           = 9,   /**< 24kHz         */
-//    HDMITX_CSOFREQ_11_025k       = 10,  /**< 11.025kHz     */
-//    HDMITX_CSOFREQ_22_05k        = 11,  /**< 22.05kHz      */
-//    HDMITX_CSOFREQ_32k           = 12,  /**< 32kHz         */
-//    HDMITX_CSOFREQ_48k           = 13,  /**< 48kHz         */
-//    HDMITX_CSOFREQ_RSVD2         = 14,  /**< Reserved      */
-//    HDMITX_CSOFREQ_44_1k         = 15,  /**< 44.1kHz       */
-//    HDMITX_CSAFS_INVALID         = 16   /**< Invalid value */
-//} tmbslHdmiTxCSorigAfs_t;
-
-/**
- * @brief	Set Audio Output Channel Status
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */
-//int
-//tda998x_aud_set_chan_status(struct tda998x_dev *dev,
-//		tmbslHdmiTxAudioData_t pcmIdentification,
-//		tmbslHdmiTxCSformatInfo_t formatInfo,
-//		tmbslHdmiTxCScopyright_t copyright,
-//		uint8_t categoryCode,
-//		enum tda998x_aud_rate sampleFreq,
-//		tmbslHdmiTxCSclkAcc_t clockAccuracy,
-//		tmbslHdmiTxCSmaxWordLength_t maxWordLength,
-//		tmbslHdmiTxCSwordLength_t wordLength,
-//		tmbslHdmiTxCSorigAfs_t origSampleFreq)
-//{
-//	uint8_t buf[4];			/* Buffer to hold channel status data */
-//
-//	/* Return if sink is not an HDMI device */
-//	if (dev->sink != SINK_HDMI)
-//		return ERR_NOT_PERMITTED;
-
-//	buf[1] = categoryCode;
-//
-//	/* Write 4 Channel Status bytes */
-//	return tda998x_write(dev, CH_STAT_B_0, 4, &buf[0]);
-//}
-
-/**
- * @brief	HDMI Core Registers
- */
-enum tda998x_hdmi_reg {
-	VERSION			= PAGE_ADDR(PAGE_00, 0x00),	/**< Device version */
-	MAIN_CNTRL0		= PAGE_ADDR(PAGE_00, 0x01),	/**< Main control */
-	VERSION_MSB		= PAGE_ADDR(PAGE_00, 0x02),
-	PACKAGE_TYPE		= PAGE_ADDR(PAGE_00, 0x03),
-	SR_REG			= PAGE_ADDR(PAGE_00, 0x0A),
-	DDC_DISABLE		= PAGE_ADDR(PAGE_00, 0x0B),
-	CCLK_ON			= PAGE_ADDR(PAGE_00, 0x0C),
-	I2C_MASTER		= PAGE_ADDR(PAGE_00, 0x0D),
-	INT_FLAGS_0		= PAGE_ADDR(PAGE_00, 0x0F),
-	INT_FLAGS_1		= PAGE_ADDR(PAGE_00, 0x10),
-	INT_FLAGS_2		= PAGE_ADDR(PAGE_00, 0x11),
-	INT_FLAGS_3		= PAGE_ADDR(PAGE_00, 0x12),
-	SW_INT			= PAGE_ADDR(PAGE_00, 0x15),
-	ENA_ACLK		= PAGE_ADDR(PAGE_00, 0x16),
-	ENA_VP_0		= PAGE_ADDR(PAGE_00, 0x18),
-	ENA_VP_1		= PAGE_ADDR(PAGE_00, 0x19),
-	ENA_VP_2		= PAGE_ADDR(PAGE_00, 0x1A),
-	ENA_AP			= PAGE_ADDR(PAGE_00, 0x1E),
-	VIP_CNTRL_0		= PAGE_ADDR(PAGE_00, 0x20),	/**< Video port control 0 */
-	VIP_CNTRL_1		= PAGE_ADDR(PAGE_00, 0x21),	/**< Video port control 1 */
-	VIP_CNTRL_2		= PAGE_ADDR(PAGE_00, 0x22),	/**< Video port control 2 */
-	VIP_CNTRL_3		= PAGE_ADDR(PAGE_00, 0x23),	/**< Video port control 3 */
-	VIP_CNTRL_4		= PAGE_ADDR(PAGE_00, 0x24),	/**< Video port control 4 */
-	VIP_CNTRL_5		= PAGE_ADDR(PAGE_00, 0x25),	/**< Video port control 5 */
-	MUX_AP			= PAGE_ADDR(PAGE_00, 0x26),
-	MUX_VP_VIP_OUT		= PAGE_ADDR(PAGE_00, 0x27),
-	MTX_CNTRL		= PAGE_ADDR(PAGE_00, 0x80),
-	MTX_OI1_MSB		= PAGE_ADDR(PAGE_00, 0x81),
-	MTX_P11_MSB		= PAGE_ADDR(PAGE_00, 0x87),
-	MTX_OO1_MSB		= PAGE_ADDR(PAGE_00, 0x99),
-	VIDFORMAT		= PAGE_ADDR(PAGE_00, 0xA0),
-	REFPIX_MSB		= PAGE_ADDR(PAGE_00, 0xA1),
-	REFPIX_LSB		= PAGE_ADDR(PAGE_00, 0xA2),
-	REFLINE_MSB		= PAGE_ADDR(PAGE_00, 0xA3),
-	REFLINE_LSB		= PAGE_ADDR(PAGE_00, 0xA4),
-	NPIX_MSB		= PAGE_ADDR(PAGE_00, 0xA5),
-	NPIX_LSB		= PAGE_ADDR(PAGE_00, 0xA6),
-	NLINE_MSB		= PAGE_ADDR(PAGE_00, 0xA7),
-	NLINE_LSB		= PAGE_ADDR(PAGE_00, 0xA8),
-	VS_LINE_STRT_1_MSB	= PAGE_ADDR(PAGE_00, 0xA9),
-	VS_LINE_STRT_1_LSB	= PAGE_ADDR(PAGE_00, 0xAA),
-	VS_PIX_STRT_1_MSB	= PAGE_ADDR(PAGE_00, 0xAB),
-	VS_PIX_STRT_1_LSB	= PAGE_ADDR(PAGE_00, 0xAC),
-	VS_LINE_END_1_MSB	= PAGE_ADDR(PAGE_00, 0xAD),
-	VS_LINE_END_1_LSB	= PAGE_ADDR(PAGE_00, 0xAE),
-	VS_PIX_END_1_MSB	= PAGE_ADDR(PAGE_00, 0xAF),
-	VS_PIX_END_1_LSB	= PAGE_ADDR(PAGE_00, 0xB0),
-	VS_LINE_STRT_2_MSB	= PAGE_ADDR(PAGE_00, 0xB1),
-	VS_LINE_STRT_2_LSB	= PAGE_ADDR(PAGE_00, 0xB2),
-	VS_PIX_STRT_2_MSB	= PAGE_ADDR(PAGE_00, 0xB3),
-	VS_PIX_STRT_2_LSB	= PAGE_ADDR(PAGE_00, 0xB4),
-	VS_LINE_END_2_MSB	= PAGE_ADDR(PAGE_00, 0xB5),
-	VS_LINE_END_2_LSB	= PAGE_ADDR(PAGE_00, 0xB6),
-	VS_PIX_END_2_MSB	= PAGE_ADDR(PAGE_00, 0xB7),
-	VS_PIX_END_2_LSB	= PAGE_ADDR(PAGE_00, 0xB8),
-	HS_PIX_START_MSB	= PAGE_ADDR(PAGE_00, 0xB9),
-	HS_PIX_START_LSB	= PAGE_ADDR(PAGE_00, 0xBA),
-	HS_PIX_STOP_MSB		= PAGE_ADDR(PAGE_00, 0xBB),
-	HS_PIX_STOP_LSB		= PAGE_ADDR(PAGE_00, 0xBC),
-	VWIN_START_1_MSB	= PAGE_ADDR(PAGE_00, 0xBD),
-	VWIN_START_1_LSB	= PAGE_ADDR(PAGE_00, 0xBE),
-	VWIN_END_1_MSB		= PAGE_ADDR(PAGE_00, 0xBF),
-	VWIN_END_1_LSB		= PAGE_ADDR(PAGE_00, 0xC0),
-	VWIN_START_2_MSB	= PAGE_ADDR(PAGE_00, 0xC1),
-	VWIN_START_2_LSB	= PAGE_ADDR(PAGE_00, 0xC2),
-	VWIN_END_2_MSB		= PAGE_ADDR(PAGE_00, 0xC3),
-	VWIN_END_2_LSB		= PAGE_ADDR(PAGE_00, 0xC4),
-	DE_START_MSB		= PAGE_ADDR(PAGE_00, 0xC5),
-	DE_START_LSB		= PAGE_ADDR(PAGE_00, 0xC6),
-	DE_STOP_MSB		= PAGE_ADDR(PAGE_00, 0xC7),
-	DE_STOP_LSB		= PAGE_ADDR(PAGE_00, 0xC8),
-	COLBAR_WIDTH		= PAGE_ADDR(PAGE_00, 0xC9),
-	TBG_CNTRL_0		= PAGE_ADDR(PAGE_00, 0xCA),
-	TBG_CNTRL_1		= PAGE_ADDR(PAGE_00, 0xCB),
-	VBL_OFFSET_START	= PAGE_ADDR(PAGE_00, 0xCC),
-	VBL_OFFSET_END		= PAGE_ADDR(PAGE_00, 0xCD),
-	HBL_OFFSET_START	= PAGE_ADDR(PAGE_00, 0xCE),
-	HBL_OFFSET_END		= PAGE_ADDR(PAGE_00, 0xCF),
-	DWIN_RE_DE		= PAGE_ADDR(PAGE_00, 0xD0),
-	DWIN_FE_DE		= PAGE_ADDR(PAGE_00, 0xD1),
-	TIMER_RI_PJ		= PAGE_ADDR(PAGE_00, 0xE1),
-	BCAPS_POLL		= PAGE_ADDR(PAGE_00, 0xE2),
-	REG_100us		= PAGE_ADDR(PAGE_00, 0xE3),
-	HVF_CNTRL_0		= PAGE_ADDR(PAGE_00, 0xE4),
-	HVF_CNTRL_1		= PAGE_ADDR(PAGE_00, 0xE5),
-	TIMER_H			= PAGE_ADDR(PAGE_00, 0xE8),
-	TIMER_M			= PAGE_ADDR(PAGE_00, 0xE9),
-	TIMER_L			= PAGE_ADDR(PAGE_00, 0xEA),
-	TIMER_2SEC		= PAGE_ADDR(PAGE_00, 0xEB),
-	TIMER_5SEC		= PAGE_ADDR(PAGE_00, 0xEC),
-	NDIV_IM			= PAGE_ADDR(PAGE_00, 0xEE),
-	NDIV_PF			= PAGE_ADDR(PAGE_00, 0xEF),
-	RPT_CNTRL		= PAGE_ADDR(PAGE_00, 0xF0),
-	LEAD_OFF		= PAGE_ADDR(PAGE_00, 0xF1),
-	TRAIL_OFF		= PAGE_ADDR(PAGE_00, 0xF2),
-	MISR_EXP_0		= PAGE_ADDR(PAGE_00, 0xF3),
-	MISR_EXP_1		= PAGE_ADDR(PAGE_00, 0xF4),
-	MISR_EXP_2		= PAGE_ADDR(PAGE_00, 0xF5),
-	MISR_0			= PAGE_ADDR(PAGE_00, 0xF6),
-	MISR_1			= PAGE_ADDR(PAGE_00, 0xF7),
-	DEBUG_PROBE		= PAGE_ADDR(PAGE_00, 0xF8),
-	GHOST_XADDR		= PAGE_ADDR(PAGE_00, 0xF9),
-	MISR_2			= PAGE_ADDR(PAGE_00, 0xFA),
-	I2S_FORMAT		= PAGE_ADDR(PAGE_00, 0xFC),
-	AIP_CLKSEL		= PAGE_ADDR(PAGE_00, 0xFD),
-	GHOST_ADDR		= PAGE_ADDR(PAGE_00, 0xFE),
-	SC_VIDFORMAT		= PAGE_ADDR(PAGE_01, 0x00),
-	SC_CNTRL		= PAGE_ADDR(PAGE_01, 0x01),
-	SC_DELTA_PHASE_V	= PAGE_ADDR(PAGE_01, 0x02),
-	SC_DELTA_PHASE_H	= PAGE_ADDR(PAGE_01, 0x03),
-	SC_START_PHASE_H	= PAGE_ADDR(PAGE_01, 0x04),
-	SC_NPIX_IN_LSB		= PAGE_ADDR(PAGE_01, 0x05),
-	SC_NPIX_IN_MSB		= PAGE_ADDR(PAGE_01, 0x06),
-	SC_NPIX_OUT_LSB		= PAGE_ADDR(PAGE_01, 0x07),
-	SC_NPIX_OUT_MSB		= PAGE_ADDR(PAGE_01, 0x08),
-	SC_NLINE_IN_LSB		= PAGE_ADDR(PAGE_01, 0x09),
-	SC_NLINE_IN_MSB		= PAGE_ADDR(PAGE_01, 0x0A),
-	SC_NLINE_OUT_LSB	= PAGE_ADDR(PAGE_01, 0x0B),
-	SC_NLINE_OUT_MSB	= PAGE_ADDR(PAGE_01, 0x0C),
-	SC_NLINE_SKIP		= PAGE_ADDR(PAGE_01, 0x0D),
-	SC_SAMPLE_BUFFIL	= PAGE_ADDR(PAGE_01, 0x0E),
-	SC_MAX_BUFFILL_P_0	= PAGE_ADDR(PAGE_01, 0x0F),
-	SC_MAX_BUFFILL_P_1	= PAGE_ADDR(PAGE_01, 0x10),
-	SC_MAX_BUFFILL_D_0	= PAGE_ADDR(PAGE_01, 0x11),
-	SC_MAX_BUFFILL_D_1	= PAGE_ADDR(PAGE_01, 0x12),
-	SC_SAMPLE_FIFOFILL	= PAGE_ADDR(PAGE_01, 0x13),
-	SC_MAX_FIFOFILL_PI	= PAGE_ADDR(PAGE_01, 0x14),
-	SC_MIN_FIFOFILL_PO1	= PAGE_ADDR(PAGE_01, 0x15),
-	SC_MIN_FIFOFILL_PO2	= PAGE_ADDR(PAGE_01, 0x16),
-	SC_MIN_FIFOFILL_PO3	= PAGE_ADDR(PAGE_01, 0x17),
-	SC_MIN_FIFOFILL_PO4	= PAGE_ADDR(PAGE_01, 0x18),
-	SC_MAX_FIFOFILL_DI	= PAGE_ADDR(PAGE_01, 0x19),
-	SC_MAX_FIFOFILL_DO	= PAGE_ADDR(PAGE_01, 0x1A),
-	SC_VS_LUT_0		= PAGE_ADDR(PAGE_01, 0x1B),
-	SC_LAT_SCO		= PAGE_ADDR(PAGE_01, 0x48),
-	VIDFORMAT_W		= PAGE_ADDR(PAGE_01, 0xA0),
-	REFPIX_MSB_W		= PAGE_ADDR(PAGE_01, 0xA1),
-	REFPIX_LSB_W		= PAGE_ADDR(PAGE_01, 0xA2),
-	REFLINE_MSB_W		= PAGE_ADDR(PAGE_01, 0xA3),
-	REFLINE_LSB_W		= PAGE_ADDR(PAGE_01, 0xA4),
-	NPIX_MSB_W		= PAGE_ADDR(PAGE_01, 0xA5),
-	NPIX_LSB_W		= PAGE_ADDR(PAGE_01, 0xA6),
-	NLINE_MSB_W		= PAGE_ADDR(PAGE_01, 0xA7),
-	NLINE_LSB_W		= PAGE_ADDR(PAGE_01, 0xA8),
-	VWIN_START_1_MSB_W	= PAGE_ADDR(PAGE_01, 0xBD),
-	VWIN_START_1_LSB_W	= PAGE_ADDR(PAGE_01, 0xBE),
-	VWIN_END_1_MSB_W	= PAGE_ADDR(PAGE_01, 0xBF),
-	VWIN_END_1_LSB_W	= PAGE_ADDR(PAGE_01, 0xC0),
-	VWIN_START_2_MSB_W	= PAGE_ADDR(PAGE_01, 0xC1),
-	VWIN_START_2_LSB_W	= PAGE_ADDR(PAGE_01, 0xC2),
-	VWIN_END_2_MSB_W	= PAGE_ADDR(PAGE_01, 0xC3),
-	VWIN_END_2_LSB_W	= PAGE_ADDR(PAGE_01, 0xC4),
-	DE_START_MSB_W		= PAGE_ADDR(PAGE_01, 0xC5),
-	DE_START_LSB_W		= PAGE_ADDR(PAGE_01, 0xC6),
-	DE_STOP_MSB_W		= PAGE_ADDR(PAGE_01, 0xC7),
-	DE_STOP_LSB_W		= PAGE_ADDR(PAGE_01, 0xC8),
-	PLL_SERIAL_1		= PAGE_ADDR(PAGE_02, 0x00),
-	PLL_SERIAL_2		= PAGE_ADDR(PAGE_02, 0x01),
-	PLL_SERIAL_3		= PAGE_ADDR(PAGE_02, 0x02),
-	SERIALIZER		= PAGE_ADDR(PAGE_02, 0x03),
-	BUFFER_OUT		= PAGE_ADDR(PAGE_02, 0x04),
-	PLL_SCG1		= PAGE_ADDR(PAGE_02, 0x05),
-	PLL_SCG2		= PAGE_ADDR(PAGE_02, 0x06),
-	PLL_SCGN1		= PAGE_ADDR(PAGE_02, 0x07),
-	PLL_SCGN2		= PAGE_ADDR(PAGE_02, 0x08),
-	PLL_SCGR1		= PAGE_ADDR(PAGE_02, 0x09),
-	PLL_SCGR2		= PAGE_ADDR(PAGE_02, 0x0A),
-	VAI_PLL_R		= PAGE_ADDR(PAGE_02, 0x0D),
-	AUDIO_DIV		= PAGE_ADDR(PAGE_02, 0x0E),
-	TEST1_RW		= PAGE_ADDR(PAGE_02, 0x0F),
-	TEST2_RW		= PAGE_ADDR(PAGE_02, 0x10),
-	SEL_CLK			= PAGE_ADDR(PAGE_02, 0x11),
-	ANA_GENERAL		= PAGE_ADDR(PAGE_02, 0x12),
-	BUFFER_OUT2_RW		= PAGE_ADDR(PAGE_02, 0x13),
-	SRL_TSTPAT0_RW		= PAGE_ADDR(PAGE_02, 0x14),
-	SRL_TSTPAT1_RW		= PAGE_ADDR(PAGE_02, 0x15),
-	SRL_TSTPAT2_RW		= PAGE_ADDR(PAGE_02, 0x16),
-	SRL_TSTPAT3_RW		= PAGE_ADDR(PAGE_02, 0x17),
-	EDID_DATA_0_R		= PAGE_ADDR(PAGE_09, 0x00),
-	EDID_CTRL_RW		= PAGE_ADDR(PAGE_09, 0xFA),
-	DDC_ADDR_RW		= PAGE_ADDR(PAGE_09, 0xFB),
-	DDC_OFFS_RW		= PAGE_ADDR(PAGE_09, 0xFC),
-	DDC_SEGM_ADDR_RW	= PAGE_ADDR(PAGE_09, 0xFD),
-	DDC_SEGM_RW		= PAGE_ADDR(PAGE_09, 0xFE),
-	IF1_HB0			= PAGE_ADDR(PAGE_10, 0x20),
-	IF1_PB0			= PAGE_ADDR(PAGE_10, 0x23),
-	IF1_PB10		= PAGE_ADDR(PAGE_10, 0x2D),
-	IF2_HB0			= PAGE_ADDR(PAGE_10, 0x40),
-	IF2_PB0			= PAGE_ADDR(PAGE_10, 0x43),
-	IF3_HB0			= PAGE_ADDR(PAGE_10, 0x60),
-	IF3_PB0			= PAGE_ADDR(PAGE_10, 0x63),
-	IF4_HB0			= PAGE_ADDR(PAGE_10, 0x80),
-	IF4_PB0			= PAGE_ADDR(PAGE_10, 0x83),
-	IF5_HB0			= PAGE_ADDR(PAGE_10, 0xA0),
-	IF5_PB0			= PAGE_ADDR(PAGE_10, 0xA3),
-	AIP_CNTRL_0		= PAGE_ADDR(PAGE_11, 0x00),
-	CA_I2S			= PAGE_ADDR(PAGE_11, 0x01),
-	CA_DSD			= PAGE_ADDR(PAGE_11, 0x02),
-	OBA_PH			= PAGE_ADDR(PAGE_11, 0x03),
-	LATENCY_RD		= PAGE_ADDR(PAGE_11, 0x04),
-	ACR_CTS_0		= PAGE_ADDR(PAGE_11, 0x05),
-	ACR_CTS_1		= PAGE_ADDR(PAGE_11, 0x06),
-	ACR_CTS_2		= PAGE_ADDR(PAGE_11, 0x07),
-	ACR_N_0			= PAGE_ADDR(PAGE_11, 0x08),
-	ACR_N_1			= PAGE_ADDR(PAGE_11, 0x09),
-	ACR_N_2			= PAGE_ADDR(PAGE_11, 0x0A),
-	GC_AVMUTE		= PAGE_ADDR(PAGE_11, 0x0B),
-	CTS_N_RW		= PAGE_ADDR(PAGE_11, 0x0C),
-	ENC_CNTRL		= PAGE_ADDR(PAGE_11, 0x0D),
-	DIP_FLAGS		= PAGE_ADDR(PAGE_11, 0x0E),
-	DIP_IF_FLAGS		= PAGE_ADDR(PAGE_11, 0x0F),
-	CH_STAT_B_0		= PAGE_ADDR(PAGE_11, 0x14),
-	CH_STAT_B_1		= PAGE_ADDR(PAGE_11, 0x15),
-	CH_STAT_B_3		= PAGE_ADDR(PAGE_11, 0x16),
-	CH_STAT_B_4		= PAGE_ADDR(PAGE_11, 0x17),
-	CH_STAT_B_2_AP0_L	= PAGE_ADDR(PAGE_11, 0x18),
-	CH_STAT_B_2_AP0_R	= PAGE_ADDR(PAGE_11, 0x19),
-	CH_STAT_B_2_AP1_L	= PAGE_ADDR(PAGE_11, 0x1A),
-	CH_STAT_B_2_AP1_R	= PAGE_ADDR(PAGE_11, 0x1B),
-	CH_STAT_B_2_AP2_L	= PAGE_ADDR(PAGE_11, 0x1C),
-	CH_STAT_B_2_AP2_R	= PAGE_ADDR(PAGE_11, 0x1D),
-	CH_STAT_B_2_AP3_L	= PAGE_ADDR(PAGE_11, 0x1E),
-	CH_STAT_B_2_AP3_R	= PAGE_ADDR(PAGE_11, 0x1F),
-	ISRC1_HB0		= PAGE_ADDR(PAGE_11, 0x20),
-	ISRC1_PB0		= PAGE_ADDR(PAGE_11, 0x23),
-	ISRC2_HB0		= PAGE_ADDR(PAGE_11, 0x40),
-	ISRC2_PB0		= PAGE_ADDR(PAGE_11, 0x43),
-	ACP_HB0			= PAGE_ADDR(PAGE_11, 0x60),
-	ACP_PB0			= PAGE_ADDR(PAGE_11, 0x63),
-	OTP_TX0			= PAGE_ADDR(PAGE_12, 0x97),
-	OTP_TX1			= PAGE_ADDR(PAGE_12, 0x98),
-	OTP_TX2			= PAGE_ADDR(PAGE_12, 0x99),
-	OTP_TX3			= PAGE_ADDR(PAGE_12, 0x9A),
-	OTP_TX33		= PAGE_ADDR(PAGE_12, 0xB8),
-	GMD_0_HB0_RW		= PAGE_ADDR(PAGE_13, 0x00),
-	GMD_0_PB0_RW		= PAGE_ADDR(PAGE_13, 0x03),
-	GMD_CONTROL_RW		= PAGE_ADDR(PAGE_13, 0x1F),
-	GMD_1_HB0_RW		= PAGE_ADDR(PAGE_13, 0x20),
-	GMD_1_PB0_RW		= PAGE_ADDR(PAGE_13, 0x23),
-	INVALID_REG		= PAGE_ADDR(PAGE_INVALID, 0xFF),
-	CURPAGE			= PAGE_ADDR(PAGE_INVALID, 0xFF),
-};
-
-/**
- * @brief	Supported feature enumeration
- */
-enum feat_support {
-	FEAT_HDCP = 0,			/**< HDCP */
-	FEAT_SCALER = 1,  		/**< Scaler */
-	FEAT_AUDIO_OBA = 2, 		/**< One bit audio */
-	FEAT_AUDIO_DST = 3,  		/**< DST audio */
-	FEAT_AUDIO_HBR = 4,  		/**< HBR audio */
-	FEAT_HDMI_1_1 = 5,  		/**< HDMI 1.1 */
-	FEAT_HDMI_1_2A = 6, 		/**< HDMI 1.2a */
-	FEAT_HDMI_1_3A = 7,  		/**< HDMI 1.3a */
-	FEAT_DEEP_COLOR_30 = 8,  	/**< 30 bits deep color */
-	FEAT_DEEP_COLOR_36 = 9,  	/**< 36 bits deep color */
-	FEAT_DEEP_COLOR_48 = 11, 	/**< 48 bits deep color */
-	FEAT_UPSAMPLER = 12, 		/**< Up sampler */
-	FEAT_DOWNSAMPLER = 13, 		/**< Down sampler */
-	FEAT_COLOR_CONVERSION = 14	/**< Color conversion matrix */
-};
-
-/**
- * @brief	Frame Sync
- */
-enum vs_fsync {
-	VS_FSYNC_EACH_FRAME = 0,	/**< Sync on each frame */
-	VS_FSYNC_ONCE = 1,		/**< Sync once only     */
-};
-
-enum vs_src {
-	VS_SRC_INTERNAL = 0,		/**< Internal */
-	VS_SRC_EXTERNAL = 1,		/**< External */
-};
-
-enum vs_tgl {
-	VS_TGL_TABLE = 0,		/**< VS/HS polarity from table */
-	VS_TGL_UNUSED_1 = 1,		/**< Unused */
-	VS_TGL_UNUSED_2 = 2,		/**< Unused */
-	VS_TGL_UNUSED_3 = 3,		/**< Unused */
-	VS_TGL_NO_ACTION = 4,		/**< No toggle */
-	VS_TGL_HS = 5,			/**< Toggle Hs */
-	VS_TGL_VS = 6,			/**< Toggle Vs */
-	VS_TGL_HS_VS = 7		/**< Toggle Hs & Vs */
-};
-
-struct reg_mask_val {
-	enum tda998x_hdmi_reg	reg;
-	uint8_t			mask;
-	uint8_t			val;
-};
-
-/**
- * @brief	Vertical output frequencies
- */
-enum tda998x_vert_freq {
-	VFREQ_24Hz = 0,			/**< 24Hz */
-	VFREQ_25Hz = 1,			/**< 25Hz */
-	VFREQ_30Hz = 2,			/**< 30Hz */
-	VFREQ_50Hz = 3,			/**< 50Hz */
-	VFREQ_59Hz = 4,			/**< 59.94Hz */
-	VFREQ_60Hz = 5,			/**< 60Hz */
-};
-
-enum tda998x_pix_edge {
-	PIXEDGE_CLK_POS = 0,		/**< Pixel Clock Positive Edge */
-	PIXEDGE_CLK_NEG = 1,		/**< Pixel Clock Negative Edge */
-};
-
-struct tda998x_vid_reg {
-	uint16_t	npix;
-	uint16_t	nline;
-	uint16_t	line_start;
-	uint16_t	pix_start;
-	uint16_t	line_end;
-	uint16_t	pix_end;
-	uint16_t	hs_start;
-	uint16_t	hs_end;
-	uint16_t	act_vid_start;
-	uint16_t	act_vid_end;
-	uint16_t	de_start;
-	uint16_t	de_end;
-	uint16_t	act_space_start;
-	uint16_t	act_space_end;
-};
-
-enum tda998x_color_space {
-	CS_RGB_FULL  = 0,		/**< RGB full */
-	CS_RGB_LIMITED = 1,		/**< RGB Limited (TV) */
-	CS_YUV_ITU_BT601 = 2,		/**< YUV ITUBT601 (SDTV) */
-	CS_YUV_ITU_BT709 = 3,		/**< YUV ITUBT709 (HDTV) */
-};
-
-/** Matrix register block size */
-// #define MATRIX_PRESET_SIZE          31
-
-/** Matrix register block size */
-// #define MATRIX_PRESET_QTY           12
-
-/** The enum that vectors us into the MatrixPreset table */
-//enum _eMatrixPresetIndex
-//{
-//    E_MATRIX_RGBF_2_RGBL    = 0,
-//    E_MATRIX_RGBF_2_BT601   = 1,
-//    E_MATRIX_RGBF_2_BT709   = 2,
-//    E_MATRIX_RGBL_2_RGBF    = 3,
-//    E_MATRIX_RGBL_2_BT601   = 4,
-//    E_MATRIX_RGBL_2_BT709   = 5,
-//    E_MATRIX_BT601_2_RGBF   = 6,
-//    E_MATRIX_BT601_2_RGBL   = 7,
-//    E_MATRIX_BT601_2_BT709  = 8,
-//    E_MATRIX_BT709_2_RGBF   = 9,
-//    E_MATRIX_BT709_2_RGBL   = 10,
-//    E_MATRIX_BT709_2_BT601  = 11
-//};
-
-struct vic2reg {
-	unsigned char vic;
-	unsigned char reg;
-};
-
-struct sync_desc {
-	uint16_t Vs2;
-	uint8_t pix_rep;
-	uint8_t v_toggle;
-	uint8_t h_toggle;
-	uint16_t hfp;		/* Output values for Vs/Hs input sync */
-	uint16_t vfp;
-	uint16_t href;		/* Output values for all other input sync sources */
-	uint16_t vref;
-};
-
-static const enum vip_cntrl_swap port_map_rgb444[] = {
-	VIP_CNTRL_VP23_20,
-	VIP_CNTRL_VP19_16,
-	VIP_CNTRL_VP15_12,
-	VIP_CNTRL_VP11_8,
-	VIP_CNTRL_VP7_4,
-	VIP_CNTRL_VP3_0
-};
-
-static const enum vip_cntrl_mirr mirr_map_rgb444[] = {
-	VIP_CNTRL_NOT_MIRRORED,
-	VIP_CNTRL_NOT_MIRRORED,
-	VIP_CNTRL_NOT_MIRRORED,
-	VIP_CNTRL_NOT_MIRRORED,
-	VIP_CNTRL_NOT_MIRRORED,
-	VIP_CNTRL_NOT_MIRRORED
-};
-
-/**
- * @addtogroup TDA998X_PLL_Configuration
- * @{
- */
-//struct reg_mask_val pll_cfg_common[] = {
-//	{ PLL_SERIAL_1,	0x00},
-//	{ PLL_SERIAL_2,	0x01},
-//	{ PLL_SERIAL_3,	0x00},
-//	{ SERIALIZER,	0x00},
-//	{ BUFFER_OUT,	0x00},
-//	{ PLL_SCG1,	0x00},
-//	{ AUDIO_DIV,	0x03},
-//	{ SEL_CLK,	0x09},
-//	{ INVALID_REG,	0x00 }
-//};
-//
-//struct reg_mask_val pll_cfg_other[] = {
-//	{ PLL_SCGN1,	0xFA},
-//	{ PLL_SCGN2,	0x00},
-//	{ PLL_SCGR1,	0x5B},
-//	{ PLL_SCGR2,	0x00},
-//	{ INVALID_REG,	0x00 }
-//};
-//
-//struct reg_mask_val pll_cfg_480ix576i[] = {
-//	{ PLL_SCGN1,	0x14 },
-//	{ PLL_SCGN2,	0x00 },
-//	{ PLL_SCGR1,	0x0A },
-//	{ PLL_SCGR2,	0x00 },
-//	{ INVALID_REG,	0x00 }
-//};
-
-static const uint8_t mtx_cfg_preset[12][31] = {
-	{ 0x2,							/** Control: MTXSCALE_1024 */
-		0x00,	0x00,	0x00,	0x00,	0x00,	0x00,	/** Input offset */
-		0x03,	0x6F,	0x00,	0x00,	0x00,	0x00,	/** Matrix */
-		0x00,	0x00,	0x03,	0x6F,	0x00,	0x00,
-		0x00,	0x00,	0x00,	0x00,	0x03,	0x6F,
-		0x00,	0x40,	0x00,	0x40,	0x00,	0x40	/** Output offset */
-	},	/* RGB Full to RGB Limited */
-	{ 0x2,				/* MTXSCALE_1024 */
-		0x00,	0x00,	0x00,	0x00,	0x00,	0x00,
-		0x02,	0x04,	0x01,	0x07,	0x00,	0x64,
-		0x06,	0x88,	0x01,	0xC2,	0x07,	0xB7,
-		0x06,	0xD6,	0x07,	0x68,	0x01,	0xC2,
-		0x00,	0x40,	0x02,	0x00,	0x02,	0x0
-	},	/* RGB Full to BT601 */
-	{ 0x2,				/* MTXSCALE_1024 */
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-		0x2, 0x75, 0x0, 0xBB, 0x0, 0x3F,
-		0x6, 0x68, 0x1, 0xC2, 0x7, 0xD7,
-		0x6, 0xA6, 0x7, 0x99, 0x1, 0xC2,
-		0x0, 0x40, 0x2, 0x0, 0x2, 0x0
-	},	/* RGB Full to BT709 */
-	{ 0x1,				/* MTXSCALE_512 */
-		0x7, 0xC0, 0x7, 0xC0, 0x7, 0xC0,
-		0x2, 0x54, 0x0, 0x0, 0x0, 0x0,
-		0x0, 0x0, 0x2, 0x54, 0x0, 0x0,
-		0x0, 0x0, 0x0, 0x0, 0x2, 0x54,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0
-	},	/* RGB Limited to RGB Full */
-	{ 0x2,				/* MTXSCALE_1024 */
-		0x7, 0xC0, 0x7, 0xC0, 0x7, 0xC0,
-		0x2, 0x59, 0x1, 0x32, 0x0, 0x75,
-		0x6, 0x4A, 0x2, 0x0C, 0x7, 0xAB,
-		0x6, 0xA5, 0x7, 0x4F, 0x2, 0x0C,
-		0x0, 0x40, 0x2, 0x0, 0x2, 0x0
-	},	/* RGB Limited to BT601 */
-	{ 0x2,				/* MTXSCALE_1024 */
-		0x7, 0xC0, 0x7, 0xC0, 0x7, 0xC0,
-		0x2, 0xDC, 0x0, 0xDA, 0x0, 0x4A,
-		0x6, 0x24, 0x2, 0x0C, 0x7, 0xD0,
-		0x6, 0x6C, 0x7, 0x88, 0x2, 0x0C,
-		0x0, 0x40, 0x2, 0x0, 0x2, 0x0
-	},	/* RGB Limited to BT709 */
-	{ 0x0,				/* MTXSCALE_256 */
-		0x7, 0xC0, 0x6, 0x0, 0x6, 0x0,
-		0x1, 0x2A, 0x7, 0x30, 0x7, 0x9C,
-		0x1, 0x2A, 0x1, 0x99, 0x0, 0x0,
-		0x1, 0x2A, 0x0, 0x0, 0x2, 0x5,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0
-	},	/* BT601 to RGB Full */
-	{ 0x1,				/* MTXSCALE_512 */
-		0x7, 0xC0, 0x6, 0x0, 0x6, 0x0,
-		0x2, 0x0, 0x6, 0x9A, 0x7, 0x54,
-		0x2, 0x0, 0x2, 0xBE, 0x0, 0x0,
-		0x2, 0x0, 0x0, 0x0, 0x3, 0x77,
-		0x0, 0x40, 0x0, 0x40, 0x0, 0x40
-	},	/* BT601 to RGB Limited */
-	{ 0x1,				/* MTXSCALE_512 */
-		0x7, 0xC0, 0x6, 0x0, 0x6, 0x0,
-		0x2, 0x0, 0x7, 0x96, 0x7, 0xC5,
-		0x0, 0x0, 0x2, 0x0D, 0x0, 0x26,
-		0x0, 0x0, 0x0, 0x3B, 0x2, 0x0A,
-		0x0, 0x40, 0x2, 0x0, 0x2, 0x0
-	},	/* BT601 to BT709 */
-	{ 0x0,				/* MTXSCALE_256 */
-		0x7, 0xC0, 0x6, 0x0, 0x6, 0x0,
-		0x1, 0x2A, 0x7, 0x77, 0x7, 0xC9,
-		0x1, 0x2A, 0x1, 0xCB, 0x0, 0x0,
-		0x1, 0x2A, 0x0, 0x0, 0x2, 0x1D,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0
-	},	/* BT709 to RGB Full */
-	{ 0x1,				/* MTXSCALE_512 */
-		0x7, 0xC0, 0x6, 0x0, 0x6, 0x0,
-		0x2, 0x0, 0x7, 0x16, 0x7, 0xA2,
-		0x2, 0x0, 0x3, 0x14, 0x0, 0x0,
-		0x2, 0x0, 0x0, 0x0, 0x3, 0xA1,
-		0x0, 0x40, 0x0, 0x40, 0x0, 0x40
-	},	/* BT709 to RGB Limited */
-	{ 0x1,				/* MTXSCALE_512 */
-		0x7, 0xC0, 0x6, 0x0, 0x6, 0x0,
-		0x2, 0x0, 0x0, 0x62, 0x0, 0x33,
-		0x0, 0x0, 0x1, 0xF7, 0x7, 0xDB,
-		0x0, 0x0, 0x7, 0xC7, 0x1, 0xFB,
-		0x0, 0x40, 0x2, 0x0, 0x2, 0x0
-	} /* BT709 to BT601 */
-};
-
-//extern const struct reg_mask_val kVoutHdcpOff[];
-//extern const struct reg_mask_val kVoutHdcpOn[];
-
-/**
- * Table of PLL settings registers to configure for all video input format (vinFmt)
- */
-//const struct reg_mask_val kCommonPllCfg[] = {
-//	{ PLL_SERIAL_1_RW, 0xFF, 0x00 },
-//	{ PLL_SERIAL_2_RW, 0xFF, 0x01 },
-//	{ PLL_SERIAL_3_RW, 0xFF, 0x00 },
-//	{ SERIALIZER_RW, 0xFF, 0x00 },
-//	{ BUFFER_OUT_RW, 0xFF, 0x00 },
-//	{ PLL_SCG1_RW, 0xFF, 0x00 },
-//	{ AUDIO_DIV_RW, 0xFF, 0x03 },
-//	  /*{TEST2_RW,        0xFF,  0x00}, */
-//	{ SEL_CLK_RW, 0xFF, 0x09 },
-//	{ 0, 0, 0 }
-//};
-
-/**
- * Table of PLL settings registers to configure double mode pixel rate,
- * vinFmt other than 480i or 576i
- */
-//const struct reg_mask_val kDoublePrateVfmtOtherPllCfg[] = {
-//	{ PLL_SCG2_RW, 0xFF, 0x00 },
-//	{ 0, 0, 0 }
-//};
-
-/**
- * Table of PLL settings registers to configure for single mode pixel rate,
- * vinFmt 480i or 576i only
- */
-//const struct reg_mask_val kSinglePrateVfmt480i576iPllCfg[] = {
-//	{ PLL_SCG2_RW, 0xFF, 0x11 },
-//	{ 0, 0, 0 }
-//};
-
-
-/**
- * Table of PLL settings registers to configure single mode pixel rate,
- * vinFmt other than 480i or 576i
- */
-//const struct reg_mask_val kSinglePrateVfmtOtherPllCfg[] = {
-//	{ PLL_SCG2_RW, 0xFF, 0x10 },
-//	{ 0, 0, 0 }
-//};
-
-
-/**
- * Table of PLL settings registers to configure for single repeated mode pixel rate,
- * vinFmt 480i or 576i only
- */
-//const struct reg_mask_val kSrepeatedPrateVfmt480i576iPllCfg[] = {
-//	{ PLL_SCG2_RW, 0xFF, 0x01 },
-//	{ 0, 0, 0 }
-//};
-
-
-/**
- * Table of PLL settings registers to configure for 480i and 576i vinFmt
- */
-//const struct reg_mask_val kVfmt480i576iPllCfg[] = {
-//	{ PLL_SCGN1_RW, 0xFF, 0x14 },
-//	{ PLL_SCGN2_RW, 0xFF, 0x00 },
-//	{ PLL_SCGR1_RW, 0xFF, 0x0A },
-//	{ PLL_SCGR2_RW, 0xFF, 0x00 },
-//	{ 0, 0, 0 }
-//};
-
-/**
- * Table of PLL settings registers to configure for other vinFmt than 480i and 576i
- */
-//const struct reg_mask_val kVfmtOtherPllCfg[] = {
-//	{ PLL_SCGN1, 0xFF, 0xFA },
-//	{ PLL_SCGN2, 0xFF, 0x00 },
-//	{ PLL_SCGR1, 0xFF, 0x5B },
-//	{ PLL_SCGR2, 0xFF, 0x00 },
-//	{ 0, 0, 0}
-//};
-
-/**
- * Lookup table to convert from video format codes used in the
- * VIDFORMAT_W register to corresponding VS_PIX_STRT_2
- * register values, to correct the output window for interlaced
- * output formats, with or without the scaler.
- *
- * The correction is VS_PIX_STRT_2=VS_PIX_STRT_2+VS_PIX_STRT_1.
- * The same value is also applied to VS_PIX_END_2.
- */
-
-/**
- * Lookup table to convert from video format codes used in the
- * VIDFORMAT_W register to corresponding
- * pixel repetition values in the PLL_SERIAL_2 register.
- * 0=no repetition (pixel sent once)
- * 1=one repetition (pixel sent twice) etc
- */
-
-/**
- * Lookup table to convert from video format codes used in the
- * VIDFORMAT_W register to corresponding
- * trios of 2-bit values in the srl_nosc, scg_nosc and de_nosc
- * PLL control registers
- *
- * Rational for dummies by André ;)
- * -----------------------------
- *    the TMDS serializer multiply x10 the pixclk (this is a PLL;)
- *    <format>   -->   <pixclk>   -->   <PLL>   -->   <div by>
- *    576i or 480i     13.5 Mhz (*2)    270 Mhz       4
- *    576p             27 Mhz           270 Mhz       4
- *    720p or 1080i    74.25 Mhz        742 Mhz       2
- *    1080p            148.5 Mhz        1485 Mhz      1
- *
- */
-
-static const uint8_t pll[] = {
-    /* prefetch */
-    2, /* E_REGVFMT_640x480p_60Hz   */
-    2, /* E_REGVFMT_720x480p_60Hz   */
-    1, /* E_REGVFMT_1280x720p_60Hz  */
-    1, /* E_REGVFMT_1920x1080i_60Hz */
-    3, /* E_REGVFMT_720x480i_60Hz   */
-    0, /* E_REGVFMT_720x240p_60Hz   *//** \todo Need nosc PLL value */
-    0, /* E_REGVFMT_1920x1080p_60Hz */
-    2, /* E_REGVFMT_720x576p_50Hz   */
-    1, /* E_REGVFMT_1280x720p_50Hz  */
-    1, /* E_REGVFMT_1920x1080i_50Hz */
-    3, /* E_REGVFMT_720x576i_50Hz   */
-    0, /* E_REGVFMT_720x288p_50Hz   *//** \todo Need nosc PLL value */
-    0, /* E_REGVFMT_1920x1080p_50Hz */
-    /* extra list */
-#ifndef TMFL_RGB_DDR_12BITS
-    1, /* E_REGVFMT_1920x1080p_24Hz */
-#endif /*
- */
-    1, /* E_REGVFMT_1920x1080p_25Hz */
-    1, /* E_REGVFMT_1920x1080p_30Hz */
-    1, /* E_REGVFMT_1280x720p_24Hz  */
-    1, /* E_REGVFMT_1280x720p_25Hz  */
-    1, /* E_REGVFMT_1280x720p_30Hz  */
-#ifndef TMFL_RGB_DDR_12BITS
-    0, /* E_REGVFMT_1280x720p_60Hz_FP */
-    0, /* E_REGVFMT_1920x1080i_60Hz_FP */
-    0, /* E_REGVFMT_1280x720p_50Hz_FP */
-    0, /* E_REGVFMT_1920x1080i_50Hz_FP */
-    0, /* E_REGVFMT_1920x1080p_24Hz_FP */
-    0, /* E_REGVFMT_1920x1080p_25Hz_FP */
-    0, /* E_REGVFMT_1920x1080p_30Hz_FP */
-#endif /*
- */
-    0, /* E_REGVFMT_1280x720p_24Hz_FP */
-    0, /* E_REGVFMT_1280x720p_25Hz_FP */
-    0, /* E_REGVFMT_1280x720p_30Hz_FP */
-};
-
-/**
- * Lokup table to convert from video format codes used in the
- * VIDFORMAT_W register to RefPix and RefLine values
- * according to sync source
- */
-/* prefetch list */
-static const struct sync_desc ref_sync[] =
-{
-    /*
-     * designer world <==> CEA-861 reader world
-     * ----------------------------------------
-     * t_hs_s : hfp+1
-     * t_vsl_s1 : vfp+1
-     * t_de_s : href+1
-     * t_vw_s1 : vref+1
-     *
-     * For the story, designer have defined VsPixRef and VsLineRef concept
-     * that are the position of VSync in pixel and line starting from the top
-     * of the frame.
-     * So we have in fact : VSync that is hfp + vfp*total_h_active away from top
-     *
-     */
-    /* Vs2    PR  Vtg Htg HFP VFP HREF VREF */
-  {0, 0, 1, 1, 17, 2, 161, 36}, /* E_REGVFMT_640x480p_60Hz   */
-  {0, 0, 1, 1, 17, 8, 139, 43}, /* E_REGVFMT_720x480p_60Hz   */
-  {0, 0, 0, 0, 111, 2, 371, 26}, /* E_REGVFMT_1280x720p_60Hz  */
-  {1100 + 88, 0, 0, 0, 89, 2, 281, 21}, /* E_REGVFMT_1920x1080i_60Hz */
-  {429 + 19, 1, 1, 1, 20, 5, 139, 22}, /* E_REGVFMT_720x480i_60Hz   */
-  {0, 1, 1, 1, 20, 5, 139, 22}, /* E_REGVFMT_720x240p_60Hz   */
-  {0, 0, 0, 0, 89, 2, 281, 42}, /* E_REGVFMT_1920x1080p_60Hz */
-  {0, 0, 1, 1, 13, 2, 145, 45}, /* E_REGVFMT_720x576p_50Hz   */
-  {0, 0, 0, 0, 441, 2, 701, 26}, /* E_REGVFMT_1280x720p_50Hz  */
-  {1320 + 528, 0, 0, 0, 529, 2, 721, 21}, /* E_REGVFMT_1920x1080i_50Hz */
-  {432 + 12, 1, 1, 1, 13, 2, 145, 23}, /* E_REGVFMT_720x576i_50Hz   */
-  {0, 1, 1, 1, 13, 2, 145, 23}, /* E_REGVFMT_720x288p_50Hz   */
-  {0, 0, 0, 0, 529, 2, 721, 42}, /* E_REGVFMT_1920x1080p_50Hz */
-};
-
-/* extra list */
-static const struct sync_desc ref_sync_extra[] =
-{
-    /* Vs2    PR  Vtg Htg HFP VFP HREF VREF */
-#ifndef TMFL_RGB_DDR_12BITS
-  {0, 0, 0, 0, 639, 2, 831, 42}, /* E_REGVFMT_1920x1080p_24Hz */
-#endif /*
- */
-  {0, 0, 0, 0, 529, 2, 721, 42}, /* E_REGVFMT_1920x1080p_25Hz */
-  {0, 0, 0, 0, 89, 2, 281, 42}, /* E_REGVFMT_1920x1080p_30Hz */
-  {0, 0, 0, 0, 1761, 2, 2021, 26}, /* E_REGVFMT_1280x720p_24Hz  */
-  {0, 0, 0, 0, 2421, 2, 2681, 26}, /* E_REGVFMT_1280x720p_25Hz  */
-  {0, 0, 0, 0, 1761, 2, 2021, 26} /* E_REGVFMT_1280x720p_30Hz  */
-};
-
-//static const tmHdmiTxVidReg_t format_param_extra[] = {
-//    /*  NPIX    NLINE  VsLineStart  VsPixStart  VsLineEnd   VsPixEnd    HsStart     HsEnd   ActiveVideoStart   ActiveVideoEnd DeStart DeEnd */
-//    /*  npix    nline  vsl_s1       vsp_s1      vsl_e1      vsp_e1      hs_e        hs_e    vw_s1              vw_e1          de_s    de_e */
-//#ifndef TMFL_RGB_DDR_12BITS
-//  {2750, 1125, 1, 638, 6, 638, 638, 682, 41, 1121, 830, 2750, 0, 0}, /* E_REGVFMT_1920x1080p_24Hz */
-//#endif /*
-// */
-//  {2640, 1125, 1, 528, 6, 528, 528, 572, 41, 1121, 720, 2640, 0, 0}, /* E_REGVFMT_1920x1080p_25Hz */
-//  {2200, 1125, 1, 88, 6, 88, 88, 132, 41, 1121, 280, 2200, 0, 0}, /* E_REGVFMT_1920x1080p_30Hz */
-//  {3300, 750, 1, 1760, 6, 1760, 1760, 1800, 25, 745, 2020, 3300, 0, 0}, /* E_REGVFMT_1280x720p_24Hz  */
-//  {3960, 750, 1, 2420, 6, 2420, 2420, 2460, 25, 745, 2680, 3960, 0, 0}, /* E_REGVFMT_1280x720p_25Hz  */
-//  {3300, 750, 1, 1760, 6, 1760, 1760, 1800, 25, 745, 2020, 3300, 0, 0}, /* E_REGVFMT_1280x720p_30Hz  */
-//#ifndef TMFL_RGB_DDR_12BITS
-//  {1650, 1500, 1, 110, 6, 110, 110, 150, 25, 1495, 370, 1650, 746, 776}, /* E_REGVFMT_1280x720p_60Hz_FP  */
-//  {2200, 2250, 1, 88, 6, 88, 88, 132, 20, 2248, 280, 2200, 0, 0}, /* E_REGVFMT_1920x1080i_60Hz_FP */
-//  {1980, 1500, 1, 440, 6, 440, 440, 480, 25, 1495, 700, 1980, 746, 776}, /* E_REGVFMT_1280x720p_50Hz_FP  */
-//  {2640, 2250, 1, 528, 6, 528, 528, 572, 20, 2248, 720, 2640, 0, 0}, /* E_REGVFMT_1920x1080i_50Hz_FP */
-//  {2750, 2250, 1, 638, 6, 638, 638, 682, 41, 2246, 830, 2750, 1122,
-//   1167}, /* E_REGVFMT_1920x1080p_24Hz_FP */
-//  {2640, 2250, 1, 528, 6, 528, 528, 572, 41, 2246, 720, 2640, 1122,
-//   1167}, /* E_REGVFMT_1920x1080p_25Hz_FP */
-//  {2200, 2250, 1, 88, 6, 88, 88, 132, 41, 2246, 280, 2200, 1122, 1167}, /* E_REGVFMT_1920x1080p_30Hz_FP */
-//#endif /*
-// */
-//  {3300, 1500, 1, 1760, 6, 1760, 1760, 1800, 25, 1495, 2020, 3300, 0,
-//   0}, /* E_REGVFMT_1280x720p_24Hz_FP  */
-//  {3960, 1500, 1, 2420, 6, 2420, 2420, 2460, 25, 1495, 2680, 3960, 0,
-//   0}, /* E_REGVFMT_1280x720p_25Hz_FP  */
-//  {3300, 1500, 1, 1760, 6, 1760, 1760, 1800, 25, 1495, 2020, 3300, 0,
-//   0}, /* E_REGVFMT_1280x720p_30Hz_FP  */
-//};
-
- /**
- *  Lookup table for each pixel clock frequency's CTS value in kHz
- *  according to SCS table "Audio Clock Recovery CTS Values"
- */
-//static const uint32_t kPixClkToAcrCts[E_PIXCLK_NUM][HDMITX_AFS_NUM] =
-//{
-//    /* HDMITX_AFS_32k  _AFS_48K       _AFS_96K        _AFS_192K */
-//    /*         _AFS_44_1k      _AFS_88_2K      _AFS_176_4K       */
-//  {28125, 31250, 28125, 31250, 28125, 31250, 28125}, /* E_PIXCLK_25175 */
-//  {25200, 28000, 25200, 28000, 25200, 28000, 25200}, /* E_PIXCLK_25200 */
-//  {27000, 30000, 27000, 30000, 27000, 30000, 27000}, /* E_PIXCLK_27000 */
-//  {27027, 30030, 27027, 30030, 27027, 30030, 27027}, /* E_PIXCLK_27027 */
-//  {54000, 60000, 54000, 60000, 54000, 60000, 54000}, /* E_PIXCLK_54000 */
-//  {54054, 60060, 54054, 60060, 54054, 60060, 54054}, /* E_PIXCLK_54054 */
-//  {59400, 65996, 59400, 65996, 59400, 65996, 59400}, /* E_PIXCLK_59400 */
-//  {210937, 234375, 140625, 234375, 140625, 234375, 140625}, /* E_PIXCLK_74175 */
-//  {74250, 82500, 74250, 82500, 74250, 82500, 74250}, /* E_PIXCLK_74250 */
-//  {421875, 234375, 140625, 234375, 140625, 234375, 140625}, /* E_PIXCLK_148350 */
-//  {148500, 165000, 148500, 165000, 148500, 165000, 148500} /* E_PIXCLK_148500 */
-//};
-
-/**
- *  Lookup table for each pixel clock frequency's Audio Clock Regeneration N,
- *  according to SCS Table "Audio Clock Recovery N Values"
- */
-//static const uint32_t kPixClkToAcrN[E_PIXCLK_NUM][HDMITX_AFS_NUM] =
-//{
-//    /* HDMITX_AFS_32k  _AFS_48K       _AFS_96K        _AFS_192K */
-//    /*         _AFS_44_1k      _AFS_88_2K      _AFS_176_4K       */
-//  {4576, 7007, 6864, 14014, 13728, 28028, 27456}, /* E_PIXCLK_25175 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576}, /* E_PIXCLK_25200 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576}, /* E_PIXCLK_27000 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576}, /* E_PIXCLK_27027 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576}, /* E_PIXCLK_54000 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576}, /* E_PIXCLK_54054 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576}, /* E_PIXCLK_59400 */
-//  {11648, 17836, 11648, 35672, 23296, 71344, 46592}, /* E_PIXCLK_74175 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576}, /* E_PIXCLK_74250 */
-//  {11648, 8918, 5824, 17836, 11648, 35672, 23296}, /* E_PIXCLK_148350 */
-//  {4096, 6272, 6144, 12544, 12288, 25088, 24576} /* E_PIXCLK_148500 */
-//};
-
-/**
- *  Lookup table for each pixel clock frequency's Audio Divider, according to
- *  SCS Table "Audio Clock Recovery Divider Values"
- */
-//static const uint8_t kPixClkToAdiv[E_PIXCLK_NUM][HDMITX_AFS_NUM] =
-//{
-//    /* HDMITX_AFS_32k  _AFS_48K       _AFS_96K        _AFS_192K */
-//    /*         _AFS_44_1k      _AFS_88_2K      _AFS_176_4K       */
-//  {2, 2, 2, 1, 1, 0, 0}, /* E_PIXCLK_25175 */
-//  {2, 2, 2, 1, 1, 0, 0}, /* E_PIXCLK_25200 */
-//  {2, 2, 2, 1, 1, 0, 0}, /* E_PIXCLK_27000 */
-//  {2, 2, 2, 1, 1, 0, 0}, /* E_PIXCLK_27027 */
-//  {3, 3, 3, 2, 2, 1, 1}, /* E_PIXCLK_54000 */
-//  {3, 3, 3, 2, 2, 1, 1}, /* E_PIXCLK_54054 */
-//  {3, 3, 3, 2, 2, 1, 1}, /* E_PIXCLK_59400 */
-//  {4, 3, 3, 2, 2, 1, 1}, /* E_PIXCLK_74175 */
-//  {4, 3, 3, 2, 2, 1, 1}, /* E_PIXCLK_74250 */
-//  {5, 4, 4, 3, 3, 2, 2}, /* E_PIXCLK_148350 */
-//  {5, 4, 4, 3, 3, 2, 2} /* E_PIXCLK_148500 */
-//};
-
-/**
- *  Lookup table for converting a sampling frequency into the values
- *  required in channel status byte 3 according to IEC60958-3
- */
-//static const uint8_t kAfsToCSbyte3[HDMITX_AFS_NUM + 1] =
-//{
-//3, /* HDMITX_AFS_32k */
-//    0, /* HDMITX_AFS_44_1k */
-//    2, /* HDMITX_AFS_48k */
-//    8, /* HDMITX_AFS_88_2k */
-//    10, /* HDMITX_AFS_96k */
-//    12, /* HDMITX_AFS_176_4k */
-//    14, /* HDMITX_AFS_192k */
-//    9, /* HDMITX_AFS_768k */
-//    1, /* HDMITX_AFS_NOT_INDICATED */
-//};
-
-/**
- *  Lookup table for each CTS X factor's k and m register values
- */
-//static const uint8_t kCtsXToMK[HDMITX_CTSX_NUM][2] =
-//{
-///*   Register values    Actual values */
-///*   m  k               m, k */
-//  {3, 0}, /* 8, 1 */
-//  {3, 1}, /* 8, 2 */
-//  {3, 2}, /* 8, 3 */
-//  {3, 3}, /* 8, 4 */
-//  {0, 0} /* 1, 1 */
-//};
-
-/**
- * Table of registers to reset and release the CTS generator
- */
-//static const struct reg_mask_val kResetCtsGenerator[] =
-//  {
-//{AIP_CNTRL_0_RW, AIP_CNTRL_0_rst_cts, 1},
-//{AIP_CNTRL_0_RW, AIP_CNTRL_0_rst_cts, 0},
-//{0, 0, 0}
-//};
-
-//#define HDMITX_LAT_SCO_MAX_VAL 40
-//#define HDMITX_LAT_SCO_MIN_VAL 34
-
-/* Register values per device to restore colour processing after test pattern */
-//static volatile uint8_t gMatContrl[1];
-//static volatile uint8_t gHvfCntrl0[1];
-//static volatile uint8_t gHvfCntrl1[1];
-/**
- * @}
- */
-
-static int set_de_vs(struct tda998x_dev *dev,
-		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_format_3d format_3d);
-
-static int set_pix_repeat(struct tda998x_dev *dev,
-		enum tda998x_vid_fmt vout_fmt,
-		uint8_t pix_rpt,
-		enum tda998x_format_3d format_3d);
-
-static uint8_t reg_vid_fmt(enum tda998x_vid_fmt fmt,
-		enum tda998x_format_3d format_3d,
-		uint8_t *idx,
-		uint8_t *idx3d,
-		struct sync_desc **sync);
-
-static int input_config(struct tda998x_dev *dev,
-		enum tda998x_vidin_mode vin_mode,
-		enum vip_cntrl_3_edge edge,
-		enum tda998x_pix_rate pix_rate,
-		enum tda998x_upsample upsample,
-		uint8_t pix_rpt,
-		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_format_3d format_3d);
-
-static int set_sampling(struct tda998x_dev *dev);
-uint8_t pix_clk(enum tda998x_vid_fmt fmt,
-		enum tda998x_vert_freq freq,
-		uint8_t *pclk);
-
-static uint8_t chksum(uint8_t *data, int len);
-
-static int
-tda998x_mtx_set_conv(struct tda998x_dev *dev,
-		enum tda998x_vid_fmt vin_fmt,
-		enum tda998x_vidin_mode vin_mode,
-		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_vidout_mode vout_mode,
-		enum tda998x_vqr vqr);
-
-static int
-tda998x_mtx_set_mode(struct tda998x_dev *dev,
-		enum mtx_cntrl_bp bp,
-		enum mtx_cntrl_scale sc);
-
-
-//enum tda998x_vid_fmt
-//calculateVidFmtIndex(enum tda998x_vid_fmt vidFmt)
-
-
-/**
- * @defgroup TDA998X_Functions TDA998x Device Control Functions
- * @{
- */
-
-/**
- * @defgroup TDA998X_Functions_I2C I2C Interface Functions
- * @{
- */
-
-/**
- * @brief	Write Data
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Start register and page address
- * @param	len:	Length of data to write to device
- * @param	data:	Pointer to data to write from
- * @return	Number of bytes written or less-than-zero error status
- */
-static int
-tda998x_write(struct tda998x_dev *dev,
-		enum tda998x_hdmi_reg reg,
-		uint8_t len,
-		uint8_t *data)
-{
-	int i, err;
-	struct tda998x_cfg *cfg = dev->cfg;
-	uint8_t page = PAGE_OF(reg);
-
-	if (dev->cfg->cur_page != page) {
-		/* Change the page */
-		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)CURPAGE, &page);
-		if (err < 0)
-			return err;
-
-		dev->cfg->cur_page = page;
-	}
-
-	for (i = 0; i < len; i++, data++) {
-		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)reg + i, data);
-		if (err < 0)
-			return err;
-	}
-
-	return i;
-}
-
-/**
- * @brief	Write Register
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Register and page address
- * @param	data:	Data value to write to register
- * @return	Number of bytes written or less-than-zero error status
- */
-static int
-write_reg(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t data)
-{
-	uint8_t tmp = data;
-
-	return tda998x_write(dev, reg, 1, &tmp);
-}
-
-/**
- * @brief	Write 16-bit Register
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	reg:	Register and page address enumeration
- * @param	data:	16-bit data value to write
- * @return	Number of bytes written or less-than-zero error status
- */
-static int
-write_reg16(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint16_t data)
-{
-	uint8_t buf[2];
-
-	buf[0] = (data & 0xFF00U) >> 8;
-	buf[1] = (uint8_t) data & 0x00FFU;
-
-	return tda998x_write(dev, reg, 2, buf);
-}
-
-/**
- * @brief	Read Data
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Start register and page address
- * @param	len:	Length of data to read from device
- * @param	data:	Pointer to data to read to
- * @return	Number of bytes read or less-than-zero error status
- */
-static int
-tda998x_read(struct tda998x_dev *dev,
-		enum tda998x_hdmi_reg reg,
-		uint8_t len,
-		uint8_t *data)
-{
-	int i, err;
-	struct tda998x_cfg *cfg = dev->cfg;
-	uint8_t page = PAGE_OF(reg);
-
-	if (dev->cfg->cur_page != page) {
-		/* Change the page */
-		err = cfg->i2c_write(cfg->hdmi_addr, (uint8_t)CURPAGE, &page);
-		if (err < 0)
-			return err;
-
-		dev->cfg->cur_page = page;
-	}
-
-	for (i = 0; i < len; i++, data++) {
-		err = cfg->i2c_read(cfg->hdmi_addr, (uint8_t)reg + i, data);
-		if (err < 0)
-			return err;
-	}
-
-	return i;
-}
-
-/**
- * @brief	Read Register
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Register and page address
- * @param	data:	Pointer to data to read to
- * @return	Number of bytes read or less-than-zero error status
- */
-static int
-read_reg(struct tda998x_dev *dev, enum tda998x_hdmi_reg reg, uint8_t *data)
-{
-	return tda998x_read(dev, reg, 1, data);
-}
-
-/**
- * @brief	Register Mask Write
- *		Write a value with mask bits to a register
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Register and page address
- * @param	mask:	Mask of bits to be transformed
- * @param	val:	Bitfield to be written within mask
- * @return	Number of bytes written or less-than-zero error status
- */
-static int
-write_reg_mask(struct tda998x_dev *dev,
-		enum tda998x_hdmi_reg reg,
-		uint8_t mask,
-		uint8_t val)
-{
-	int err;
-	uint8_t reg_val;
-
-	err = read_reg(dev, reg, &reg_val);
-	if (err < 0)
-		return err;
-
-	reg_val &= ~(mask);			/* clear bits in the mask */
-	reg_val |= val & mask;			/* set masked value bits */
-
-	return write_reg(dev, reg, reg_val);
-}
-
-/**
- * @brief	CEC Write Data
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Start register and page address
- * @param	len:	Length of data to write to device
- * @param	data:	Pointer to data to write from
- * @return	Number of bytes written or less-than-zero error status
- */
-static int
-tda998x_cec_write(struct tda998x_dev *dev,
-		enum tda998x_cec_reg reg,
-		uint8_t len,
-		uint8_t *data)
-{
-	int i, err;
-	struct tda998x_cfg *cfg = dev->cfg;
-
-	for (i = 0; i < len; i++, data++) {
-		err = cfg->i2c_write(cfg->cec_addr, (uint8_t)reg + i, data);
-		if (err < 0)
-			return err;
-	}
-
-	return i;
-}
-
-/**
- * @brief	CEC Write Register
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Register and page address
- * @param	data:	Data value to write to register
- * @return	Number of bytes written or less-than-zero error status
- */
-static int
-cec_write_reg(struct tda998x_dev *dev, enum tda998x_cec_reg reg, uint8_t data)
-{
-	uint8_t tmp = data;
-
-	return tda998x_cec_write(dev, reg, 1, &tmp);
-}
-
-/**
- * @brief	CEC Read Data
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Start register and page address
- * @param	len:	Length of data to read from device
- * @param	data:	Pointer to data to read to
- * @return	Number of bytes read or less-than-zero error status
- */
-static int
-tda998x_cec_read(struct tda998x_dev *dev,
-		enum tda998x_cec_reg reg,
-		uint8_t len,
-		uint8_t *data)
-{
-	int i, err;
-	struct tda998x_cfg *cfg = dev->cfg;
-
-	for (i = 0; i < len; i++, data++) {
-		err = cfg->i2c_read(cfg->cec_addr, (uint8_t)reg + i, data);
-		if (err < 0)
-			return err;
-	}
-
-	return i;
-}
-
-/**
- * @brief	CEC Read Register
- *
- * @param	dev:	TDA998X device structure pointer
- * @param	reg:	Register and page address
- * @param	data:	Pointer to data to read to
- * @return	Number of bytes read or less-than-zero error status
- */
-static int
-cec_read_reg(struct tda998x_dev *dev, enum tda998x_cec_reg reg, uint8_t *data)
-{
-	return tda998x_cec_read(dev, reg, 1, data);
-}
-
-/**
- * @brief	CEC Register Mask Write
- *		Write a specified value with specified mask bits to a register
- *
- * @param	dev:	TDA99X device structure pointer
- * @param	reg:	Register and page address
- * @param	mask:	Mask of bits to be transformed
- * @param	val:	Bitfield to be written within mask
- * @return	Number of bytes written or less-than-zero error status
- */
-static int
-cec_write_reg_mask(struct tda998x_dev *dev,
-		enum tda998x_cec_reg reg,
-		uint8_t mask,
-		uint8_t val)
-{
-	int err;
-	uint8_t reg_val;
-
-	err = cec_read_reg(dev, reg, &reg_val);
-	if (err < 0)
-		return err;
-
-	reg_val &= ~(mask);
-	reg_val |= val & mask;
-
-	return cec_write_reg(dev, reg, reg_val);
-}
-/**
- * @}
- */
-  
-/**
- * @defgroup	TDA998X_Audio TDA998x Audio
- * @{
- */
-/**
- * @brief	Set Audio Port Enable
- *
- * @param	dev: TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_aud_set_port_enable(struct tda998x_dev *dev,
-		uint8_t en)
-{
-	/* Check parameter */
-	if (dev == NULL)
-		return ERR_NULL_PARAM;
-
-	return write_reg(dev, ENA_AP, en);
-}
-
-/**
- * @brief	Set Audio Clock Port Enable
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	en:	Clock port enable register value
- * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_aud_set_clk_enable(struct tda998x_dev *dev, uint8_t en)
-{
-	/* Check parameter */
-	if (dev == NULL)
-		return ERR_NULL_PARAM;
-
-	return write_reg(dev, ENA_ACLK, en);
-}
-
-/**
- * @brief	Reset Audio CTS
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */ 
-static int
-tda998x_aud_reset_cts(struct tda998x_dev *dev)
-{	/* Reset and release the CTS generator */
-	/**
-	 * @todo Define reset register table
-	 */
-//	return write_reg_mask_table(dev, &kResetCtsGenerator[0]);
-	return 0;}
- 
-/**
- * @brief	Set Audio Input Configuration
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static int
-tda998x_aud_set_config(struct tda998x_dev *dev,		enum tda998x_aud_fmt aFmt,		enum tda998x_aud_i2s_fmt i2sFormat,		uint8_t chanI2s,		uint8_t chanDsd,		enum tda998x_clkpol_dsd clkPolDsd,		enum tda998x_swap_dsd swapDsd,		uint8_t layout,		uint16_t uLatency_rd,		enum tda998x_dst_rate dstRate)
-{	int ret;
-	uint8_t reg_val;
-	if (aFmt == AFMT_I2S) {
-		/**
-		 * @todo Check I2S parameters when in I2S mode
-		 *///		RETIF_BADPARAM ((i2sFormat != HDMITX_I2SFOR_PHILIPS_L) &&
-//		     (i2sFormat != HDMITX_I2SFOR_OTH_L) &&
-//		     (i2sFormat != HDMITX_I2SFOR_OTH_R_16) &&//		     (i2sFormat != HDMITX_I2SFOR_OTH_R_20) &&//		     (i2sFormat != HDMITX_I2SFOR_OTH_R))	} 	switch (aFmt) {	case AFMT_SPDIF:		reg_val = (uint8_t) REG_VAL_SEL_AIP_SPDIF;
-
-		/* configure MUX_AP */
-		ret = write_reg(dev, MUX_AP, MUX_AP_SELECT_SPDIF);		if (ret < 0)
-			return ret;
-		break;	case AFMT_I2S:
-		reg_val = (uint8_t) REG_VAL_SEL_AIP_I2S;
-    
-		/* configure MUX_AP */
-		ret = write_reg(dev, MUX_AP, MUX_AP_SELECT_I2S);		if (ret < 0)
-			return ret;
-    		break; 	case AFMT_OBA:
-		reg_val = (uint8_t) REG_VAL_SEL_AIP_OBA;
-		break;
- 	case AFMT_HBR:
-		reg_val = (uint8_t) REG_VAL_SEL_AIP_HBR;
-		break; 	default:		return ERR_BAD_PARAM;	}
-
-	/* Set the audio input processor format to aFmt. AIP_CLKSEL_sel_aip */
-	ret = write_reg_mask(dev, AIP_CLKSEL, 0x38U, reg_val << 3);
-	if (ret < 0)
-		return ret;
-  
-	/* Channel status on 1 channel  */
-	ret = write_reg_mask(dev, CA_I2S, CA_I2S_HBR_CHSTAT_4, 0);	if (ret < 0)
-		return ret;
-  
-	/* Select the audio format */
-	if (aFmt == AFMT_I2S) {
-		if (chanI2s != 32) {
-			ret = write_reg_mask(dev,					CA_I2S,
-					CA_I2S_CA_I2S_MASK,
-					(uint8_t) chanI2s);		}
-    		/* Select the I2S format */
-		ret = write_reg_mask(dev,				I2S_FORMAT,
-				I2S_FORMAT_I2S_FORMAT_MASK,
-				(uint8_t) i2sFormat);
-		if (ret < 0)
-			return ret;
-  	} else if (aFmt == AFMT_OBA) {		ret = write_reg(dev, CA_DSD, chanDsd);		if (ret < 0)
-			return ret; 
-		ret = write_reg_mask(dev,				AIP_CLKSEL,
-				AIP_CLKSEL_SEL_POL_CLK,
-				(uint8_t) clkPolDsd);
-			if (ret < 0)
-				return ret;
-		ret = write_reg_mask(dev,				AIP_CNTRL_0,
-				AIP_CNTRL_0_SWAP,				(uint8_t) swapDsd);		if (ret < 0)
-			return ret;	} 
-	/* Set layout and latency */	ret = write_reg_mask(dev,			AIP_CNTRL_0,			AIP_CNTRL_0_LAYOUT,			layout << 2);	if (ret < 0)
-		return ret;
-	ret = write_reg(dev, LATENCY_RD, (uint8_t) uLatency_rd);	if (ret < 0)
-		return ret;	return 0;}
-
-
-/**
- * @brief	Set Audio CTS
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */ 
-static int
-tda998x_aud_set_cts(struct tda998x_dev *dev,		enum tda998x_cts_ref ctsRef,
-		enum tda998x_aud_rate afs,		enum tda998x_vid_fmt voutFmt,
-		enum tda998x_vert_freq voutFreq,		uint32_t uCts,
-		uint16_t uCtsX,		enum tda998x_ctsk ctsK,		enum tda998x_ctsm ctsM,		enum tda998x_dst_rate dstRate)
-{	int ret;
-	uint8_t reg_val;
-	uint8_t pixClk;			/* Pixel clock index */
-	uint32_t acrN;			/* Audio clock recovery N */ 
-	/* Return if sink is not an HDMI device */
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED; 	if ((voutFmt >= VFMT_TV_MIN) &&
-			(voutFmt <= VFMT_TV_MAX)) {		if (voutFreq == VFREQ_50Hz) {
-			if ((voutFmt < VFMT_17_720x576p_50Hz) ||
-					(voutFmt > VFMT_31_1920x1080p_50Hz))				return ERR_ILLEGAL_PARAMS;
-    		} else if (voutFreq == VFREQ_24Hz) {
-			if ((voutFmt != VFMT_32_1920x1080p_24Hz) &&
-					(voutFmt != VFMT_60_1280x720p_24Hz))				return ERR_ILLEGAL_PARAMS;
-		} else if (voutFreq == VFREQ_25Hz) {			if ((voutFmt != VFMT_33_1920x1080p_25Hz) &&
-					(voutFmt != VFMT_20_1920x1080i_50Hz) &&
-					(voutFmt != VFMT_61_1280x720p_25Hz))				return ERR_ILLEGAL_PARAMS;		} else if (voutFreq == VFREQ_30Hz) {
-			if ((voutFmt != VFMT_34_1920x1080p_30Hz) &&
-					(voutFmt != VFMT_05_1920x1080i_60Hz) &&
-					(voutFmt != VFMT_62_1280x720p_30Hz))
-				return ERR_ILLEGAL_PARAMS;
-		} else {			if (voutFmt >= VFMT_17_720x576p_50Hz)				return ERR_ILLEGAL_PARAMS;		}	}
-  
-	/* Check for auto or manual CTS */
-	if (uCts == 0) {
-		/* Auto */
-		ret = write_reg_mask(dev, AIP_CNTRL_0, AIP_CNTRL_0_ACR_MAN, 0);		if (ret < 0)
-			return ret;	} else {
-		/* Manual */
-		ret = write_reg_mask(dev,				AIP_CNTRL_0,				AIP_CNTRL_0_ACR_MAN,				AIP_CNTRL_0_ACR_MAN);		if (ret < 0)
-			return ret;	} 
-	/* Derive M and K from X? */
-	if ((ctsM == CTSMTS_USE_CTSX) ||
-			(ctsK == CTSK_USE_CTSX)) {
-		/**
-		 * @todo Define CTS values
-		 *///		ctsM = (enum tda998x_ctsm) kCtsXToMK[uCtsX][0];//		ctsK = (enum tda998x_ctsk) kCtsXToMK[uCtsX][1];	}
- 
-	/* Set the Post-divider measured timestamp factor */
-	reg_val = (uint8_t) ctsM;	ret = write_reg_mask(dev,			CTS_N_RW,			CTS_N_M_SEL_MASK,			reg_val << 4);	if (ret < 0)
-		return ret; 
-	/* Set the Pre-divider scale */
-	reg_val = (uint8_t) ctsK;	ret = write_reg_mask (dev,			CTS_N_RW,
-			CTS_N_K_SEL_MASK,			reg_val);	if (ret < 0)
-		return ret;
-
-	/*
-	 * Use voutFmt and voutFreq to index into a lookup table to get
-	 * the current pixel clock value.
-	 */
-	pix_clk(voutFmt, voutFreq, &pixClk);
-	/*
-	 * Set the Audio Clock Recovery N multiplier based on the audio sample
-	 * frequency afs and current pixel clock.
-	 */
-//	acrN = kPixClkToAcrN[pixClk][afs];
-
-	/* Set ACR N multiplier [19 to 16] */
-	reg_val = (uint8_t) (acrN >> 16);	ret = write_reg (dev, ACR_N_2, reg_val);	if (ret < 0)
-		return ret;
-	/* Set ACR N multiplier [15 to 8] */
-	reg_val = (uint8_t) (acrN >> 8);	ret = write_reg (dev, ACR_N_1, reg_val);	if (ret < 0)
-		return ret;
-	/* Set ACR N multiplier [7 to 0] */
-	reg_val = (uint8_t) acrN;	ret = write_reg (dev, ACR_N_0, reg_val);	if (ret < 0)
-		return ret;
-	/*
-	 * Set the CDC Audio Divider register based on the audio sample frequency
-	 * afs and current pixel clock.
-	 */
-//	reg_val = kPixClkToAdiv[pixClk][afs];	ret = write_reg (dev, AUDIO_DIV, reg_val);	if (ret < 0)
-		return ret;
-
-	/*
-	 * If auto CTS, get CTS value based on the audio sample
-	 * frequency afs and current pixel clock.
-	 */
-//	if (uCts == 0)//		uCts = kPixClkToAcrCts[pixClk][afs]; 
-	/* Set manual or pixel clock CTS */
-	if (uCts != 0) {
-		/* Set manual ACR CTS [19 to 16 */
-		reg_val = (uint8_t) (uCts >> 16);		ret = write_reg (dev, ACR_CTS_2, reg_val);		if (ret < 0)
-			return ret;
-		/* Set manual ACR CTS [15 to 8] */
-		reg_val = (uint8_t) (uCts >> 8);
-		ret = write_reg (dev, ACR_CTS_1, reg_val);		if (ret < 0)
-			return ret; 
-		/* Set manual ACR CTS [7 to 0] */
-		reg_val = (uint8_t) uCts;		ret = write_reg (dev, ACR_CTS_0, reg_val);		if (ret < 0)
-			return ret;	}
-
-	/* Set the CTS clock reference register according to ctsRef */
-	reg_val = (uint8_t) ctsRef;	ret = write_reg_mask(dev,			AIP_CLKSEL,			AIP_CLKSEL_SEL_FS_MASK,			reg_val);
-	if (ret < 0)
-		return ret;
-	/**
-	 * @todo Reset and release the CTS generator
-	 */
-//	ret = write_reg_mask_table(dev, &kResetCtsGenerator[0]);
-  	return ret;}
-
-/**
- * @brief	Set Audio Output Channel Status
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- *///int
-//tda998x_aud_set_chan_status(struct tda998x_dev *dev,
-//		tmbslHdmiTxAudioData_t pcmIdentification,//		tmbslHdmiTxCSformatInfo_t formatInfo,//		tmbslHdmiTxCScopyright_t copyright,
-//		uint8_t categoryCode,
-//		enum tda998x_aud_rate sampleFreq,
-//		tmbslHdmiTxCSclkAcc_t clockAccuracy,
-//		tmbslHdmiTxCSmaxWordLength_t maxWordLength,
-//		tmbslHdmiTxCSwordLength_t wordLength,
-//		tmbslHdmiTxCSorigAfs_t origSampleFreq)
-//{
-//	uint8_t buf[4];			/* Buffer to hold channel status data */
-//
-//	/* Return if sink is not an HDMI device */
-//	if (dev->sink != SINK_HDMI)
-//		return ERR_NOT_PERMITTED;//
-//	buf[0] = ((uint8_t) formatInfo << 3) |
-//			((uint8_t) copyright << 2) |
-//			((uint8_t) pcmIdentification << 1);
-//	buf[1] = categoryCode;
-//	buf[2] = ((uint8_t) clockAccuracy << 4) | kAfsToCSbyte3[sampleFreq];
-//	buf[3] = ((uint8_t) origSampleFreq << 4) |
-//			((uint8_t) wordLength << 1) |//			(uint8_t) maxWordLength;
-//
-//	/* Write 4 Channel Status bytes */
-//	return tda998x_write(dev, CH_STAT_B_0, 4, &buf[0]);//}
-
-/**
- * @brief	Set Audio Channel Status Mapping
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static int
-tda998x_aud_set_chan_status_mapping(struct tda998x_dev *dev,
-		uint8_t sourceLeft[4],		uint8_t channelLeft[4],
-		uint8_t sourceRight[4],
-		uint8_t channelRight[4])
-{
-	int ret;
-	uint8_t buf[2];			/* Buffer to hold channel status data */
- 
-	/* Return if sink is not an HDMI device */
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
- 
-	/* Prepare Left byte */
-	buf[0] = ((uint8_t) channelLeft[0] << 4) | (uint8_t) sourceLeft[0];
- 
-	/* Prepare Right byte */
-	buf[1] = ((uint8_t) channelRight[0] << 4) | (uint8_t) sourceRight[0];
-
-	/* Write 2 Channel Status bytes */
-	ret = tda998x_write(dev, CH_STAT_B_2_AP0_L, 2, &buf[0]);
-  	return ret;}
-
-/**
- * @brief	Set Audio Mute
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	mute:	Mute enable value
- * @return	0 on success, non-zero error status otherwise
- */static int
-tda998x_aud_set_mute(struct tda998x_dev *dev, bool mute)
-{
-	int ret;
-	/* Return if sink is not an HDMI device */
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED; 
-	/* audio mute workaround, un-map audio input before muting */
-	if (mute) {
-		ret = write_reg_mask(dev,				SR_REG,
-				SR_REG_SR_AUDIO,
-				SR_REG_SR_AUDIO);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg_mask(dev,				SR_REG,
-				SR_REG_SR_AUDIO,
-				0);
-		if (ret < 0)
-			return ret;	}
- 
-	/* Reset the audio FIFO to mute audio */
-	ret = write_reg_mask(dev,			AIP_CNTRL_0,
-			AIP_CNTRL_0_RST_FIFO,
-			mute ? AIP_CNTRL_0_RST_FIFO : 0);
-	if (ret < 0)
-		return ret;
- 	return 0;
-}
-/**
- * @}
- */
-
-/**
- * @brief	Set TMDS Output
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_set_tmds_output(struct tda998x_dev *dev, enum buffer_out_srl_force tmds){
-	/* Set the TMDS output mode */
-	return write_reg_mask(dev,
-			BUFFER_OUT,
-			BUFFER_OUT_SRL_FORCE_MASK,
-			(uint8_t) tmds);}
-
-/**
- * @brief	Set Test Pattern Output
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	pat:	Test pattern selection as defined as one of
- * 		@arg PATTERN_OFF
- *		@arg PATTERN_CBAR4
- *		@arg PATTERN_CBAR8
- *		@arg PATTERN_BLUE
- *		@arg PATTERN_BLACK
- *
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_set_testpat(struct tda998x_dev *dev, uint8_t pat){
-//	int i, ret;
-//	uint8_t serviceMode;
-//	uint8_t bars8;
-//	uint8_t buf[MATRIX_PRESET_SIZE];
-//	uint8_t *MatrixCoeff;
-//
-//	/* Check pattern parameters */
-//	switch (pat) {
-//	case PATTERN_CBAR4:
-//		serviceMode = 1;
-//		bars8 = 0;
-//		break;
-//
-////	case HDMITX_PATTERN_BLUE:
-////		MatrixCoeff = (uint8_t *) &MatrixCoeffBlueScreen[dev->voutMode][0];	//point to the blue matrix
-////		serviceMode = 1;
-////		bars8 = 1;
-////		break;
-////////	case HDMITX_PATTERN_BLACK:
-////		MatrixCoeff = (uint8_t *) &MatrixCoeffBlackScreen[dev->voutMode][0];	//point to the black matrix
-//	case PATTERN_CBAR8:
-//		serviceMode = 1;
-//		bars8 = 1;
-//		break;
-//
-//	case PATTERN_OFF:
-//		serviceMode = 0;
-//		bars8 = 0;
-//		break;
-//
-//	default://		return ERR_BAD_PARAM;
-////	}
-////	if (serviceMode) {
-//		if (!dev->prevPattern) {
-//			/* if a pattern is on, registers are already saved */
-//			/* The kBypassColourProc registers are saved in tda998x_VideoSetInOut API */
-//			/* Bypass up/down sampler and matrix for RGB colourbars */
-//			write_reg_mask_table (dev, &kBypassColourProc[0]);
-//		}
-////		if ((pattern == HDMITX_PATTERN_BLUE) ||
-//				(pattern == HDMITX_PATTERN_BLACK)) {
-//
-//			/* To create blue or black screen, we use the internal
-//			 * color bar 8 on which we apply a matrix to change it
-//			 * to blue or black */
-//
-//			/* Set the first block byte separately, as it is shadowed and can't
-//			 * be set by tda998x_write
-//			 */
-//
-//			/* Set the first block byte separately, as it is shadowed and can't
-//			 * be set by tda998x_write
-//			 */
-//
-////            		ret = write_reg(dev,
-////                                MTX_CNTRL_W,
-////                                MatrixCoeff[0]);
-////			RETIF_REG_FAIL(ret)
-////			for (i = 0; i < MATRIX_PRESET_SIZE; i++)
-//				buf[i] = MatrixCoeff[i];
-//
-//			/* Set the rest of the block */
-//			ret = tda998x_write(dev,
-//					MTX_OI1_MSB,
-//					&buf[1],//					MATRIX_PRESET_SIZE - 1);
-//			if (ret < 0)
-//				return ret;
-//
-//			dev->prevFilterPattern = True;
-//
-//			ret = write_reg(dev,//					MTX_CNTRL,//					MatrixCoeff[0]);
-//			if (ret < 0)
-//				return ret;
-//		} else {
-//			/* Set number of colour bars */
-//			ret = write_reg_mask(dev,
-//					HVF_CNTRL_0,
-//					HVF_CNTRL_0_CLRBAR,//					bars8);
-//			if (ret < 0)
-//				return ret;//
-//			/* Bypass up/down sampler and matrix for RGB colourbars */
-//			write_reg_mask_table (dev, &kBypassColourProc[0]);//		}
-////		dev->prevPattern = True;
-////	} else {//		if (dev->prevFilterPattern) {
-//
-//			/* Restore the previous Matrix when pattern goes off */
-//			ret = tda998x_mtx_set_conversion(txUnit,
-//				     dev->vinFmt,
-//				     dev->vinMode,
-//				     dev->voutFmt,
-//				     dev->voutMode, dev->dviVqr);
-//			if (ret < 0)
-//				return ret;
-//
-//			dev->prevFilterPattern = False;
-//		}
-//
-//		/* Restore kBypassColourProc registers when pattern goes off */
-//		write_reg(dev, MTX_CNTRL, gMatContrl[txUnit]);//		write_reg(dev, HVF_CNTRL_0, gHvfCntrl0[txUnit]);
-//		write_reg(dev, HVF_CNTRL_1, gHvfCntrl1[txUnit]);
-//
-//		dev->prevPattern = False;
-//	}
-//
-//	/* Set Service Mode on or off */
-//	ret = write_reg_mask(dev,//			HVF_CNTRL_0,
-//			HVF_CNTRL_0_SM,//			serviceMode);
-////	return ret;}
-
-/**
- * @defgroup	TDA998X_VideoIn TDA998x Video Input
- * @{
- */
-
-/**
- * @brief	Set Video Input Blanking Source and Code
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	src:	Blanking source
- * @param	code:	Blanking code
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_vidin_set_blanking(struct tda998x_dev *dev,		enum vip_cntrl_4_blnkit src,
-		enum vip_cntrl_4_blc code){
-	return write_reg_mask(dev,			VIP_CNTRL_4,
-			VIP_CNTRL_4_BLNKIT_MASK | VIP_CNTRL_4_BLC_MASK,
-			(uint8_t) src | (uint8_t) code);}
-static inttda998x_vidin_set_config(struct tda998x_dev *dev,		enum tda998x_vidin_mode vinMode,
-		enum tda998x_vid_fmt voutFmt,		enum tda998x_format_3d structure3D,
-		enum tda998x_pix_edge edge,		enum tda998x_pix_rate pix_rate,
-		enum tda998x_upsample upsampleMode){
-	int ret;
-	uint8_t reg_idx, reg_idx3D;	/* Video format value used for register */
-	uint8_t ssd = 0;		/* Packed srl, scg and de */
-	uint8_t vip_cntrl_4, hvf_cntrl_1, pll_serial_3, sel_clk;
-	struct sync_desc *sync;
-	struct tda998x_vidin_cfg *vidin_cfg;
-
-	/* Quit if the output format does not map to the register format */
-//	RETIF_BADPARAM (reg_vid_fmt(voutFmt, structure3D, &reg_idx, &reg_idx3D, &sync));
-
-//	if (edge != PIXEDGE_NO_CHANGE) {
-//		ret = write_reg_mask(dev,
-//				VIP_CNTRL_3,
-//				VIP_CNTRL_3_EDGE,
-//				(uint8_t) edge);
-//		if (ret < 0)
-//			return ret;
-//	}
-//
-//	if (pix_rate != PIXRATE_NO_CHANGE) {
-//		vidin_cfg->pix_rate = pix_rate;
-//	}
-
-//	if ((pix_rate != PIXRATE_NO_CHANGE) ||
-//			(vinMode != VINMODE_NO_CHANGE)) {
-
-		ret = read_reg(dev, VIP_CNTRL_4, &vip_cntrl_4);
-		if (ret < 0)
-			return ret;
-
-		ret = read_reg(dev, HVF_CNTRL_1, &hvf_cntrl_1);
-		if (ret < 0)
-			return ret;
-
-		ret = read_reg(dev, PLL_SERIAL_3, &pll_serial_3);
-		if (ret < 0)
-			return ret;
-
-		ret = read_reg(dev, SEL_CLK, &sel_clk);
-		if (ret < 0)
-			return ret;
-
-		if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
-				(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
-
-			switch (vidin_cfg->mode) {
-			case VINMODE_RGB444:
-			case VINMODE_YUV444:
-				vip_cntrl_4	&= ~VIP_CNTRL_4_CCIR656;
-				hvf_cntrl_1	&= ~HVF_CNTRL_1_SEMI_PLANAR;
-				pll_serial_3	&= ~PLL_SERIAL_3_SRL_CCIR;
-				sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
-				vip_cntrl_4	&= ~VIP_CNTRL_4_656_ALT;
-
-				break;
-
-			case VINMODE_CCIR656:
-				vip_cntrl_4	|= VIP_CNTRL_4_CCIR656;
-				hvf_cntrl_1	|= HVF_CNTRL_1_SEMI_PLANAR;
-				pll_serial_3	|= PLL_SERIAL_3_SRL_CCIR;
-				sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
-				sel_clk		|= 0x02;
-				vip_cntrl_4	&= ~VIP_CNTRL_4_656_ALT;
-
-				break;
-
-			default:
-				return ERR_BAD_PARAM;
-			}
-
-		} else if (vidin_cfg->pix_rate == PIXRATE_DOUBLE) {
-
-			switch (vidin_cfg->mode) {
-			case VINMODE_CCIR656:
-				vip_cntrl_4	|= VIP_CNTRL_4_CCIR656;
-				hvf_cntrl_1	|= HVF_CNTRL_1_SEMI_PLANAR;
-				pll_serial_3	&= ~PLL_SERIAL_3_SRL_CCIR;
-				sel_clk		&= ~SEL_CLK_SEL_VRF_CLK_MASK;
-				vip_cntrl_4	|= VIP_CNTRL_4_656_ALT;
-
-				break;
-
-			case VINMODE_RGB444:
-			case VINMODE_YUV444:
-			default:
-				return ERR_BAD_PARAM;
-			}
-		}
-
-		ret = write_reg(dev, HVF_CNTRL_1, hvf_cntrl_1);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg(dev, PLL_SERIAL_3, pll_serial_3);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg(dev, SEL_CLK, sel_clk);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg(dev, VIP_CNTRL_4, vip_cntrl_4);
-		if (ret < 0)
-			return ret;
-//	}
-
-//	if (upsampleMode != UPSAMPLE_NO_CHANGE) {
-//		dev->upsampleMode = upsampleMode;
-//	}
-
-//	if ((format_3d == HDMITX_3D_FRAME_PACKING) &&
-//			(reg_idx3D != REGVFMT_INVALID)) {
-//		/* embedded 3D video format */
-//		ssd = pll[reg_idx3D];
-//	} else {
-		/* embedded 2D video format */
-		ssd = pll[reg_idx];
-//	}
-
-
-	if (ssd < SSD_UNUSED_VALUE) {
-		ret = write_reg_mask(dev,
-				PLL_SERIAL_2,
-				PLL_SERIAL_2_SRL_NOSC_MASK,
-				ssd);
-	}
-
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_1,
-			PLL_SERIAL_1_SRL_MAN_IZ,
-			0);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_3,
-			PLL_SERIAL_3_SRL_DE,
-			0);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg(dev, SERIALIZER, 0);
-	if (ret < 0)
-		return ret;
-
-	return 0;}
-
-/**
- * @brief	Set Video Input Fine
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_vidin_set_fine(struct tda998x_dev *dev,		enum vip_cntrl_3_sp_sync sp_sync,
-		uint8_t sp_cnt,		enum vip_cntrl_5_clkpol clkpol){
-	int ret;
-
-	if (dev == NULL)
-		return ERR_NULL_PARAM; 
-	if (sp_sync == SPSYNC_FIXED) {		ret = write_reg_mask(dev,				VIP_CNTRL_5,
-				VIP_CNTRL_5_SP_CNT_MASK,
-				sp_cnt << 1);
-		if (ret < 0)
-			return ret;
-    		ret = write_reg_mask(dev,				VIP_CNTRL_3,
-				VIP_CNTRL_3_SP_SYNC_MASK,
-				(uint8_t) SPSYNC_FIXED);
-		if (ret < 0)
-			return ret;	} else {		ret = write_reg_mask(dev,
-				VIP_CNTRL_5,
-				VIP_CNTRL_5_SP_CNT_MASK,
-				0);		if (ret < 0)
-			return ret;
-		ret = write_reg_mask(dev,				VIP_CNTRL_3,				VIP_CNTRL_3_SP_SYNC_MASK,				(uint8_t) sp_sync);		if (ret < 0)
-			return ret;
-	} 
-	ret = write_reg_mask(dev,			VIP_CNTRL_5,
-			VIP_CNTRL_5_CLKPOL,
-			(uint8_t) clkpol);
-	if (ret < 0)
-		return ret;
-  	return 0;}
-
-/**
- * @brief	Set Video Input Port Mapping
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	swap:	Port swap mapping table pointer
- * @param	mirr:	Port mirroring table pointer
- * @return	0 on success, non-zero error code otherwise
- */static inttda998x_vidin_set_mapping(struct tda998x_dev *dev,		enum vip_cntrl_swap *swap,		enum vip_cntrl_mirr *mirr){
-	int i;
-	uint8_t buf[3];
-
-	/* Check parameters */
-	if ((dev == NULL) || (swap == NULL) || (mirr == NULL))
-		return ERR_NULL_PARAM;
-
-	for (i = 0; i < VIP_CNTRL_LEN; i++) {
-		buf[i] = (uint8_t) swap[2 * i];
-		buf[i] |= (uint8_t) swap[(2 * i) + 1] << 4;
-		buf[i] |= (uint8_t) mirr[2 * i] << 3;
-		buf[i] |= (uint8_t) mirr[(2 * i) + 1] << 7;	}
-
-	return tda998x_write(dev, VIP_CNTRL_0, VIP_CNTRL_LEN, buf);}
-
-/**
- * @brief	Set Video Input Port Pin Enable
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	en:	Video port enable register table pointer
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_vidin_set_port_enable(struct tda998x_dev *dev)//		uint8_t *en){
-	int ret;
-	uint8_t buf[3] = { 0xFF, 0xFF, 0xFF };
-
-	/* Check parameters */
-	if (dev == NULL)
-		return ERR_NULL_PARAM;
-    
-	ret = tda998x_write(dev, ENA_VP_0, 3, buf);
-	if (ret < 0)
-		return ret;
-
-	return 0;}
-
-/**
- * @brief	Set Video Input Synchronization
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	src:	Syncing source
- * @param	mthd:	Syncing method
- * @param	tgl_v:	Toggle VS/VREF
- * @param	tgl_h:	Toggle HS/HREF
- * @param	tgl_x:	Toggle DE/FREF
- * @param	ref_pix:
- * @param	ref_line:
- * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_vidin_set_sync(struct tda998x_dev *dev,
-		enum vip_cntrl_3_emb emb,
-		enum tbg_cntrl_0_sync_mthd mthd,
-		bool tgl_v,
-		bool tgl_h,
-		bool tgl_x,
-		uint16_t ref_pix,
-		uint16_t ref_line)
-{
-	int ret;
-	uint8_t reg_val;
-
-	ret = write_reg_mask(dev,
-			VIP_CNTRL_3,
-			VIP_CNTRL_3_EMB,
-			emb);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg_mask(dev,
-			TBG_CNTRL_0,
-			TBG_CNTRL_0_SYNC_MTHD,
-			(uint8_t) mthd);
-	if (ret < 0)
-		return ret;
-
-	reg_val = tgl_v ? VIP_CNTRL_3_V_TGL : 0;
-	reg_val |= tgl_h ? VIP_CNTRL_3_H_TGL : 0;
-	reg_val |= tgl_x ? VIP_CNTRL_3_X_TGL : 0;
-	ret = write_reg_mask(dev,
-			VIP_CNTRL_3,
-			VIP_CNTRL_3_V_TGL | VIP_CNTRL_3_H_TGL | VIP_CNTRL_3_X_TGL,
-			reg_val);
-	if (ret < 0)
-		return ret;
-
-	if ((ref_pix >= REFPIX_MIN) &&
-			(ref_pix <= REFPIX_MAX)) {
-		ret = write_reg16(dev, REFPIX_MSB, ref_pix);
-		if (ret < 0)
-			return ret;
-	}
-
-	if ((ref_line >= REFLINE_MIN) &&
-			(ref_line <= REFLINE_MAX)) {
-		ret = write_reg16(dev, REFLINE_MSB, ref_line);
-		if (ret < 0)
-			return ret;
-	}
-
-	return 0;
-}
-/**
- * @}
- */
-
-/**
- * @brief
- *
- */
-//	NPIX_MSB		= PAGE_ADDR(PAGE_00, 0xA5),
-//	NPIX_LSB		= PAGE_ADDR(PAGE_00, 0xA6),
-//	NLINE_MSB		= PAGE_ADDR(PAGE_00, 0xA7),
-//	NLINE_LSB		= PAGE_ADDR(PAGE_00, 0xA8),
-//	VS_LINE_STRT_1_MSB	= PAGE_ADDR(PAGE_00, 0xA9),
-//	VS_LINE_STRT_1_LSB	= PAGE_ADDR(PAGE_00, 0xAA),
-//	VS_PIX_STRT_1_MSB	= PAGE_ADDR(PAGE_00, 0xAB),
-//	VS_PIX_STRT_1_LSB	= PAGE_ADDR(PAGE_00, 0xAC),
-//	VS_LINE_END_1_MSB	= PAGE_ADDR(PAGE_00, 0xAD),
-//	VS_LINE_END_1_LSB	= PAGE_ADDR(PAGE_00, 0xAE),
-//	VS_PIX_END_1_MSB	= PAGE_ADDR(PAGE_00, 0xAF),
-//	VS_PIX_END_1_LSB	= PAGE_ADDR(PAGE_00, 0xB0),
-//	VS_LINE_STRT_2_MSB	= PAGE_ADDR(PAGE_00, 0xB1),
-//	VS_LINE_STRT_2_LSB	= PAGE_ADDR(PAGE_00, 0xB2),
-//	VS_PIX_STRT_2_MSB	= PAGE_ADDR(PAGE_00, 0xB3),
-//	VS_PIX_STRT_2_LSB	= PAGE_ADDR(PAGE_00, 0xB4),
-//	VS_LINE_END_2_MSB	= PAGE_ADDR(PAGE_00, 0xB5),
-//	VS_LINE_END_2_LSB	= PAGE_ADDR(PAGE_00, 0xB6),
-//	VS_PIX_END_2_MSB	= PAGE_ADDR(PAGE_00, 0xB7),
-//	VS_PIX_END_2_LSB	= PAGE_ADDR(PAGE_00, 0xB8),
-//	HS_PIX_START_MSB	= PAGE_ADDR(PAGE_00, 0xB9),
-//	HS_PIX_START_LSB	= PAGE_ADDR(PAGE_00, 0xBA),
-//	HS_PIX_STOP_MSB		= PAGE_ADDR(PAGE_00, 0xBB),
-//	HS_PIX_STOP_LSB		= PAGE_ADDR(PAGE_00, 0xBC),
-//	VWIN_START_1_MSB	= PAGE_ADDR(PAGE_00, 0xBD),
-//	VWIN_START_1_LSB	= PAGE_ADDR(PAGE_00, 0xBE),
-//	VWIN_END_1_MSB		= PAGE_ADDR(PAGE_00, 0xBF),
-//	VWIN_END_1_LSB		= PAGE_ADDR(PAGE_00, 0xC0),
-//	VWIN_START_2_MSB	= PAGE_ADDR(PAGE_00, 0xC1),
-//	VWIN_START_2_LSB	= PAGE_ADDR(PAGE_00, 0xC2),
-//	VWIN_END_2_MSB		= PAGE_ADDR(PAGE_00, 0xC3),
-//	VWIN_END_2_LSB		= PAGE_ADDR(PAGE_00, 0xC4),
-//	DE_START_MSB		= PAGE_ADDR(PAGE_00, 0xC5),
-//	DE_START_LSB		= PAGE_ADDR(PAGE_00, 0xC6),
-//	DE_STOP_MSB		= PAGE_ADDR(PAGE_00, 0xC7),
-//	DE_STOP_LSB		= PAGE_ADDR(PAGE_00, 0xC8),
-//struct tda998x_vid_reg {
-//	uint16_t	npix;
-//	uint16_t	nline;
-//	uint16_t	line_start;
-//	uint16_t	pix_start;
-//	uint16_t	line_end;
-//	uint16_t	pix_end;
-//	uint16_t	hs_start;
-//	uint16_t	hs_end;
-//	uint16_t	act_vid_start;
-//	uint16_t	act_vid_end;
-//	uint16_t	de_start;
-//	uint16_t	de_end;
-//	uint16_t	act_space_start;
-//	uint16_t	act_space_end;
-//};static int
-set_video_config(struct tda998x_dev *dev,
-		  uint8_t reg_idx,
-		  struct tda998x_vid_reg *vid){
-	int ret;
-//	uint8_t reg_val;
-////	reg_val = 0x00;
-	ret = write_reg(dev, VIDFORMAT, 0x1F);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg(dev, VIDFORMAT, 0x00);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, NPIX_MSB, vid->npix);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, NLINE_MSB, vid->nline);
-	if (ret < 0)
-		return ret;
- 
-	ret = write_reg16(dev, VS_LINE_STRT_1_MSB, vid->line_start);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VS_PIX_STRT_1_MSB, vid->pix_start);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VS_LINE_END_1_MSB, vid->line_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VS_PIX_END_1_MSB, vid->pix_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, HS_PIX_START_MSB, vid->hs_start);
-	if (ret < 0)
-		return ret;
- 
-	ret = write_reg16(dev, HS_PIX_STOP_MSB, vid->hs_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, VWIN_START_1_MSB, vid->act_vid_start);
-	if (ret < 0)
-		return ret;
- 
-	ret = write_reg16(dev, VWIN_END_1_MSB, vid->act_vid_end);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, DE_START_MSB, vid->de_start);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg16(dev, DE_STOP_MSB, vid->de_end);
-	if (ret < 0)
-		return ret;
-	return 0;}
-
-//int//tda998x_vidin_sync_auto(struct tda998x_dev *dev,
-//		tmbslHdmiTxSyncSource_t syncSource,
-//		enum tda998x_vid_fmt vinFmt,//		enum tda998x_vidin_mode vinMode,
-//		enum tda998x_format_3d structure3D)
-////{//	int ret;
-//	uint8_t reg_idx, reg_idx3D;	/* Video i/p fmt value used for comparison */
-//	uint8_t embedded;		/* Register value */
-//	uint8_t syncMethod;		/* Sync method */
-//	uint8_t toggleV;		/* V toggle */
-//	uint8_t toggleH;		/* H toggle */
-//	uint8_t toggleX;		/* X toggle */
-//	uint16_t uRefPix;		/* Output refpix */
-//	uint16_t uRefLine;		/* Output refline */
-//	struct sync_desc *sync;
-//
-//	/* Check parameters - syncSource must be specified */
-//	RETIF_BADPARAM (syncSource >= HDMITX_SYNCSRC_NO_CHANGE);
-////	RETIF_BADPARAM (!IS_VALID_FMT (vinFmt));
-//
-//	/* Look up the VIDFORMAT register format from the register format table */
-//	/* Quit if the input format does not map to the register format */
-//	RETIF_BADPARAM (reg_vid_fmt
-//		    (vinFmt, structure3D, &reg_idx, &reg_idx3D, &sync));
-//
-//	/* Select values according to sync source */
-//	embedded = 0;
-////	switch (syncSource) {//	case HDMITX_SYNCSRC_EXT_VS:
-//		syncMethod = 1;
-//		toggleV = 0;
-//		toggleH = 0;
-//		toggleX = 1;
-//		uRefPix = 111;
-//		uRefLine = 2;
-//		break;
-//
-//	case HDMITX_SYNCSRC_EMBEDDED:
-//		embedded++;
-//	case HDMITX_SYNCSRC_EXT_VREF://	default:
-//		syncMethod = 1;
-//		toggleV = 1;
-//		toggleH = 1;
-//		toggleX = 1;
-//		uRefPix = 371;
-//		uRefLine = 26;
-//		break;
-//	}
-//
-//	/* Table has +1 added to refpix values which are not needed in
-//	 * RGB444, YUV444 and YUV422 modes, but +2 is required in those cases
-//	 */
-//	if (vinMode != HDMITX_VINMODE_CCIR656) {
-//		uRefPix += 2;
-//	}//
-//	/*
-//	 * Synchronicity software workaround issue number 106
-//	 */
-//	if (vinMode == HDMITX_VINMODE_CCIR656) {
-//		if (syncSource == HDMITX_SYNCSRC_EXT_VS) {
-//			if (dev->pixRate == HDMITX_PIXRATE_DOUBLE) {
-//				switch (reg_idx) {
-//				case E_REGVFMT_720x480p_60Hz:
-//				case E_REGVFMT_720x480i_60Hz:
-//				case E_REGVFMT_720x576p_50Hz:
-//				case E_REGVFMT_720x576i_50Hz:
-//					uRefPix++;
-//					break;
-//
-//				default:
-//					/* do nothing... well I would say : FIXME */
-//					break;//				}//			}//		}//	}
-//
-//	/* Set embedded sync */
-//	ret = write_reg_mask(dev,//			VIP_CNTRL_3,
-//			VIP_CNTRL_3_emb,//			embedded);
-//	if (ret < 0)
-//		return ret;
-//
-//	/* Set sync method */
-//	ret = write_reg_mask(dev,//			TBG_CNTRL_0,
-//			TBG_CNTRL_0_SYNC_MTHD,
-//			TBG_CNTRL_0_SYNC_MTHD);
-//	if (ret < 0)
-//		return ret;
-//
-//	/* Set VH toggle */
-//	ret = write_reg_mask(dev,//			VIP_CNTRL_3,
-//			VIP_CNTRL_3_V_TGL,//			toggleV);//	if (ret < 0)
-//		return ret;
-////	ret = write_reg_mask(dev,
-//			VIP_CNTRL_3,
-//			VIP_CNTRL_3_H_TGL,//			toggleH);
-//	if (ret < 0)
-//		return ret;
-////
-//	/* Set X toggle */
-//	ret = write_reg_mask(dev,//			VIP_CNTRL_3,
-//			VIP_CNTRL_3_X_TGL,//			toggleX);
-//	if (ret < 0)
-//		return ret;
-//////	if (EXTRA(reg_idx) &&
-//			(structure3D != HDMITX_3D_FRAME_PACKING)) {
-//
-//	/* 2d extra video format */
-//	RETIF_REG_FAIL (set_video (dev, BASE (reg_idx), (tmHdmiTxVidReg_t *)
-//				 format_param_extra, debug));
-////	} else if (EXTRA(reg_idx3D) &&
-//			(structure3D == HDMITX_3D_FRAME_PACKING)) {
-//
-//		/* 3d extra frame packing */
-//		RETIF_REG_FAIL (set_video (dev, BASE (reg_idx3D), (tmHdmiTxVidReg_t *)
-//				 format_param_extra, debug));//	} else {
-//		/* see video set up using VIDFORMAT_W */
-//	}//
-//	/* Set refpix, refline */
-//	ret = write_reg16 (dev, REFPIX_MSB_W, uRefPix, debug);//	if (ret < 0)
-//		return ret;
-////	ret = write_reg16(dev, REFLINE_MSB_W, uRefLine, debug);
-////	return ret;//}
-
-
-/**
- * @defgroup	TDA998X_VideoOut TDA998x Video Output
- * @{
- */
-
-/**
- * @brief	Video Output Enable
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	en:	Enable video value
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_vidout_enable(struct tda998x_dev *dev, bool en){
-	return write_reg_mask(dev,			TBG_CNTRL_0,
-			TBG_CNTRL_0_FRAME_DIS,
-			en ? 0 : TBG_CNTRL_0_FRAME_DIS);}
-
-/**
- * @brief	Set Video Output Configuration
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	sink:	Video output sink type
- * @param	vout_mode:	Video output mode
- * @param	prefil:	Prefilter
- * @param	yuv_blk:
- * @param	vqr:	Video quantization range
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_vidout_set_config(struct tda998x_dev *dev,		enum tda998x_sink sink,
-		enum tda998x_vidout_mode vout_mode,		enum hvf_cntrl_0_prefil prefil,
-		enum hvf_cntrl_1_yuv_blk yuv_blk,
-		enum hvf_cntrl_1_vqr vqr){
-	int ret;
-	uint8_t reg_val;
-	if (sink == SINK_EDID) {
-		if (dev->edid_state == EDID_NOT_READ)
-			dev->sink = SINK_DVI;		/* Assume simplest sink */
-		else
-			dev->sink = dev->edid_sink;	/* Set sink to the type that was read */
-	} else {
-		/* Set demanded sink type */
-		dev->sink = sink;
-	} 
-	if (dev->sink == SINK_DVI) {
-		ret = write_reg_mask(dev,				AIP_CNTRL_0,
-				AIP_CNTRL_0_RST_FIFO,				AIP_CNTRL_0_RST_FIFO);
-		if (ret < 0)
-			return ret;
-
-		vout_mode = VOUTMODE_RGB444; 
-		ret = write_reg_mask(dev, TBG_CNTRL_1, TBG_CNTRL_1_DWIN_DIS, TBG_CNTRL_1_DWIN_DIS);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg_mask(dev, OTP_TX33, OTP_TX33_HDMI, 0);
-		if (ret < 0)
-			return ret;
-		ret = write_reg_mask(dev, ENC_CNTRL, ENC_CNTRL_CTL_CODE_MASK, 0);
-		if (ret < 0)
-			return ret;
-	} else {
-		ret = write_reg_mask(dev, AIP_CNTRL_0, AIP_CNTRL_0_RST_FIFO, 0);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg_mask(dev, TBG_CNTRL_1, TBG_CNTRL_1_DWIN_DIS, 0);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg_mask(dev, ENC_CNTRL, ENC_CNTRL_CTL_CODE_MASK, 0x04U);
-		if (ret < 0)
-			return ret;
-
-		ret = write_reg_mask(dev, OTP_TX33, OTP_TX33_HDMI, OTP_TX33_HDMI);
-		if (ret < 0)
-			return ret;	}
-
-	dev->vout_cfg->mode = vout_mode;
-
-	ret = write_reg_mask(dev,			HVF_CNTRL_0,
-			HVF_CNTRL_0_PREFIL_MASK,
-			(uint8_t) prefil);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg_mask(dev,			HVF_CNTRL_1,
-			HVF_CNTRL_1_YUVBLK,
-			(uint8_t) yuv_blk);
-	if (ret < 0)
-		return ret;
-
-	return 0;}
-
-//#define TBG_CNTRL_1_VH_TGL_MASK		(0x07U)
-//#define TBG_CNTRL_1_VH_TGL_0			(1 << 0)
-//#define TBG_CNTRL_1_VH_TGL_1			(1 << 1)
-//#define TBG_CNTRL_1_VH_TGL_2			(1 << 2)
-/** Video sync toggle */
-//typedef enum
-//{
-//    HDMITX_VSTGL_TABLE         = 0,    /**< Vs/Hs polarity from table */
-//    HDMITX_VSTGL_UNUSED_1      = 1,    /**< Unused          */
-//    HDMITX_VSTGL_UNUSED_2      = 2,    /**< Unused          */
-//    HDMITX_VSTGL_UNUSED_3      = 3,    /**< Unused          */
-//    HDMITX_VSTGL_NO_ACTION     = 4,    /**< No toggle       */
-//    HDMITX_VSTGL_HS            = 5,    /**< Toggle Hs       */
-//    HDMITX_VSTGL_VS            = 6,    /**< Toggle Vs       */
-//    HDMITX_VSTGL_HS_VS         = 7,    /**< Toggle Hs & Vs  */
-//    HDMITX_VSTGL_NO_CHANGE     = 8,    /**< No change       */
-//    HDMITX_VSTGL_INVALID       = 9     /**< Invalid         */
-//} tmbslHdmiTxVsTgl_t;
-
-
-/**
- * @brief	Set Video Output Synchronization
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	h_ext:	Is HS/HREF external?
- * @param	v_ext:	Is VS/VREF external?
- * @param	x_ext:	Is DE/FREF external?
- *
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_vidout_set_sync(struct tda998x_dev *dev,		bool h_ext,
-		bool v_ext,		bool de_ext,
-		uint8_t tgl,		enum tbg_cntrl_0_sync sync){
-	int ret;
-	uint8_t reg_val = 0;
-	uint8_t reg_idx;
-	struct sync_desc *desc;
- 
-	/* Build register value */
-	if (h_ext)
-		reg_val |= TBG_CNTRL_1_VHX_EXT_HS;
-
-	if (v_ext)
-		reg_val |= TBG_CNTRL_1_VHX_EXT_VS;
-
-	if (de_ext)
-		reg_val |= TBG_CNTRL_1_VHX_EXT_DE;
-
-	ret = write_reg_mask (dev,			TBG_CNTRL_1,
-			TBG_CNTRL_1_VHX_EXT_MASK,
-			reg_val);
-	if (ret < 0)
-		return ret;
-
-	/* Hs Vs polarity fix */
-	/* set polarity back when VIDFORMAT_TABLE (VIDFORMAT_W) is not used */
-//	if (reg_vid_fmt(dev->vinFmt, HDMITX_3D_NONE, &reg_idx, 0, &desc))
-//		return ERR_BAD_PARAM;
-    
-	//if (EXTRA(reg_idx)) { //FRO EXTRA changed
-//	if (!(PREFETCH (reg_idx))) {//		tgl = (tmbslHdmiTxVsTgl_t) (TBG_CNTRL_1_vh_tgl & \//				(0x04 | sync[BASE (reg_idx)].v_toggle |
-//						sync[BASE (reg_idx)].h_toggle));//	}
- 
-	ret = write_reg_mask(dev,			TBG_CNTRL_1,
-			TBG_CNTRL_1_VH_TGL_MASK,
-			tgl);
-
-	if (ret < 0)
-		return ret;
-  
-	/* Must be last register set */
-	ret = write_reg_mask(dev,			TBG_CNTRL_0,
-			TBG_CNTRL_0_SYNC,
-			(uint8_t) sync);
-	if (ret < 0)
-		return ret;
-
-	/* Toggle TMDS serialiser force flags - stability fix */
-	ret = write_reg_mask(dev,			BUFFER_OUT,
-			BUFFER_OUT_SRL_FORCE_MASK,
-			(uint8_t) TMDSOUT_FORCED0);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg_mask(dev,			BUFFER_OUT,
-			BUFFER_OUT_SRL_FORCE_MASK,
-			(uint8_t) TMDSOUT_NORMAL);
-	if (ret < 0)
-		return ret;
- 	if (sync == SYNC_ONCE) {
-		/* Toggle output Sync Once flag for settings to take effect */
-		ret = write_reg_mask(dev,				TBG_CNTRL_0,
-				TBG_CNTRL_0_SYNC,				(uint8_t) SYNC_EACH_FRAME);
-		if (ret < 0)
-			return ret;
-		ret = write_reg_mask(dev,				TBG_CNTRL_0,
-				TBG_CNTRL_0_SYNC,
-				(uint8_t) SYNC_ONCE);
-		if (ret < 0)
-			return ret;
-	}
-  	return 0;}
-
-static inttda998x_VideoSetInOut(struct tda998x_dev *dev,		enum tda998x_vid_fmt vin_fmt,
-		enum tda998x_format_3d format_3d,
-		enum tda998x_scaler_mode sca_mod_req,		enum tda998x_vid_fmt vout_fmt,
-		uint8_t pix_rpt,		enum tda998x_mtx_mode mtx_mode,
-		enum tda998x_dwidth dwidth,		enum tda998x_vqr vqr){
-	int ret;
-	enum tda998x_scaler_mode sca_mode;
-	uint8_t reg_idx, reg_idx3D;
-	uint8_t reg_val;
- 
-	/* Check parameters */
-//	RETIF_BADPARAM (!IS_VALID_FMT (vin_fmt))
-//	RETIF_BADPARAM (!IS_VALID_FMT (vout_fmt))
-//	RETIF_BADPARAM (sca_mod_req >= HDMITX_SCAMODE_INVALID)
-//	RETIF_BADPARAM (pix_rpt >= HDMITX_PIXREP_INVALID)
-//	RETIF_BADPARAM (mtx_mode >= HDMITX_MATMODE_INVALID)
-//	RETIF_BADPARAM (dwidth >= HDMITX_VOUT_DBITS_INVALID)
-    //	sca_mode = HDMITX_SCAMODE_OFF;//	dev->sca_mode = HDMITX_SCAMODE_OFF;
- 
-	/* Get current input format if it must not change */
-//	if (vin_fmt == HDMITX_VFMT_NO_CHANGE) {
-//		RETIF (dev->vin_fmt == HDMITX_VFMT_NULL,//				ERR_ILLEGAL_PARAMS)//		 vin_fmt = dev->vin_cfg->format;
-//	} else {
-//		dev->vin_cfg->format = vin_fmt;//		dev->h3dFpOn = (format_3d == FORMAT_3D_FRAME_PACKING);//	}
-  
-	/* Get current output format if it must not change */
-//	if (vout_fmt == HDMITX_VFMT_NO_CHANGE) {//		 vout_fmt = dev->vout_fmt;
-//	} else {
-//		dev->vout_fmt = vout_fmt;
-//	}
-
-	if (dev->vout_cfg->mode == VOUTMODE_RGB444) {
-		if ((dev->vout_cfg->format >= VFMT_02_720x480p_60Hz) &&
-				(IS_TV (dev->vout_cfg->format))) {
-			if (vqr == VQR_RGB_FULL) {
-				ret = write_reg_mask(dev,
-						HVF_CNTRL_1,
-						HVF_CNTRL_1_VQR_MASK,						(uint8_t) QRANGE_FS);				if (ret < 0)
-					return ret;
-			} else {
-				ret = write_reg_mask(dev,
-						HVF_CNTRL_1,
-						HVF_CNTRL_1_VQR_MASK,						(uint8_t) QRANGE_RGB_YUV);
-				if (ret < 0)
-					return ret;			}		} else {
-			/*Format PC or VGA */			ret = write_reg_mask(dev,
-					HVF_CNTRL_1,
-					HVF_CNTRL_1_VQR_MASK,					(uint8_t) QRANGE_FS);
-			if (ret < 0)
-				return ret;
-		}
-	} else {
-
-		ret = write_reg_mask(dev,				HVF_CNTRL_1,
-				HVF_CNTRL_1_VQR_MASK,
-				(uint8_t) QRANGE_YUV);
-		if (ret < 0)
-			return ret;
-	}
- 
-	/* Set pixel repetition - sets pixelRepeatCount, used by setScalerFormat */
-	ret = set_pix_repeat(dev, vout_fmt, pix_rpt, format_3d);	if (ret < 0)
-		return ret;
- 
-	/* Set scaler clock */
-//	reg_val = 0;
-//	if ((dev->pixelRepeatCount > PIXREP_MIN) &&
-//			(dev->pixelRepeatCount <= PIXREP_MAX)) {
-//		reg_val = 2;
-//	} else if (dev->vin_in_cfg->mode == VINMODE_CCIR656) {
-//		reg_val = (uint8_t) ((dev->sca_mode == SCAMODE_ON) ? 0 : 1);
-////		if (dev->vid_in_cfg->pix_rate == PIXRATE_DOUBLE) {
-//			reg_val = 0;
-//		}
-//	}
-
-	reg_val = 0x02;	ret = write_reg_mask(dev,			SEL_CLK,
-			SEL_CLK_SEL_VRF_CLK_MASK,
-			reg_val << 1);
-	if (ret < 0)
-		return ret;
-
-	/* Look up the VIDFORMAT register format from the register format table */
-//	RETIF_BADPARAM(reg_vid_fmt
-//			(vin_fmt, format_3d, &reg_idx, &reg_idx3D, 0));
-
-	/* Set format register for the selected output format vout_fmt */
-//	if (PREFETCH (reg_idx3D) &&
-//			(format_3d == FORMAT_3D_FRAME_PACKING)) {
-//		/* embedded 3D video format */
-//		ret = write_reg(dev, VIDFORMAT, 0x00);
-//		ret = write_reg(dev, VIDFORMAT, 0x1F);
-//		ret = write_reg(dev, VIDFORMAT, reg_idx3D);
-//	} else if (PREFETCH (reg_idx) &&
-//			(format_3d != FORMAT_3D_FRAME_PACKING)) {
-
-		/* embedded 2D video format */
-		ret = write_reg(dev, VIDFORMAT, 0x00);
-		ret = write_reg(dev, VIDFORMAT, 0x1F);
-		ret = write_reg(dev, VIDFORMAT, reg_idx);//	} else {
-//		/* see video set up using set_video() */
-//	}
-	if (ret < 0)
-		return ret;
-
-	/* Set VS and optional DE */
-	ret = set_de_vs(dev, vout_fmt, format_3d);	if (ret < 0)
-		return ret;
-
-	/* If matrix mode is auto then set mode based on input and output format */
-//	if (mtx_mode != HDMITX_MATMODE_NO_CHANGE) {
-		if (mtx_mode == MTX_MODE_AUTO) {
-			ret = tda998x_mtx_set_conv(dev,
-					vin_fmt,
-					dev->vin_cfg->mode,
-					vout_fmt,
-					dev->vout_cfg->mode,
-					dev->vout_cfg->vqr);		} else {
-			ret = tda998x_mtx_set_mode(dev,
-					MTXBYPASS_ON,
-					MTXSCALE_256);	// HDMITX_MSCALE_NO_CHANGE
-		}
-
-		if (ret < 0)
-			return ret;//	}
-
-	/* Set upsampler and downsampler */
-	ret = set_sampling(dev);
-	if (ret < 0)
-		return ret;
-
-	/* Set colour component bit depth */
-//	if (dwidth != HDMITX_VOUT_DBITS_NO_CHANGE) {
-	ret = write_reg_mask(dev,			HVF_CNTRL_1,
-			HVF_CNTRL_1_PAD_MASK,
-			(uint8_t) dwidth);
-	if (ret < 0)
-		return ret;//	}
-  
-	/* Save kBypassColourProc registers before pattern goes on */
-//	read_reg(dev, MTX_CNTRL, &gMatContrl[txUnit]);
-//	read_reg(dev, HVF_CNTRL_0, &gHvfCntrl0[txUnit]);
-//	read_reg(dev, HVF_CNTRL_1, &gHvfCntrl1[txUnit]);
-  //	setState(dev, EV_SETINOUT);
-  	return 0;}
-
-/**
- * @defgroup	TDA998X_Matrix
- * @{
- */
-/**
- * @brief	Set Matrix Coefficients
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_mtx_set_coeffs(struct tda998x_dev *dev, struct tda998x_mtx_coeff *mtx){
-	int i, ret;
-	uint8_t buf[MTX_COEFF_LEN * 2];
-
-	for (i = 0; i < MTX_COEFF_LEN; i++) {
-		buf[i * 2] = (uint8_t) (((uint16_t) mtx->coeff[i] & 0x0700) >> 8);
-		buf[(i * 2) + 1] = (uint8_t) ((uint16_t) mtx->coeff[i] & 0x00FF);
-	}
-
-	ret = tda998x_write(dev, MTX_P11_MSB, MTX_COEFF_LEN * 2, &buf[0]);
-	if (ret < 0)
-		return ret;
-	return 0;}
-/**
- * @brief	Set Matrix Conversion
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_mtx_set_conv(struct tda998x_dev *dev,		enum tda998x_vid_fmt vin_fmt,
-		enum tda998x_vidin_mode vin_mode,		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_vidout_mode vout_mode,		enum tda998x_vqr vqr){
-	int i, ret;
-	enum tda998x_color_space cs_in;
-	enum tda998x_color_space cs_out;
-	int matrixIndex;	uint8_t buf[31];
-
-	/* Check remaining parameter(s) */
-//	RETIF_BADPARAM (!IS_VALID_FMT (vin_fmt))
-//	RETIF_BADPARAM (!IS_VALID_FMT (vout_fmt))
-	/* NB: NO_CHANGE is not valid for this function, so limit to actual values */
-//	RETIF_BADPARAM (vin_mode >= HDMITX_VINMODE_NO_CHANGE)
-	/* NB: NO_CHANGE is not valid for this function, so limit to actual values */
-//	RETIF_BADPARAM (vout_mode >= HDMITX_VOUTMODE_NO_CHANGE) 
-	/* Since vin_mode and vout_mode are different types, we don't use a local
-	 * function to do this and use inline code twice
-	 */
-    
-	/* Calculate input colour space */
-	switch (vin_fmt) {
-	case VFMT_04_1280x720p_60Hz:
-	case VFMT_05_1920x1080i_60Hz:
-	case VFMT_16_1920x1080p_60Hz:
-	case VFMT_19_1280x720p_50Hz:
-	case VFMT_20_1920x1080i_50Hz:
-	case VFMT_31_1920x1080p_50Hz:
-	case VFMT_32_1920x1080p_24Hz:
-	case VFMT_33_1920x1080p_25Hz:
-	case VFMT_34_1920x1080p_30Hz:
-	case VFMT_60_1280x720p_24Hz:
-	case VFMT_61_1280x720p_25Hz:
-	case VFMT_62_1280x720p_30Hz:
-		/* Catch the HD modes */		if (vin_mode == VINMODE_RGB444)			cs_in = CS_RGB_LIMITED;		else			cs_in = CS_YUV_ITU_BT709;	/* CCIR656, YUV444, YU422 */
-    		break;
-  	default:
-		/* Now all the SD modes */		if (vin_mode == VINMODE_RGB444)			cs_in = CS_RGB_LIMITED;
-		else
-			cs_in = CS_YUV_ITU_BT601;	/* CCIR656, YUV444, YU422 */
-		break;	}
-    
-	/* Calculate output color space */
-	switch (vout_fmt) {	case VFMT_04_1280x720p_60Hz:
-	case VFMT_05_1920x1080i_60Hz:
-	case VFMT_16_1920x1080p_60Hz:
-	case VFMT_19_1280x720p_50Hz:
-	case VFMT_20_1920x1080i_50Hz:
-	case VFMT_31_1920x1080p_50Hz:
-	case VFMT_32_1920x1080p_24Hz:
-	case VFMT_33_1920x1080p_25Hz:
-	case VFMT_34_1920x1080p_30Hz:
-	case VFMT_60_1280x720p_24Hz:
-	case VFMT_61_1280x720p_25Hz:
-	case VFMT_62_1280x720p_30Hz:
-		/* Catch the HD modes */
-		if (vout_mode == VOUTMODE_RGB444) {
-			cs_out = CS_RGB_LIMITED;		} else {
-			/* YUV444 or YUV422 */
-			cs_out = CS_YUV_ITU_BT709;		}
-    		break;
-  	default:
-		/* Now all the SD modes */
-		if (vout_mode == VOUTMODE_RGB444) {			cs_out = CS_RGB_LIMITED;
-		} else {
-			/* YUV444 or YUV422 */			cs_out = CS_YUV_ITU_BT601;
-		}
-    		break;	}
-  	if (cs_in == cs_out) {
-		ret = write_reg_mask(dev,				MTX_CNTRL,
-				MTX_CNTRL_MTX_BP,				MTX_CNTRL_MTX_BP);
-		if (ret < 0)
-			return ret;	} else {
-		ret = write_reg_mask(dev,
-				MTX_CNTRL,
-				MTX_CNTRL_MTX_BP,
-				0);
-		if (ret < 0)
-			return ret;
-		/* Load appropriate values into matrix  - we have preset blocks of
-		 * 31 register vales in a table, just need to work out which set to use
-		 */
-//		matrixIndex = kMatrixIndex[cs_in][cs_out];
-//		enum tda998x_color_space {
-//			CS_RGB_FULL  = 0,		/**< RGB full */
-//			CS_RGB_LIMITED = 1,		/**< RGB Limited (TV) */
-//			CS_YUV_ITU_BT601 = 2,		/**< YUV ITUBT601 (SDTV) */
-//			CS_YUV_ITU_BT709 = 3,		/**< YUV ITUBT709 (HDTV) */
-//		};
-
-		//static const int kMatrixIndex[HDMITX_CS_NUM][HDMITX_CS_NUM] =
-		//  {
-		//{-1, E_MATRIX_RGBF_2_RGBL, E_MATRIX_RGBF_2_BT601, E_MATRIX_RGBF_2_BT709},
-		//{E_MATRIX_RGBL_2_RGBF, -1, E_MATRIX_RGBL_2_BT601, E_MATRIX_RGBL_2_BT709},
-		//{E_MATRIX_BT601_2_RGBF, E_MATRIX_BT601_2_RGBL, -1, E_MATRIX_BT601_2_BT709},
-		//{E_MATRIX_BT709_2_RGBF, E_MATRIX_BT709_2_RGBL, E_MATRIX_BT709_2_BT601, -1}
-		//};
-
-		//		MTX_CNTRL		= PAGE_ADDR(PAGE_00, 0x80),
-		//		MTX_OI1_MSB		= PAGE_ADDR(PAGE_00, 0x81),
-		//		MTX_P11_MSB		= PAGE_ADDR(PAGE_00, 0x87),
-		//		MTX_OO1_MSB		= PAGE_ADDR(PAGE_00, 0x99),
-    		/* Set the first block byte separately, as it is shadowed and can't
-		 * be set by tda998x_write */
-		for (i = 0; i < 31; i++)
-			buf[i] = mtx_cfg_preset[matrixIndex][i];
-
-		ret = write_reg_mask (dev,
-				MTX_CNTRL,
-				MTX_CNTRL_MTX_SC,
-				buf[0]);
-		if (ret < 0)
-			return ret;
- 
-		/* Set the rest of the block */
-		ret = tda998x_write(dev, MTX_OI1_MSB, 30, &buf[1]);
-		if (ret < 0)
-			return ret;	}
-  	return 0;}
-
-/**
- * @brief	Set Matrix Input Offset
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	offset:	Matrix offset data structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static inttda998x_mtx_set_inoffset(struct tda998x_dev *dev, struct mtx_offset *offset){
-	int i, ret;
-	uint8_t buf[MTX_OFFSET_LEN * 2];
- 
-	/* Check remaining parameter(s) */
-//	RETIF_BADPARAM (pMatOffset == (tmbslHdmiTxMatOffset_t *) 0)
-//	for (i = 0; i < HDMITX_MAT_OFFSET_NUM; i++) {
-//		RETIF_BADPARAM((pMatOffset->Offset[i] < HDMITX_MAT_OFFSET_MIN) ||//				(pMatOffset->Offset[i] > HDMITX_MAT_OFFSET_MAX))//	}
-  
-	/* Convert signed 11 bit values from Offset array to pairs of MSB-LSB
-	 * register values, and write to register pairs
-	 */
-	for (i = 0; i < MTX_OFFSET_LEN; i++) {
-		buf[i * 2] = (uint8_t) (((uint16_t) offset->offset[i] & 0x0700) >> 8);
-		buf[(i * 2) + 1] = (uint8_t) ((uint16_t) offset->offset[i] & 0x00FF);	}
-  	ret = tda998x_write(dev,			MTX_OI1_MSB,			MTX_OFFSET_LEN * 2,
-			&buf[0]);
-	if (ret < 0)
-		return ret;
-
-	return 0;}
-/**
- * @brief	Set Matrix Output Offset
- *
- * @param	dev:	TDA998x device structure pointer
- * @param	offset:	Matrix offset data structure pointer
- * @return	0 on success, non-zero error status otherwise
- */
-static inttda998x_mtx_set_outoffset(struct tda998x_dev *dev, struct mtx_offset *offset){
-	int i, ret;
-	uint8_t buf[MTX_OFFSET_LEN * 2];
-  
-	if (dev == NULL)
-		return ERR_NULL_PARAM;
-
-//	for (i = 0; i < MTX_OFFSET_LEN; i++) {//		if ((offset->offset[i] < MTX_OFFSET_MIN) ||//				(offset->offset[i] > MTX_OFFSET_MAX))
-//			return ERR_BAD_PARAM;//	}
- 
-	for (i = 0; i < MTX_OFFSET_LEN; i++) {
-		buf[i * 2] = (uint8_t) (((uint16_t) offset->offset[i] & 0x0700) >> 8);
-		buf[(i * 2) + 1] = (uint8_t) ((uint16_t) offset->offset[i] & 0x00FF);
-	}
-  	ret = tda998x_write(dev,			MTX_OO1_MSB,			MTX_OFFSET_LEN * 2,
-			&buf[0]);
-	if (ret < 0)
-		return ret;
-
-	return 0;}
-
-/**
- * @brief	Set Matrix Mode
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */
-static int
-tda998x_mtx_set_mode(struct tda998x_dev *dev,
-		enum mtx_cntrl_bp bp,
-		enum mtx_cntrl_scale sc)
-{
-	int ret;
-
-	ret = write_reg_mask(dev,
-			MTX_CNTRL,
-			MTX_CNTRL_MTX_BP | MTX_CNTRL_MTX_SC,
-			(uint8_t) bp | (uint8_t) sc);
-	if (ret < 0)
-		return ret;
-
-	return 0;
-}
-/**
- * @}
- */
-
-/**
- * @brief	Set Audio Clock Packet Recovery
- */static inttda998x_set_aud_pkt_enable(struct tda998x_dev *dev, bool en){
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED; 
-	return write_reg_mask(dev,			DIP_FLAGS,
-			DIP_FLAGS_ACR,			en ? DIP_FLAGS_ACR : 0);}
-
-static inttda998x_PktSetAcp(struct tda998x_dev *dev,
-		struct tda998x_pkt *pkt,		unsigned int len,
-		uint8_t uAcpType,		bool en){
-	int ret;
-	uint8_t buf[3];			/* Temp buffer to hold header bytes */
- 
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;    
-	/* Check remaining parameter(s) - NULL pointer allowed */
-//	RETIF_BADPARAM ((bEnable != True) && (bEnable != False))
-    //	if (pkt != Null) {
-		/* Pointer to structure provided so check parameters */
-//		RETIF_BADPARAM (len > HDMITX_PKT_DATA_BYTE_CNT)
-//		RETIF (len == 0, ERR_ILLEGAL_PARAMS) 
-		/* Data to change, start by clearing ACP packet insertion flag */
-		ret = write_reg_mask(dev,				DIP_FLAGS,
-				DIP_FLAGS_ACP,				0x00);
-		if (ret < 0)
-			return ret;
- 
-		buf[0] = 0x04;
-		buf[1] = uAcpType;
-		buf[2] = 0;
- 
-		ret = tda998x_write(dev, ACP_HB0, 3, &buf[0]);
-		if (ret < 0)
-			return ret;
-    
-		ret = tda998x_write(dev, ACP_PB0, len, &pkt->data[0]);
-		if (ret < 0)
-			return ret;
-    //	}
-  
-	ret = write_reg_mask(dev, DIP_FLAGS, DIP_FLAGS_ACP, en ? DIP_FLAGS_ACP : 0);
-	if (ret < 0)
-		return ret;
-  	return 0;}
-
-//typedef struct _tmbslHdmiTxPktAif_t
-//{
-//    UInt8 CodingType;       /**< Coding Type 0 to 0Fh */
-//    UInt8 ChannelCount;     /**< Channel Count 0 to 07h */
-//    UInt8 SampleFreq;       /**< Sample Frequency 0 to 07h */
-//    UInt8 SampleSize;       /**< Sample Size 0 to 03h */
-//    UInt8 ChannelAlloc;     /**< Channel Allocation 0 to FFh */
-//    bool  DownMixInhibit;   /**< Downmix inhibit flag 0/1 */
-//    UInt8 LevelShift;       /**< Level Shift 0 to 0Fh */
-//} tmbslHdmiTxPktAif_t;
-static inttda998x_aud_set_pkt_infoframe(struct tda998x_dev *dev,		struct tda998x_aud_if_pkt *pkt,		bool en){	int ret;
-	uint8_t buf[9];			/* Temp buffer to hold header/packet bytes */
-	uint16_t buf_reg;		/* Base register used for writing InfoFrame */
-	uint16_t flag_reg;		/* Flag register to be used */
-	uint8_t flag_mask;		/* Mask used for writing flag register */
-  
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED; 
-	/* Check remaining parameter(s) - NULL pointer allowed */
-//	RETIF_BADPARAM ((en != True) && (en != False))//	if (pkt != Null) {
-
-		/* Pointer to structure provided so check parameters */
-//		RETIF_BADPARAM (pkt->CodingType > 0x0F)
-//		RETIF_BADPARAM (pkt->ChannelCount > 0x07)
-//		RETIF_BADPARAM (pkt->SampleFreq > 0x07)
-//		RETIF_BADPARAM (pkt->SampleSize > 0x03)
-
-		/* No need to check ChannelAlloc - all values are allowed */
-//		RETIF_BADPARAM((pkt->DownMixInhibit != True) &&
-//				(pkt->DownMixInhibit != False))//		RETIF_BADPARAM (pkt->LevelShift > 0x0F)//	}
-    
-	buf_reg = IF4_HB0;	flag_reg = DIP_IF_FLAGS;	flag_mask = DIP_IF_FLAGS_IF4;
- //	if (pkt != Null) {
-		/* Data to change, start by clearing AIF packet insertion flag */
-		ret = write_reg_mask(dev, flag_reg, flag_mask, 0);
-		if (ret < 0)
-			return ret;
- 
-		/* Prepare AIF header */
-		buf[0] = 0x84;		/* Audio InfoFrame */
-		buf[1] = 0x01;		/* Version 1 [HDMI 1.2] */
-		buf[2] = 0x0A;		/* Length [HDMI 1.2] */
- 
-		/* Prepare AIF packet (byte numbers offset by 3) */
-		buf[3] = 0;		/* Preset checksum to zero */
-    		buf[4] = ((pkt->type & 0x0F) << 4) |				(pkt->nchan & 0x07);	/* CT3-0, CC2-0 */
-    		buf[5] = ((pkt->samp_freq & 0x07) << 2) |				(pkt->samp_size & 0x03);	/* SF2-0, SS1-0 */
-    		buf[6] = 0;			/* [HDMI 1.2] */		buf[7] = pkt->chan_alloc;	/* CA7-0 */		buf[8] = ((pkt->lvl_shift & 0x0F) << 3);	/* LS3-0 */
-    		if (pkt->dmix_inhib)
-			buf[8] |= (1 << 7); 
-		/* Calculate checksum - this is worked out on "Length" bytes of the
-		 * packet, the checksum (which we've preset to zero), and the three
-		 * header bytes.  We exclude bytes PB6 to PB10 (which we
-		 * are not writing) since they are zero.
-		 */
-		buf[3] = chksum(&buf[0], 9);
-     
-		/* Write header and packet bytes in one operation */
-		ret = tda998x_write(dev, buf_reg, 9, &buf[0]);
-		if (ret < 0)
-			return ret;//	} 
-	/* Write AIF packet insertion flag */
-	ret = write_reg_mask(dev,			flag_reg,			flag_mask,
-			(uint8_t) en);
-  	return ret;}
-
-static inttda998x_PktSetGeneralCntrl(struct tda998x_dev *dev,		bool mute,		bool en){
-	int ret;
- 
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;    	ret = write_reg(dev, GC_AVMUTE, mute ? 0x02 : 0x01);	if (ret < 0)
-		return ret;
- 
-	/* Set or clear GC packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_FLAGS,
-			DIP_FLAGS_GC,			en ? DIP_FLAGS_GC : 0);
-	if (ret < 0)
-		return ret;
-	return 0;}
-
-static inttda998x_PktSetIsrc1(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		unsigned int len,		bool bIsrcCont,		bool bIsrcValid,		uint8_t uIsrcStatus,		bool en){
-	int ret;
-	uint8_t buf[3];
- 
-	/* Return ERR_NOT_PERMITTED error if the
-	 * sinkType is not HDMI
-	 */
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED; 
-	/* Only supported for device N4 or later */
-    
-	/* Check remaining parameter(s) - NULL pointer allowed */
-//	RETIF_BADPARAM ((en != True) && (en != False))
-    //	if (pkt != Null) {
-    
-		/* Pointer to structure provided so check parameters */
-//		RETIF_BADPARAM ((bIsrcCont != True) &&
-//				(bIsrcCont != False))//		RETIF_BADPARAM ((bIsrcValid != True) &&
-//				 (bIsrcValid != False))
-//		RETIF_BADPARAM (uIsrcStatus > 7) /* 3 bits */
-//		RETIF_BADPARAM (len > HDMITX_PKT_DATA_BYTE_CNT)
-//		RETIF (len == 0, ERR_ILLEGAL_PARAMS)
- 
-		/* Data to change, start by clearing ISRC1 packet insertion flag */
-		ret = write_reg_mask(dev,				DIP_FLAGS,
-				DIP_FLAGS_ISRC1,				0);
-		if (ret < 0)
-			return ret;
-    		/* Prepare ISRC1 header */
-		buf[0] = 0x05;		/* ISRC1 packet */
-		buf[1] = (uIsrcStatus & 0x07);
-
-		if (bIsrcValid)
-			buf[1] |= (1 << 6);
-    		if (bIsrcCont)			buf[1] |= (1 << 7);
-    		buf[2] = 0;		/* Reserved [HDMI 1.2] */
-    
-		/* Write 3 header bytes to registers */
-		ret = tda998x_write(dev, ISRC1_HB0, 3, &buf[0]);		if (ret < 0)
-			return ret; 
-		/* Write "len" bytes of data to registers */
-		ret = tda998x_write(dev, ISRC1_PB0, len, &pkt->data[0]);
-		if (ret < 0)
-			return ret;
-//	}
- 
-	/* Write the ISRC1 packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_FLAGS,
-			DIP_FLAGS_ISRC1,
-			en ? DIP_FLAGS_ISRC1 : 0);
-	if (ret < 0)
-		return ret;
-	return 0;}
-
-static inttda998x_PktSetIsrc2(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		unsigned int len,
-		bool en){
-	int ret;
-	uint8_t buf[3];
- 
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-	/* Check remaining parameter(s) - NULL pointer allowed */
-//	RETIF_BADPARAM ((en != True) && (en != False))
-    //	if (pkt != Null) {
-		/* Pointer to structure provided so check parameters */
-//		RETIF_BADPARAM (len > HDMITX_PKT_DATA_BYTE_CNT)
-//		      RETIF (len == 0, ERR_ILLEGAL_PARAMS) 
-		/* Data to change, start by clearing ISRC2 packet insertion flag */
-		ret = write_reg_mask(dev,				DIP_FLAGS,
-				DIP_FLAGS_ISRC2,				0);
-		if (ret < 0)
-			return ret; 
-		/* Prepare ISRC2 header */
-		buf[0] = 0x06;		/* ISRC2 packet */
-		buf[1] = 0;		/* Reserved [HDMI 1.2] */		buf[2] = 0;		/* Reserved [HDMI 1.2] */
- 
-		/* Write 3 header bytes to registers */
-		ret = tda998x_write(dev, ISRC2_HB0, 3, &buf[0]);
-		if (ret < 0)
-			return ret;
-
-		ret = tda998x_write(dev, ISRC2_PB0, len, &pkt->data[0]);
-		if (ret < 0)
-			return ret;//	}
-  	/* Write the ISRC2 packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_FLAGS,
-			DIP_FLAGS_ISRC2,
-			en ? DIP_FLAGS_ISRC2 : 0);
-  	return ret;}
-
-static inttda998x_PktSetMpegInfoframe(struct tda998x_dev *dev,		struct tda998x_mpeg_pkt *pkt,		bool en){
-	int ret;
-	uint8_t buf[9];
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;  
-	/* Check remaining parameter(s) */
-//	RETIF_BADPARAM ((en != True) && (en != False))
-    //	if (pkt != Null) {
-    
-		/* Pointer to structure provided so check parameters */
-//		RETIF_BADPARAM ((pkt->bFieldRepeat != True) &&
-//				(pkt->bFieldRepeat != False))
-//		RETIF_BADPARAM (pkt->frameType >= HDMITX_MPEG_FRAME_INVALID)
-      
-		/* Data to change, start by clearing MPEG packet insertion flag */
-		ret = write_reg_mask(dev, DIP_IF_FLAGS, DIP_IF_FLAGS_IF5, 0);
-		if (ret < 0)
-			return ret;
- 
-		/* Prepare MPEG header */
-		buf[0] = 0x85;		/* MPEG Source InfoFrame */
-		buf[1] = 0x01;		/* Version 1 [HDMI 1.2] */
-		buf[2] = 0x0A;		/* Length [HDMI 1.2] */
-
-		/* Prepare MPEG packet (byte numbers offset by 3) */
-		buf[3] = 0;		/* Preset checksum to zero */
-		buf[4] = (uint8_t) (pkt->bitrate & 0x000000FF);
-		buf[5] = (uint8_t) ((pkt->bitrate & 0x0000FF00) >> 8);
-		buf[6] = (uint8_t) ((pkt->bitrate & 0x00FF0000) >> 16);
-		buf[7] = (uint8_t) ((pkt->bitrate & 0xFF000000) >> 24);
-		buf[8] = pkt->frame;	/* MF1-0 */
-    		if (pkt->repeat) {
-			buf[8] += 0x10;	/* FR0 bit */		}
-
-		buf[4] = chksum(&buf[0], 9);
- 
-		/* Write header and packet bytes in one operation */
-		ret = tda998x_write(dev, IF5_HB0, 9, &buf[0]);
-		if (ret < 0)
-			return ret;
-//	}
-	/* Write the MPEG packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
-			DIP_IF_FLAGS_IF5,
-			en ? DIP_IF_FLAGS_IF5 : 0);
-
-	return ret;}
-
-static inttda998x_PktSetNullInsert(struct tda998x_dev *dev, bool en){
-	int ret;
- 	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-	/* Check remaining parameter(s) */
-//	RETIF_BADPARAM ((en != True) && (en != False)) 
-	/* Set or clear FORCE_NULL packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_FLAGS,
-			DIP_FLAGS_FORCE_NULL,
-			en ? DIP_FLAGS_FORCE_NULL : 0);
-  	return ret;}
-static inttda998x_pkt_set_null(struct tda998x_dev *dev){
-	int ret;
-
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-	/* Set NULL packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_FLAGS,
-			DIP_FLAGS_NULL,			DIP_FLAGS_NULL);
-	if (ret < 0)
-		return ret;
-  	return 0;}
-
-/**
- * @brief	Set Source Product Description Infoframe
- */
-static inttda998x_pkg_set_spdinfo(struct tda998x_dev *dev,		struct tda998x_spd_pkt *pkt,		bool en){
-	int ret;
-	uint8_t buf[29];
-  
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED;
-
-	/* Check remaining parameter(s) */
-//	RETIF_BADPARAM ((bEnable != True) && (bEnable != False))
-    //	if (pkt != Null) {
-		/* Pointer to structure provided so check parameters */
-//		RETIF_BADPARAM (pkt->SourceDevInfo >= HDMITX_SPD_INFO_INVALID) 
-			/* Data to change, start by clearing SPD packet insertion flag */
-		ret = write_reg_mask(dev,				DIP_IF_FLAGS,
-				DIP_IF_FLAGS_IF3,				0);
-		if (ret < 0)
-			return ret;
- 
-		/* Prepare SPD header */
-		buf[0] = 0x83;		/* Source. Product Descriptor InfoFrame */
-		buf[1] = 0x01;		/* Version 1 [CEA 861B] */
-		buf[2] = 0x19;		/* Length [HDMI 1.2] */
-		buf[3] = 0;		/* Preset checksum to zero */
-    		memcpy(&buf[4], &pkt->vname[0], 8);	/* Copy vendor name */		memcpy(&buf[12], &pkt->desc[0], 16);	/* Copy device description */
-    		buf[28] = pkt->dev_info;
-    
-		buf[3] = chksum(&buf[0], 29);
-    
-		/* Write header and packet bytes in one operation */
-		ret = tda998x_write(dev,				IF3_HB0,				&buf[0],				29);
-		if (ret < 0)
-			return ret;
-//	}
- 
-	/* Write the SPD packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
-			DIP_IF_FLAGS_IF3,
-			en ? DIP_IF_FLAGS_IF3 : 0);
-  	return ret;}
-
-
-//int//tda998x_PktSetVideoInfoframe(struct tda998x_dev *dev,//		struct tda998x_pkt *pkt,//		bool en)//{
-//	int ret;			/* Error code */
-//	uint8_t buf[17];		/* Temp buffer to hold header/packet bytes */
-//	uint16_t bufReg;		/* Base register used for writing InfoFrame */
-//	uint16_t flagReg;		/* Flag register to be used */
-//	uint8_t flagMask;		/* Mask used for writing flag register */
-//
-//	/* Return ERR_NOT_PERMITTED error if the
-//	 * sinkType is not HDMI
-//	 */
-//	if (dev->sink != SINK_HDMI)
-//		return ERR_NOT_PERMITTED;//
-//	/* Check remaining parameter(s) - NULL pointer allowed */
-////	RETIF_BADPARAM ((bEnable != True) && (bEnable != False))//
-//	if (dev == NULL)
-//		return ERR_NULL_PARAM;
-////	{
-//		/* Pointer to structure provided so check parameters */
-////		RETIF_BADPARAM (pkg->Colour > 0x03)
-////		RETIF_BADPARAM ((pkg->ActiveInfo != True) &&
-////				(pkg->ActiveInfo != False))////		RETIF_BADPARAM (pkg->BarInfo > 0x03)
-////		RETIF_BADPARAM (pkg->ScanInfo > 0x03)
-////		RETIF_BADPARAM (pkg->Colorimetry > 0x03)
-////		RETIF_BADPARAM (pkg->PictureAspectRatio > 0x03)
-////		RETIF_BADPARAM (pkg->ActiveFormatRatio > 0x0F)
-////		RETIF_BADPARAM (pkg->Scaling > 0x03)
-////		RETIF_BADPARAM (pkg->VidFormat > 0x7F)////		RETIF_BADPARAM (pkg->PixelRepeat > 0x0F)////	}
-//
-//	/* Only supported for device N4 or later */
-//
-//	/* We're using n4 or later, use IF2 buffer for Video InfoFrame */
-//	bufReg = IF2_HB0;
-//	flagReg = DIP_IF_FLAGS;
-//	flagMask = DIP_IF_FLAGS_IF2;
-////	if (pkt != NULL) {
-//		/* Data to change, start by clearing VIF packet insertion flag */
-//		ret = write_reg_mask(dev,//				flagReg,//				flagMask,//				0);
-//		if (ret < 0)
-//			return ret;
-//
-//		/* Prepare VIF header */
-//		buf[0] = 0x82;		/* Video InfoFrame */
-//		buf[1] = 0x02;		/* Version 2 [HDMI 1.2] */
-//		buf[2] = 0x0D;		/* Length [HDMI 1.2] */
-//
-//		/* Prepare VIF packet (byte numbers offset by 3) */
-//		buf[0 + 3] = 0;		/* Preset checksum to zero so calculation works! */
-//		buf[1 + 3] = ((pkg->Colour & 0x03) << 5) | /* Y1-0, B1-0,S1-0 */
-//				((pkg->BarInfo & 0x03) << 2) |//				(pkg->ScanInfo & 0x03);
-////		if (pkg->ActiveInfo == True) {
-//			buf[1 + 3] += 0x10;	/* AI bit */
-//		}
-//
-//		buf[2 + 3] = ((pkg->Colorimetry & 0x03) << 6) | /* C1-0, M1-0, R3-0 */
-//				((pkg->PictureAspectRatio & 0x03) << 4) |
-//				(pkg->ActiveFormatRatio & 0x0F);
-//		buf[3 + 3] = (pkg->Scaling & 0x03);	/* SC1-0 *//* [HDMI 1.2] */
-//		buf[4 + 3] = (pkg->VidFormat & 0x7F);	/* VIC6-0 */
-//		buf[5 + 3] = (pkg->PixelRepeat & 0x0F);	/* PR3-0 */
-//		buf[6 + 3] = (uint8_t) (pkg->EndTopBarLine & 0x00FF);
-//		buf[7 + 3] = (uint8_t) ((pkg->EndTopBarLine & 0xFF00) >> 8);
-//		buf[8 + 3] = (uint8_t) (pkg->StartBottomBarLine & 0x00FF);
-//		buf[9 + 3] = (uint8_t) ((pkg->StartBottomBarLine & 0xFF00) >> 8);
-//		buf[10 + 3] = (uint8_t) (pkg->EndLeftBarPixel & 0x00FF);
-//		buf[11 + 3] = (uint8_t) ((pkg->EndLeftBarPixel & 0xFF00) >> 8);
-//		buf[12 + 3] = (uint8_t) (pkg->StartRightBarPixel & 0x00FF);
-//		buf[13 + 3] = (uint8_t) ((pkg->StartRightBarPixel & 0xFF00) >> 8);
-//
-//		/* Calculate checksum - this is worked out on "Length" bytes of the
-//		 * packet, the checksum (which we've preset to zero), and the three
-//		 * header bytes.
-//		 */
-//		buf[0 + 3] = calculateChecksum(&buf[0], 0x0D + 1 + 3);
-//
-//		/* Write header and packet bytes in one operation */
-//		ret = tda998x_write(dev,//				bufReg,//				&buf[0],//				17);
-////		if (ret < 0)
-//			return ret;//	}
-////
-//	/* Write VIF packet insertion flag */
-//	ret = write_reg_mask(dev,//			flagReg,//			flagMask,
-//			(uint8_t) en);
-////	return ret;//}
-
-static int
-tda998x_PktSetRawVideoInfoframe(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		bool en){
-	int ret;
-  	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED; 
-	/* Check remaining parameter(s) - NULL pointer allowed */
-//	RETIF_BADPARAM ((bEnable != True) && (bEnable != False)) 
-	/* use IF2 buffer */
-//	if (pkt != Null) {
-    
-		/* Data to change, start by clearing VIF packet insertion flag */
-		ret = write_reg_mask(dev,				DIP_IF_FLAGS,
-				DIP_IF_FLAGS_IF2,				0);		if (ret < 0)
-			return ret;
-    
-		/* Write VIF raw header bytes 0-2 */
-		ret = tda998x_write(dev, IF2_HB0, 3, &pkt->header[0]);		if (ret < 0)
-			return ret;
-    
-		/* Write VIF raw payload bytes 0-27 */
-		ret = tda998x_write(dev,				IF2_PB0,				28,				&pkt->data[0]);
-		if (ret < 0)
-			return ret;//	}
-  
-	/* Write VIF packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
-			DIP_IF_FLAGS_IF2,
-			en ? DIP_IF_FLAGS_IF2 : 0);
-	if (ret < 0)
-		return ret;
- 	return 0;}
-static inttda998x_PktSetVsInfoframe(struct tda998x_dev *dev,		struct tda998x_pkt *pkt,		unsigned int len,
-		uint8_t uVersion,		bool en){	int ret;
-	uint8_t buf[31];
- 
-	/* Return ERR_NOT_PERMITTED error if the
-	 * sinkType is not HDMI
-	 */
-	if (dev->sink != SINK_HDMI)
-		return ERR_NOT_PERMITTED; 
-	/* Only supported for device N4 or later */
-
-	/* Check remaining parameter(s) - NULL pointer allowed */
-//	RETIF_BADPARAM ((bEnable != True) && (bEnable != False))
-    //	if (pkt != NULL) {
-    
-		/* Pointer to structure provided so check parameters */
-		/* InfoFrame needs a checksum, so 1 usable byte less than full pkt */
-//		RETIF_BADPARAM (len > (HDMITX_PKT_DATA_BYTE_CNT - 1))//		RETIF (len == 0, ERR_ILLEGAL_PARAMS)
-      
-		/* Data to change, start by clearing VS_IF packet insertion flag */
-		ret = write_reg_mask(dev, DIP_IF_FLAGS, DIP_IF_FLAGS_IF1, 0);
-		if (ret < 0)
-			return ret;
- 
-		/* Prepare VS_IF header */
-		memset (&buf[0], 0, 31);
-		buf[0] = 0x81;			/* Vendor Specific InfoFrame */
-		buf[1] = uVersion;		/* Vendor defined version */
-		buf[2] = (uint8_t) len;		/* Length [HDMI 1.2] */
-
-		/* Prepare VS_IF packet (byte numbers offset by 3) */
-		buf[4] = 0;		/* Preset checksum to zero */
-		memcpy(&buf[4], &pkt->data[0], len);
- 
-		buf[4] = chksum(&buf[0], len + 4);
- 
-		ret = tda998x_write(dev, IF1_HB0, 31, &buf[0]);
-		if (ret < 0)
-			return ret;
-//	}
-  	/* Write the VS_IF packet insertion flag */
-	ret = write_reg_mask(dev,			DIP_IF_FLAGS,
-			DIP_IF_FLAGS_IF1,
-			en ? DIP_IF_FLAGS_IF1 : 0);
-  	return ret;}
-
-//static const struct sync_desc ref_sync[] =
-//{
-    /*
-     * designer world <==> CEA-861 reader world
-     * ----------------------------------------
-     * t_hs_s : hfp+1
-     * t_vsl_s1 : vfp+1
-     * t_de_s : href+1
-     * t_vw_s1 : vref+1
-     *
-     * For the story, designer have defined VsPixRef and VsLineRef concept
-     * that are the position of VSync in pixel and line starting from the top
-     * of the frame.
-     * So we have in fact : VSync that is hfp + vfp*total_h_active away from top
-     *
-     */
-    /* Vs2    PR  Vtg Htg HFP VFP HREF VREF */
-//  {0, 0, 1, 1, 17, 2, 161, 36}, /* E_REGVFMT_640x480p_60Hz   */
-//  {0, 0, 1, 1, 17, 8, 139, 43}, /* E_REGVFMT_720x480p_60Hz   */
-//  {0, 0, 0, 0, 111, 2, 371, 26}, /* E_REGVFMT_1280x720p_60Hz  */
-//  {1100 + 88, 0, 0, 0, 89, 2, 281, 21}, /* E_REGVFMT_1920x1080i_60Hz */
-//  {429 + 19, 1, 1, 1, 20, 5, 139, 22}, /* E_REGVFMT_720x480i_60Hz   */
-//  {0, 1, 1, 1, 20, 5, 139, 22}, /* E_REGVFMT_720x240p_60Hz   */
-//  {0, 0, 0, 0, 89, 2, 281, 42}, /* E_REGVFMT_1920x1080p_60Hz */
-//  {0, 0, 1, 1, 13, 2, 145, 45}, /* E_REGVFMT_720x576p_50Hz   */
-//  {0, 0, 0, 0, 441, 2, 701, 26}, /* E_REGVFMT_1280x720p_50Hz  */
-//  {1320 + 528, 0, 0, 0, 529, 2, 721, 21}, /* E_REGVFMT_1920x1080i_50Hz */
-//  {432 + 12, 1, 1, 1, 13, 2, 145, 23}, /* E_REGVFMT_720x576i_50Hz   */
-//  {0, 1, 1, 1, 13, 2, 145, 23}, /* E_REGVFMT_720x288p_50Hz   */
-//  {0, 0, 0, 0, 529, 2, 721, 42}, /* E_REGVFMT_1920x1080p_50Hz */
-//};
-//#define VIC2REG_LOOP(array,idx) do {                       \
-//   hash=(struct vic2reg *)(array);                         \
-//   for (i=0;i<(sizeof(array)/sizeof(struct vic2reg));i++) { \
-//      if (hash[i].vic==fmt) {                              \
-//         (*idx)=hash[i].reg;                               \
-//         break;                                            \
-//      }                                                    \
-//   }                                                       \
-//} while (0);
-//struct vic2reg {
-//	unsigned char vic;
-//	unsigned char reg;
-//};
-
-//struct sync_desc {
-//	uint16_t Vs2;
-//	uint8_t pix_rep;
-//	uint8_t v_toggle;
-//	uint8_t h_toggle;
-//	uint16_t hfp;		/* Output values for Vs/Hs input sync */
-//	uint16_t vfp;
-//	uint16_t href;		/* Output values for all other input sync sources */
-//	uint16_t vref;
-//};
-
-//static int
-//comp_vid_fmt(const void *fmta, const void *fmtb)
-//{
-//	struct tda998x_fmt *fmt1 = (struct tda998x_fmt *)fmta;
-//	struct tda998x_fmt *fmt2 = (struct tda998x_fmt *)fmtb;
-//
-//	return strcmp(fmt1->name, fmt2->name);
-//}
-
-//static const struct vic2reg vic2reg_TV[] = {
-//    {HDMITX_VFMT_01_640x480p_60Hz, E_REGVFMT_640x480p_60Hz},
-//  {HDMITX_VFMT_02_720x480p_60Hz, E_REGVFMT_720x480p_60Hz},
-//  {HDMITX_VFMT_03_720x480p_60Hz, E_REGVFMT_720x480p_60Hz},
-//  {HDMITX_VFMT_04_1280x720p_60Hz, E_REGVFMT_1280x720p_60Hz},
-//  {HDMITX_VFMT_05_1920x1080i_60Hz, E_REGVFMT_1920x1080i_60Hz},
-//  {HDMITX_VFMT_06_720x480i_60Hz, E_REGVFMT_720x480i_60Hz},
-//  {HDMITX_VFMT_07_720x480i_60Hz, E_REGVFMT_720x480i_60Hz},
-//  {HDMITX_VFMT_08_720x240p_60Hz, E_REGVFMT_720x240p_60Hz},
-//  {HDMITX_VFMT_09_720x240p_60Hz, E_REGVFMT_720x240p_60Hz},
-//  {HDMITX_VFMT_16_1920x1080p_60Hz, E_REGVFMT_1920x1080p_60Hz},
-//  {HDMITX_VFMT_17_720x576p_50Hz, E_REGVFMT_720x576p_50Hz},
-//  {HDMITX_VFMT_18_720x576p_50Hz, E_REGVFMT_720x576p_50Hz},
-//  {HDMITX_VFMT_19_1280x720p_50Hz, E_REGVFMT_1280x720p_50Hz},
-//  {HDMITX_VFMT_20_1920x1080i_50Hz, E_REGVFMT_1920x1080i_50Hz},
-//  {HDMITX_VFMT_21_720x576i_50Hz, E_REGVFMT_720x576i_50Hz},
-//  {HDMITX_VFMT_22_720x576i_50Hz, E_REGVFMT_720x576i_50Hz},
-//  {HDMITX_VFMT_23_720x288p_50Hz, E_REGVFMT_720x288p_50Hz},
-//  {HDMITX_VFMT_24_720x288p_50Hz, E_REGVFMT_720x288p_50Hz},
-//  {HDMITX_VFMT_31_1920x1080p_50Hz, E_REGVFMT_1920x1080p_50Hz},
-//  {HDMITX_VFMT_32_1920x1080p_24Hz, E_REGVFMT_1920x1080p_24Hz},
-//  {HDMITX_VFMT_33_1920x1080p_25Hz, E_REGVFMT_1920x1080p_25Hz},
-//  {HDMITX_VFMT_34_1920x1080p_30Hz, E_REGVFMT_1920x1080p_30Hz},
-//  {HDMITX_VFMT_35_2880x480p_60Hz, E_REGVFMT_720x480p_60Hz},
-//  {HDMITX_VFMT_36_2880x480p_60Hz, E_REGVFMT_720x480p_60Hz},
-//  {HDMITX_VFMT_37_2880x576p_50Hz, E_REGVFMT_720x576p_50Hz},
-//  {HDMITX_VFMT_38_2880x576p_50Hz, E_REGVFMT_720x576p_50Hz},
-//  {HDMITX_VFMT_60_1280x720p_24Hz, E_REGVFMT_1280x720p_24Hz},
-//  {HDMITX_VFMT_61_1280x720p_25Hz, E_REGVFMT_1280x720p_25Hz},
-//  {HDMITX_VFMT_62_1280x720p_30Hz, E_REGVFMT_1280x720p_30Hz}
-//};
-
-//static const struct vic2reg vic2reg_TV_FP[] = {
-//{HDMITX_VFMT_04_1280x720p_60Hz, E_REGVFMT_1280x720p_60Hz_FP},
-//{HDMITX_VFMT_05_1920x1080i_60Hz, E_REGVFMT_1920x1080i_60Hz_FP},
-//{HDMITX_VFMT_19_1280x720p_50Hz, E_REGVFMT_1280x720p_50Hz_FP},
-//{HDMITX_VFMT_20_1920x1080i_50Hz, E_REGVFMT_1920x1080i_50Hz_FP},
-//{HDMITX_VFMT_32_1920x1080p_24Hz, E_REGVFMT_1920x1080p_24Hz_FP},
-//{HDMITX_VFMT_33_1920x1080p_25Hz, E_REGVFMT_1920x1080p_25Hz_FP},
-//{HDMITX_VFMT_34_1920x1080p_30Hz, E_REGVFMT_1920x1080p_30Hz_FP},
-//{HDMITX_VFMT_60_1280x720p_24Hz, E_REGVFMT_1280x720p_24Hz_FP},
-//{HDMITX_VFMT_61_1280x720p_25Hz, E_REGVFMT_1280x720p_25Hz_FP},
-//{HDMITX_VFMT_62_1280x720p_30Hz, E_REGVFMT_1280x720p_30Hz_FP}
-//};
-//#define REGVFMT_INVALID 0xFF
-//static uint8_t
-//reg_vid_fmt(enum tda998x_vid_fmt fmt,//		enum tda998x_format_3d structure3D,//		uint8_t *idx,//		uint8_t *idx3d,//		struct sync_desc **sync)
-//{
-//	struct vic2reg *hash;
-//	int i;
-////	(*idx) = REGVFMT_INVALID;
-////	if (idx3d)
-//		(*idx3d) = REGVFMT_INVALID;
-////	if (IS_TV (fmt)) {
-//#define VIC2REG_LOOP(array,idx) do {                       \
-//   hash=(struct vic2reg *)(array);                         \
-//   for (i=0;i<(sizeof(array)/sizeof(struct vic2reg));i++) { \
-//      if (hash[i].vic==fmt) {                              \
-//         (*idx)=hash[i].reg;                               \
-//         break;                                            \
-//      }                                                    \
-//   }                                                       \
-//} while (0);
-
-//		for (i = 0; i < LEN; i++) {
-//			if (vic == fmt)
-//				break;
-//		}//		VIC2REG_LOOP (vic2reg_TV, idx);
-////		if (idx3d) {
-////			if (structure3D == HDMITX_3D_FRAME_PACKING) {
-//				/* any 3D FP prefetch ? */
-//				VIC2REG_LOOP (vic2reg_TV_FP, idx3d);
-//			}//		}//	}
-//
-//	/* PR1570 FIXED */
-//	if (sync) {//		if PREFETCH(*idx) {
-//			*sync = (struct sync_desc *) ref_sync;
-//		} else {//			*sync = (struct sync_desc *) ref_sync_extra;//		}//	}
-////	return ((*idx) == REGVFMT_INVALID);//}
-
-
-
-/**
- * Lookup table to convert from EIA/CEA TV video formats used in the EDID and
- * in API parameters to pixel clock frequencies, according to SCS Table
- * "HDMI Pixel Clock Frequencies per EIA/CEA-861B Video Output Format".
- * The other index is the veritical frame frequency.
- */
-//const uint8_t kVfmtToPixClk_TV[HDMITX_VFMT_TV_MAX][HDMITX_VFREQ_NUM] = {
-//    /* 24Hz		25Hz		30Hz		50Hz		59Hz		60Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_25175, E_PIXCLK_25200 },	/* HDMITX_VFMT_01_640x480p_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_27027 },	/* HDMITX_VFMT_02_720x480p_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_27027 },	/* HDMITX_VFMT_03_720x480p_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_74175, E_PIXCLK_74250 },	/* HDMITX_VFMT_04_1280x720p_60Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_74175, E_PIXCLK_74250 },	/* HDMITX_VFMT_05_1920x1080i_60Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_27027 },	/* HDMITX_VFMT_06_720x480i_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_27027 },	/* HDMITX_VFMT_07_720x480i_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_27027 },	/* HDMITX_VFMT_08_720x240p_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_27027 },	/* HDMITX_VFMT_09_720x240p_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_54054 },	/* HDMITX_VFMT_10_720x480i_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_54054 },	/* HDMITX_VFMT_11_720x480i_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_54054 },	/* HDMITX_VFMT_12_720x240p_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_54054 },	/* HDMITX_VFMT_13_720x240p_60Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_54054 },	/* HDMITX_VFMT_14_1440x480p_60Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_54054 },	/* HDMITX_VFMT_15_1440x480p_60Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_148350, E_PIXCLK_148500 },	/* HDMITX_VFMT_16_1920x1080p_60Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_17_720x576p_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_18_720x576p_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_74250, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_19_1280x720p_50Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_74250, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_20_1920x1080i_50Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_21_720x576i_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_22_720x576i_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_23_720x288p_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_27000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_24_720x288p_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_25_720x576i_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_26_720x576i_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_27_720x288p_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_28_720x288p_50Hz   */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_29_1440x576p_50Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_54000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_30_1440x576p_50Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_148500, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_31_1920x1080p_50Hz */
-//	{ E_PIXCLK_74250, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_32_1920x1080p_24Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_74250, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_33_1920x1080p_25Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_74250, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_34_1920x1080p_30Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_108000, E_PIXCLK_108108 },	/* HDMITX_VFMT_35_2880x480p_60Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_108000, E_PIXCLK_108108 },	/* HDMITX_VFMT_36_2880x480p_60Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_108000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_37_2880x576p_50Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_108000, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_38_2880x576p_50Hz  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_39_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_40_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_41_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_42_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_43_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_44_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_45_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_46_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_47_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_48_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_49_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_50_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_51_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_52_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_53_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_54_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_55_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_56_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_57_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_58_  */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_59_  */
-//	{ E_PIXCLK_59400, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_60_1280x720p_24Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_74250, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID },	/* HDMITX_VFMT_61_1280x720p_25Hz */
-//	{ E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_74250, E_PIXCLK_INVALID, E_PIXCLK_INVALID, E_PIXCLK_INVALID }	/* HDMITX_VFMT_62_1280x720p_30Hz */
-//};
-//enum tda998x_vert_freq {
-//	VFREQ_24Hz = 0,     /**< 24Hz */
-//	VFREQ_25Hz = 1,     /**< 25Hz */
-//	VFREQ_30Hz = 2,     /**< 30Hz */
-//	VFREQ_50Hz = 3,     /**< 50Hz */
-//	VFREQ_59Hz = 4,     /**< 59.94Hz */
-//	VFREQ_60Hz = 5,     /**< 60Hz */
-//};
-static uint8_t
-set_pix_clk(enum tda998x_vid_fmt fmt, enum tda998x_vert_freq freq, uint8_t *pclk)
-{//	*pclk = 0xFF;////	if (IS_TV (fmt)) {//		*pclk = kVfmtToPixClk_TV[fmt - VFMT_TV_MIN][freq];//	}////	return ((*pclk) == REGVFMT_INVALID);
-	return 0;}
-static enum tda998x_vid_fmtget_vid_fmt_index(enum tda998x_vid_fmt vidFmt)
-{
-	enum tda998x_vid_fmt vidFmtIndex = vidFmt;
-  
-	/* Hanlde VIC or table index discontinuity */
-	if ((vidFmt >= VFMT_60_1280x720p_24Hz) &&
-			(vidFmt <= VFMT_62_1280x720p_30Hz)) {
-		vidFmtIndex = (enum tda998x_vid_fmt) (VFMT_INDEX_60_1280x720p_24Hz +
-				      (vidFmt - VFMT_60_1280x720p_24Hz));	}
-  	return (vidFmtIndex);}
-static int 
-set_de_vs(struct tda998x_dev *dev,		enum tda998x_vid_fmt vout_fmt,
-		enum tda998x_format_3d format_3d)
-{
-	int ret;
-	uint16_t vsPixStrt2;
-	uint8_t reg_idx;
-	struct sync_desc *sync;
- 
-	/* IF vout_fmt = No Change THEN return 0 */
-//	RETIF (vout_fmt == HDMITX_VFMT_NO_CHANGE, 0);
- 
-	/* Quit if the output format does not map to the register format */
-//	RETIF_BADPARAM (reg_vid_fmt (vout_fmt, format_3d, &reg_idx, 0, &sync));
-
-//	bsearch(ref_sync_lut, REF_SYNC_LEN, sizeof(struct ), comp_vid_fmt);
-
-  	/* Adjust VS_PIX_STRT_2 and VS_PIX_END_2 for interlaced output formats */
-//	vsPixStrt2 = sync[BASE (reg_idx)].Vs2;
-  	ret = write_reg16(dev,
-			VS_PIX_STRT_2_MSB,
-			vsPixStrt2);
-	if (ret < 0)
-		return ret;
-  	ret = write_reg16(dev,
-			VS_PIX_END_2_MSB,
-			vsPixStrt2);
-  	return ret;}
-/**
- * @brief	Set Pixel Repetition
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */static int 
-set_pix_repeat(struct tda998x_dev *dev,		enum tda998x_vid_fmt vout_fmt,
-		uint8_t pix_rpt,		enum tda998x_format_3d format_3d)
-{
-	int ret = 0;
-	uint8_t ssd = 0;
-
-	/* Quit if the output format does not map to the register format */
-//	RETIF_BADPARAM (reg_vid_fmt(voutFmt, structure3D, &reg_idx, &reg_idx3D, &sync));
-
-//	if ((format_3d == HDMITX_3D_FRAME_PACKING) &&
-//			(reg_idx3D != REGVFMT_INVALID)) {
-		/* embedded 3D video format */
-//		ssd = pll[reg_idx3D];
-//	} else {
-//		/* embedded 2D video format */
-//		ssd = pll[reg_idx];
-//	}
-
-//	if (ssd < SSD_UNUSED_VALUE) {
-//		ret = write_reg_mask(dev,
-//				PLL_SERIAL_2,
-//				PLL_SERIAL_2_SRL_NOSC_MASK,
-//				ssd);
-//	}
-
-	/* Set pixel repetition */
-//	if (pix_rpt != HDMITX_PIXREP_NO_CHANGE) {
-//		if (pix_rpt == HDMITX_PIXREP_DEFAULT) {
-//			/* Look up default pixel repeat value for this output format */
-//			pix_rpt = sync[BASE (reg_idx)].pix_rep;
-//		}
-
-		/* Update current pixel repetition count */
-//		dev->pixelRepeatCount = pix_rpt;
-
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_2,
-			PLL_SERIAL_2_SRL_PR_MASK,
-			pix_rpt << 4);
-	if (ret < 0)
-		return ret;
-
-	/* Set pixel repetition count for Repetitor module */
-	ret = write_reg(dev, RPT_CNTRL, pix_rpt);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_1,
-			PLL_SERIAL_1_SRL_MAN_IZ,
-			0);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg_mask(dev,
-			PLL_SERIAL_3,
-			PLL_SERIAL_3_SRL_DE,
-			0);
-	if (ret < 0)
-		return ret;
-
-	ret = write_reg(dev, SERIALIZER, 0);
-	if (ret < 0)
-		return ret;
-
-	return 0;}
-  static int
-set_sampling(struct tda998x_dev *dev)
-{
-	int ret;
-	uint8_t upsample;
-	uint8_t downsample;
-	uint8_t reg_val;
-	if ((dev->vin_cfg->mode == VINMODE_YUV422) ||
-			(dev->vin_cfg->mode == VINMODE_CCIR656)) {		if (dev->vout_cfg->mode == VOUTMODE_YUV422) {
-			/* Input 422/656, output 422 */
-			ret = read_reg(dev, MTX_CNTRL, &reg_val);
-			if (ret < 0)
-				return ret;
-
-			if (reg_val & MTX_CNTRL_MTX_BP) {
-				upsample = 0;
-				downsample = 0;
-			} else {
-				upsample = 1;
-				downsample = 1;
-			}
-		} else {
-			/* Input 422/656, output not 422 */
-			upsample = 1;
-			downsample = 0;
-		}
-	} else {		if (dev->vout_cfg->mode == VOUTMODE_YUV422) {
-			/* Input not 422/656, output 422 */
-			upsample = 0;
-			downsample = 1;
-		} else {
-			/* Input not 422/656, output not 422 */
-			upsample = 0;
-			downsample = 0;		}
-	}
-
-//	if (dev->upsampleMode != UPSAMPLE_AUTO) {
-//		/* Saved upsample mode overrides local one */
-//		upsample = dev->upsampleMode;//	}
-
-	/* Set upsampler */
-	ret = write_reg_mask(dev,			HVF_CNTRL_0,
-			HVF_CNTRL_0_INTPOL_MASK,			upsample);
-	if (ret < 0)
-		return ret;
-
-	/* Set downsampler */
-	ret = write_reg_mask(dev,			HVF_CNTRL_1,
-			HVF_CNTRL_1_FOR,			downsample);
-	return ret;}
-
-static uint8_t
-chksum(uint8_t *data, int len)
-{
-	uint8_t cksum = 0;
-	int i;
- 
-	if (data == NULL || !len)
-		return 0;
-	for (i = 0; i < len; i++)		cksum += *(data++);
-	return (255 - cksum) + 1;}
-
-static int
-tda998x_set_pix_edge(struct tda998x_dev *dev, enum vip_cntrl_3_edge edge)
-{
-	int ret;
-
-	ret = write_reg_mask(dev,
-			VIP_CNTRL_3,
-			VIP_CNTRL_3_EDGE,
-			(uint8_t) edge);
-	if (ret < 0)
-		return ret;
-
-	return 0;
-}
-
-/**
- * @brief	Configure Video Input
- *
- * @param	dev:	TDA998x device structure pointer
- * @return	0 on success, non-zero error status otherwise
- */
-//static int
-//input_config(struct tda998x_dev *dev,//		enum tda998x_vidin_mode vinMode,
-//		enum vip_cntrl_3_edge edge,//		enum tda998x_pix_rate pix_rate,
-//		enum tda998x_upsample upsampleMode,//		uint8_t uPixelRepeat,
-//		enum tda998x_vid_fmt vout_fmt,
-//		enum tda998x_format_3d format_3d)
-//{
-//	int ret = 0;
-//	uint8_t reg_idx, reg_idx3D;	/* Video format value used for register */
-//	uint8_t ssd = 0;		/* Packed srl, scg and de */
-//	struct sync_desc *sync;
-//	struct tda998x_vidin_cfg *vidin_cfg;
-//
-//	/* Check parameters */
-////	RETIF_BADPARAM (vinMode >= HDMITX_VINMODE_INVALID);
-////	RETIF_BADPARAM (sampleEdge >= HDMITX_PIXEDGE_INVALID);
-////	RETIF_BADPARAM (pix_rate >= HDMITX_PIXRATE_INVALID);
-////	RETIF_BADPARAM (upsampleMode >= HDMITX_UPSAMPLE_INVALID);
-////	RETIF (voutFmt == HDMITX_VFMT_NO_CHANGE, 0);
-////	RETIF_BADPARAM (!IS_VALID_FMT (voutFmt));
-//
-//	/* Quit if the output format does not map to the register format */
-////	RETIF_BADPARAM (reg_vid_fmt(voutFmt, structure3D, &reg_idx, &reg_idx3D, &sync));
-////	if (edge != PIXEDGE_NO_CHANGE) {
-//		ret = write_reg_mask(dev,//				VIP_CNTRL_3,
-//				VIP_CNTRL_3_EDGE,
-//				(uint8_t) edge);
-//		if (ret < 0)
-//			return ret;
-//	}
-//////	if (pix_rate != PIXRATE_NO_CHANGE) {//		vidin_cfg->pix_rate = pix_rate;
-////	}//////	if ((pix_rate != HDMITX_PIXRATE_NO_CHANGE) ||
-////			(vinMode != HDMITX_VINMODE_NO_CHANGE)) {//		switch (vidin_cfg->mode) {
-//		case VINMODE_RGB444:
-//		case VINMODE_YUV444://			if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
-//					(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
-//				ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, 0);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, HVF_CNTRL_1, HVF_CNTRL_1_SEMI_PLANAR, 0);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, PLL_SERIAL_3, PLL_SERIAL_3_SRL_CCIR, 0);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0);
-//				if (ret < 0)
-//					return ret;
-////				ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, 0);
-//				if (ret < 0)
-//					return ret;//			} else {
-//				/* Not supported */
-//				return ERR_BAD_PARAM;
-//			}
-////			break;
-////		case VINMODE_YUV422:
-//			if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
-//					(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
-//				ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, 0);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, HVF_CNTRL_1, HVF_CNTRL_1_SEMI_PLANAR, HVF_CNTRL_1_SEMI_PLANAR);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, PLL_SERIAL_3, PLL_SERIAL_3_SRL_CCIR, 0);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0);
-//				if (ret < 0)
-//					return ret;
-////				ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, 0);
-//				if (ret < 0)
-//					return ret;
-////			} else {
-//				/* Not supported */
-//				return ERR_BAD_PARAM;//			}
-////			break;
-////		case VINMODE_CCIR656://			if ((vidin_cfg->pix_rate == PIXRATE_SINGLE) ||
-//					(vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED)) {
-//				ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, VIP_CNTRL_4_CCIR656);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, HVF_CNTRL_1, HVF_CNTRL_1_SEMI_PLANAR, HVF_CNTRL_1_SEMI_PLANAR);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, PLL_SERIAL_3, PLL_SERIAL_3_SRL_CCIR, PLL_SERIAL_3_SRL_CCIR);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0x02);
-//				if (ret < 0)
-//					return ret;
-////				ret = write_reg_mask(dev,
-//						VIP_CNTRL_4,
-//						VIP_CNTRL_4_656_ALT,
-//						0);
-//				if (ret < 0)
-//					return ret;//			} else if (vidin_cfg->pix_rate == PIXRATE_DOUBLE) {
-//				ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, VIP_CNTRL_4_CCIR656);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, HVF_CNTRL_1, HVF_CNTRL_1_SEMI_PLANAR, HVF_CNTRL_1_SEMI_PLANAR);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, PLL_SERIAL_3, PLL_SERIAL_3_SRL_CCIR, 0);
-//				if (ret < 0)
-//					return ret;
-//
-//				ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0);
-//				if (ret < 0)
-//					return ret;
-////				ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_656_ALT, VIP_CNTRL_4_656_ALT);
-//				if (ret < 0)
-//					return ret;//			}////			break;
-////		default:
-//			ret = write_reg_mask(dev, VIP_CNTRL_4, VIP_CNTRL_4_CCIR656, 0);
-//			if (ret < 0)
-//				return ret;
-//
-//			ret = write_reg_mask(dev, HVF_CNTRL_1, HVF_CNTRL_1_SEMI_PLANAR, 0);
-//			if (ret < 0)
-//				return ret;
-//
-//			ret = write_reg_mask(dev, PLL_SERIAL_3, PLL_SERIAL_3_SRL_CCIR, 0);
-//			if (ret < 0)
-//				return ret;
-//
-//			ret = write_reg_mask(dev, SEL_CLK, SEL_CLK_SEL_VRF_CLK_MASK, 0);
-//			if (ret < 0)
-//				return ret;
-//
-//			break;
-//		}
-//	}
-  //	if (upsampleMode != HDMITX_UPSAMPLE_NO_CHANGE) {//		dev->upsampleMode = upsampleMode;
-//	}
-////	if ((format_3d == HDMITX_3D_FRAME_PACKING) &&
-//			(reg_idx3D != REGVFMT_INVALID)) {
-//		/* embedded 3D video format */
-//		ssd = pll[reg_idx3D];
-//	} else {
-//		/* embedded 2D video format */
-//		ssd = pll[reg_idx];
-//	}
-//////	if (ssd < SSD_UNUSED_VALUE) {//		ret = write_reg_mask(dev,//				PLL_SERIAL_2,
-//				PLL_SERIAL_2_SRL_NOSC_MASK,
-//				ssd);
-//	}
-//
-//	/* Set pixel repetition */
-////	if (uPixelRepeat != HDMITX_PIXREP_NO_CHANGE) {//		if (uPixelRepeat == HDMITX_PIXREP_DEFAULT) {
-//			/* Look up default pixel repeat value for this output format */
-//			uPixelRepeat = sync[BASE (reg_idx)].pix_rep;//		}
-//
-//		/* Update current pixel repetition count */
-//		dev->pixelRepeatCount = uPixelRepeat;
-////		ret = write_reg_mask(dev,//				PLL_SERIAL_2,
-//				PLL_SERIAL_2_SRL_PR,//				uPixelRepeat);//		if (ret < 0)
-//			return ret;
-//
-//		/* Set pixel repetition count for Repetitor module */
-//		ret = write_reg(dev, RPT_CNTRL, uPixelRepeat);
-//		if (ret < 0)
-//			return ret;////	}
-////	ret = write_reg_mask(dev,//			PLL_SERIAL_1,
-//			PLL_SERIAL_1_SRL_MAN_IZ,
-//			0);//	if (ret < 0)
-//		return ret;////	ret = write_reg_mask(dev,//			PLL_SERIAL_3,
-//			PLL_SERIAL_3_SRL_DE,//			0);//	if (ret < 0)
-//		return ret;////	ret = write_reg(dev, SERIALIZER, 0);//	if (ret < 0)
-//		return ret;
-////	return 0;//}
-
-
-/******************************************************************************
-    \brief Configures all input and output parameters : format, modes, rates,
-           etc. This is the main configuration function of the driver. Here
-           are transmitted all crucial input and output parameters of the
-           device.
-           This function is synchronous.
-           This function is not ISR friendly.
-
-    \param instance          Instance identifier.
-    \param videoInputConfig  Configuration of the input video.
-    \param videoOutputConfig Configuration of the output video.
-    \param audioInputConfig  Configuration of the input audio.
-    \param sinkType          Type of sink connected to the output of the Tx.
-
-    \return The call result:
-            - TM_OK: the call was successful
-            - TMDL_ERR_DLHDMITX_BAD_INSTANCE: the instance number is wrong or
-              out of range
-            - TMDL_ERR_DLHDMITX_BAD_HANDLE: the handle number is wrong
-            - TMBSL_ERR_HDMI_BAD_UNIT_NUMBER: bad transmitter unit number
-            - TMBSL_ERR_HDMI_BAD_PARAMETER: a parameter was out of range
-            - TMBSL_ERR_HDMI_NOT_INITIALIZED: transmitter not initialized
-            - TMBSL_ERR_HDMI_I2C_WRITE: failed when writing to the I2C bus
-            - TMBSL_ERR_HDMI_I2C_READ: failed when reading to the I2C bus
-            - TMBSL_ERR_HDMI_OPERATION_NOT_PERMITTED: not allowed in DVI mode
-
-******************************************************************************/
-int tda998x_set_input_output(struct tda998x_dev *dev,
-		struct tda998x_vidin_cfg *vidin_cfg,
-		struct tda998x_vidout_cfg *vidout_cfg,
-		struct tda998x_audin_cfg *audin_cfg,
-		enum tda998x_sink sink)
-{
-	int ret;
-    uint8_t                   pix_rpt;                  /* Pixel repetition */
-    tmbslHdmiTxVoutDbits_t  dwidth;                   /* Data path bit width */
-    tmbslHdmiTxPixEdge_t    pixelEdge;                  /* Pixel sampling edge */
-    tmbslHdmiTxVsMeth_t     syncMethod;                 /* Sync method */
-    tmbslHdmiTxPixTogl_t    toggle;                     /* Toggling */
-    uint8_t                   syncIn;                     /* Embedded or external */
-    tmbslHdmiTxPixSubpkt_t  spSync;                     /* Subpacket sync */
-    tmbslHdmiTxBlnkSrc_t    blankit;                    /* Blanking */
-    tmbslHdmiTxPixRate_t    pixRateSingleDouble;        /* HDMITX_PIXRATE_SINGLE */
-    uint16_t                  uRefPix;                    /* REFPIX for output */
-    uint16_t                  uRefLine;                   /* REFLINE for output */
-    uint16_t                  uScRefPix=0;                /* REFPIX for scaler */
-    uint16_t                  uScRefLine=0;               /* REFLINE for scaler */
-    bool                    bVerified;                  /* Scaler setting verified */
-    tmbslHdmiTxTopSel_t     topSel;                     /* Adjustment for interlaced output */
-    tmbslHdmiTxHPhases_t    phasesH;                    /* Horizontal phase */
-    tmbslHdmiTxVsOnce_t     once;                       /* Line/pixel counters sync */
-    tmbslHdmiTxScaMode_t    scalerMode;                 /* Current scaler mode */
-    bool                    OBASupported;               /* OBA supported or not */
-    bool                    DSTSupported;               /* DST supported or not */
-    bool                    HBRSupported;               /* HBR supporeted or not */
-
-    uint8_t                   *pSwapTable = Null;         /* Initialized after (depend on video mode used) */
-    uint8_t                   *pMirrorTable = Null;       /* Initialized after (depend on video mode used) */
-
-    uint8_t                   *pEnaVideoPortTable = Null; /* Initialized after (depend on video mode used) */
-    uint8_t                   *pGndVideoPortTable = Null; /* Initialized after (depend on video mode used) */
-    tmdlHdmiTxVidFmt_t      vinFmtIndex;                /* index in table kVfmtToShortFmt_TV */
-
-    /* dummy definition to avoid derefencing type-punned pointer warning */
-    enum tda998x_sink    *pSinkType = &sinkType;
-
-    /* Check if instance number is in range */
-//    RETIF((instance < 0) || (instance >= MAX_UNITS), TMDL_ERR_DLHDMITX_BAD_INSTANCE)
-
-    /* Take the sempahore */
-//    RETIF( (ret = tmdlHdmiTxIWSemaphoreP(dlHdmiTxItSemaphore[instance]) ) != TM_OK, ret)
-
-    /* Update the instance status information */
-//    instanceStatusInfoTx[instance].pVideoInfo->videoInConfig.format       = videoInputConfig.format;
-//    instanceStatusInfoTx[instance].pVideoInfo->videoInConfig.mode         = videoInputConfig.mode;
-//    instanceStatusInfoTx[instance].pVideoInfo->videoInConfig.syncSource   = videoInputConfig.syncSource;
-//    instanceStatusInfoTx[instance].pVideoInfo->videoInConfig.pixelRate    = videoInputConfig.pixelRate;
-//    instanceStatusInfoTx[instance].pVideoInfo->videoInConfig.structure3D  = videoInputConfig.structure3D;
-
-//    instanceStatusInfoTx[instance].pVideoInfo->videoOutConfig.format      = videoOutputConfig.format;
-//    instanceStatusInfoTx[instance].pVideoInfo->videoOutConfig.mode        = videoOutputConfig.mode;
-//    instanceStatusInfoTx[instance].pVideoInfo->videoOutConfig.colorDepth  = videoOutputConfig.colorDepth;
-
-    /* TODO */
-    /*instanceStatusInfoTx[instance].pVideoInfo->videoMuteState            = */
-
-    /* Audio OBA support */
-    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-        (ret = tmbslHdmiTxHwGetCapabilities(instance,
-        HDMITX_FEATURE_HW_AUDIO_OBA, &OBASupported) ) != TM_OK, ret)
-
-    /* Audio DST support */
-    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-        (ret = tmbslHdmiTxHwGetCapabilities(instance,
-        HDMITX_FEATURE_HW_AUDIO_DST, &DSTSupported) ) != TM_OK, ret)
-
-    /* Audio HBR support */
-    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-        (ret = tmbslHdmiTxHwGetCapabilities(instance,
-        HDMITX_FEATURE_HW_AUDIO_HBR, &HBRSupported) ) != TM_OK, ret)
-
-    /* Test if audio input format is supported */
-//    if ( ((audioInputConfig.format == TMDL_HDMITX_AFMT_OBA) && (OBASupported == False)) ||
-//	         ((audioInputConfig.format == TMDL_HDMITX_AFMT_DST) && (DSTSupported == False)) ||
-//             ((audioInputConfig.format == TMDL_HDMITX_AFMT_HBR) && (HBRSupported == False)) )
-//    {
-        /* Release the sempahore */
-//        RETIF( (ret = tmdlHdmiTxIWSemaphoreV(dlHdmiTxItSemaphore[instance]) ) != TM_OK, ret)
-
-//        return TMDL_ERR_DLHDMITX_NOT_SUPPORTED;
-//    }
-
-//    instanceStatusInfoTx[instance].pAudioInfo->audioInCfg.format            = audioInputConfig.format;
-//    instanceStatusInfoTx[instance].pAudioInfo->audioInCfg.i2sFormat         = audioInputConfig.i2sFormat;
-//    instanceStatusInfoTx[instance].pAudioInfo->audioInCfg.i2sQualifier      = audioInputConfig.i2sQualifier;
-//    instanceStatusInfoTx[instance].pAudioInfo->audioInCfg.rate              = audioInputConfig.rate;
-//    instanceStatusInfoTx[instance].pAudioInfo->audioInCfg.channelAllocation = audioInputConfig.channelAllocation;
-
-    if (sinkType == SINK_EDID) {
-        /* Change sink type with the currently defined in EDID */
-        RETIF_SEM(dlHdmiTxItSemaphore[instance],
-            (ret = tmbslHdmiTxEdidGetSinkType(instance,
-            (tmbslHdmiTxSinkType_t *)pSinkType) ) != TM_OK, ret)
-    }
-
-    /* forbid format with pixel repetition in DVI */
-    if (sinkType == TMDL_HDMITX_SINK_DVI)
-    {
-        if(((videoOutputConfig.format >= TMDL_HDMITX_VFMT_06_720x480i_60Hz) && (videoOutputConfig.format <= TMDL_HDMITX_VFMT_15_1440x480p_60Hz))
-        || ((videoOutputConfig.format >= TMDL_HDMITX_VFMT_21_720x576i_50Hz) && (videoOutputConfig.format <= TMDL_HDMITX_VFMT_30_1440x576p_50Hz))
-        || ((videoOutputConfig.format >= TMDL_HDMITX_VFMT_35_2880x480p_60Hz)&& (videoOutputConfig.format <= TMDL_HDMITX_VFMT_38_2880x576p_50Hz))
-          )
-        {
-            /* Release the sempahore */
-            RETIF( (ret = tmdlHdmiTxIWSemaphoreV(dlHdmiTxItSemaphore[instance]) ) != TM_OK, ret)
-
-            return TMDL_ERR_DLHDMITX_BAD_PARAMETER;
-        }
-    }
-
-    /* Set color depth according to output config, transmitter termination is disable */
-
-    /* Set the TMDS outputs to a forced state */
-    ret = tda998x_set_tmds_output(dev, TMDSOUT_FORCED0);
-    if (ret < 0)
-	return ret;
-
-    /* Set video output configuration */
-    ret = tda998x_vidout_set_config(dev, sinkType, vidout_cfg->mode, VOUT_PREFIL_OFF, VOUT_YUV_BLK_16, QRANGE_FS);
-    if (ret < 0)
-	    return ret;
-
-    /* Set default config */
-    pix_rpt = PIXREP_DEFAULT;
-    dwidth = VOUT_DBITS_12;
-    pixelEdge = PIXEDGE_CLK_POS;
-    syncMethod = VSMETH_V_H;
-    toggle = PIXTOGL_ENABLE;
-
-    /* Set sync details */
-    if (videoInputConfig.syncSource == TMDL_HDMITX_SYNCSRC_EMBEDDED)
-    {
-        /* Embedded sync */
-        syncIn      = EMB;
-        spSync      = HDMITX_PIXSUBPKT_SYNC_HEMB;
-        blankit     = HDMITX_BLNKSRC_VS_HEMB_VEMB;
-        syncMethod  = HDMITX_VSMETH_V_XDE;
-    }
-    else
-    {
-        /* External sync */
-        syncIn  = EXT;
-
-        /* DE is available */
-        spSync  = HDMITX_PIXSUBPKT_SYNC_DE;
-
-        blankit = HDMITX_BLNKSRC_NOT_DE;
-    }
-
-	/* Port swap table */
-	switch(vidin_cfg->mode) {
-//        case VINMODE_CCIR656:
-//            dwidth = VOUT_DBITS_8;
-//            pixelEdge = PIXEDGE_CLK_NEG;
-//            pSwapTable = gtmdlHdmiTxDriverConfigTable[instance].pSwapTableCCIR656;
-//            pMirrorTable = gtmdlHdmiTxDriverConfigTable[instance].pMirrorTableCCIR656;
-//            pEnaVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pEnableVideoPortCCIR656;
-//            pGndVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pGroundVideoPortCCIR656;
-//            break;
-
-        case VINMODE_RGB444:
-            pSwapTable = gtmdlHdmiTxDriverConfigTable[instance].pSwapTableRGB444;
-            pMirrorTable = gtmdlHdmiTxDriverConfigTable[instance].pMirrorTableRGB444;
-            pEnaVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pEnableVideoPortRGB444;
-            pGndVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pGroundVideoPortRGB444;
-            break;
-
-//        case VINMODE_YUV444:
-//            pSwapTable = gtmdlHdmiTxDriverConfigTable[instance].pSwapTableYUV444;
-//            pMirrorTable = gtmdlHdmiTxDriverConfigTable[instance].pMirrorTableYUV444;
-//            pEnaVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pEnableVideoPortYUV444;
-//            pGndVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pGroundVideoPortYUV444;
-//            break;
-
-//        case VINMODE_YUV422:
-//            pSwapTable = gtmdlHdmiTxDriverConfigTable[instance].pSwapTableYUV422;
-//            pMirrorTable = gtmdlHdmiTxDriverConfigTable[instance].pMirrorTableYUV422;
-//            pEnaVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pEnableVideoPortYUV422;
-//            pGndVideoPortTable = gtmdlHdmiTxDriverConfigTable[instance].pGroundVideoPortYUV422;
-//            break;
-         default:
-         break;
-    }
-
-    /* Set the audio and video input port configuration */
-    ret = tda998x_vidin_set_port_enable(dev);
-    if (ret < 0)
-	    return ret;
-
-//    ret = tmbslHdmiTxSetVideoPortConfig(instance, pEnaVideoPortTable, pGndVideoPortTable);
-//    RETIF_SEM(dlHdmiTxItSemaphore[instance], (ret != TM_OK) && (ret != TMBSL_ERR_HDMI_NOT_SUPPORTED), ret);
-
-    ret = tda998x_vidin_set_mapping(dev, pSwapTable, pMirrorTable);
-    if (ret < 0)
-	    return ret;
-
-//    ret = tmbslHdmiTxVideoInSetMapping(instance, pSwapTable, pMirrorTable);
-//    RETIF_SEM(dlHdmiTxItSemaphore[instance], (ret != TM_OK) && (ret != TMBSL_ERR_HDMI_NOT_SUPPORTED), ret);
-
-    /* Set fine image position */
-//    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-//              (ret = tmbslHdmiTxVideoInSetFine(instance, spSync, HDMITX_PIXTOGL_ENABLE) ) != TM_OK, ret);	// HDMITX_PIXTOGL_NO_ACTION
-//    enum vip_cntrl_5_clkpol
-    ret = tda998x_vidin_set_fine(dev, spSync, PIXTOGL_ENABLE. TGLCLK_LOW);
-    if (ret < 0)
-	    return ret;
-
-    /* Set input blanking */
-//    ret = tmbslHdmiTxVideoInSetBlanking(instance, blankit, HDMITX_BLNKCODE_RGB444);
-//    RETIF_SEM(dlHdmiTxItSemaphore[instance], (ret != TM_OK) && (ret != TMBSL_ERR_HDMI_NOT_SUPPORTED), ret);
-    ret = tda998x_vidin_set_blanking(dev, blankit, BLNKCODE_RGB444);
-    if (ret < 0)
-	    return ret;
-
-    /* Configure video input options and control the upsampler */
-//    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-//              (ret = tmbslHdmiTxVideoInSetConfig(instance,
-//                                                     (tmbslHdmiTxVinMode_t)videoInputConfig.mode, (tmbslHdmiTxVidFmt_t)videoOutputConfig.format,
-//                                                     (tmbslHdmiTx3DStructure_t)videoInputConfig.structure3D, pixelEdge,
-//                                                     (tmbslHdmiTxPixRate_t)videoInputConfig.pixelRate, HDMITX_UPSAMPLE_AUTO) ) != TM_OK, ret);
-    ret = tda998x_vidin_set_config(dev,
-		    vidin_cfg->mode,
-		    vidout_cfg->format,
-		    vidin_cfg->format_3d,
-		    pixelEdge,
-		    vidin_cfg->pix_rate,
-		    UPSAMPLE_AUTO);
-    if (ret < 0)
-	    return ret;
-
-    /* Set input ouput - may give NOT_SUPPORTED error */
-//    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-//              (ret = tmbslHdmiTxVideoSetInOut(instance, (tmbslHdmiTxVidFmt_t)videoInputConfig.format,
-//                                                  (tmbslHdmiTx3DStructure_t)videoInputConfig.structure3D,
-//                                                  HDMITX_SCAMODE_AUTO, (tmbslHdmiTxVidFmt_t)videoOutputConfig.format,
-//                                                  pix_rpt, HDMITX_MATMODE_AUTO, dwidth, (tmbslHdmiTxVQR_t) videoOutputConfig.dviVqr) ) != TM_OK, ret);
-    ret = tda998x_VideoSetInOut(dev,
-		    vidin_cfg->format,
-		    vidin_cfg->format_3d,
-		    SCALER_MODE_AUTO,
-		    vidout_cfg->format,
-		    pix_rpt,
-		    MTX_MODE_AUTO,
-		    dwidth,
-		    vidout_cfg->vqr);
-    if (ret < 0)
-	    return ret;
-
-    /* Only set audio for HDMI, not DVI */
-//    if (sinkType == SINK_HDMI) {
-//        /* Release the sempahore */
-//        RETIF( (ret = tmdlHdmiTxIWSemaphoreV(dlHdmiTxItSemaphore[instance]) ) != TM_OK, ret)
-//        /* Set audio parameters */
-//        RETIF( (ret = tmdlHdmiTxSetAudioInput(instance, audioInputConfig, sinkType) ) != TM_OK, ret)
-//        /* Take the sempahore */
-//        RETIF( (ret = tmdlHdmiTxIWSemaphoreP(dlHdmiTxItSemaphore[instance]) ) != TM_OK, ret)
-//    }
-
-    /* Output fine adjustment */
-    pixRateSingleDouble = (tmbslHdmiTxPixRate_t)vidin_cfg->pix_rate;
-    if (vidin_cfg->pix_rate == PIXRATE_SINGLE_REPEATED) {
-	    pixRateSingleDouble = PIXRATE_SINGLE;
-    }
-
-    if ((videoInputConfig.structure3D != HDMITX_3D_FRAME_PACKING) &&
-        dlHdmiTxGetReflineRefpix(videoInputConfig.format, videoInputConfig.mode, videoOutputConfig.format,
-                                    syncIn, (tmdlHdmiTxPixRate_t)pixRateSingleDouble, &uRefPix, &uRefLine,
-									&uScRefPix, &uScRefLine, &bVerified) > 0) {
-        /* From 720p50/60 or 1080i50/60 up-scaling to 1080p50/60, when external sync,
-           toggleV, toggleH and toggleX need to be set to 0 */
-
-	    /* Shorthands for input sync */
-//	    #define EMB      1
-//	    #define EXT      0
-	if (syncIn == EXT) {
-		switch (videoInputConfig.format) {
-		case VFMT_04_1280x720p_60Hz:
-		case VFMT_19_1280x720p_50Hz:
-		case VFMT_05_1920x1080i_60Hz:
-		case VFMT_20_1920x1080i_50Hz:
-		    if ( (vidout_cfg->format == VFMT_16_1920x1080p_60Hz)
-			|| (vidout_cfg->format == VFMT_31_1920x1080p_50Hz) )
-		    {
-			toggle = PIXTOGL_NO_ACTION;
-		    }
-		    break;
-		default:
-		    toggle = PIXTOGL_ENABLE;
-		    break;
-		}
-	}
-
-        /* Combination found in table for scaler: configure input manually */
-//        RETIF_SEM(dlHdmiTxItSemaphore[instance],
-//            (ret = tmbslHdmiTxVideoInSetSyncManual(instance,
-//            (tmbslHdmiTxSyncSource_t)videoInputConfig.syncSource, syncMethod, toggle, toggle, toggle, uRefPix, uRefLine, True) ) != TM_OK, ret)
-	ret = tda998x_vidin_set_sync(dev,
-				vidin_cfg->sync_src,
-				syncMethod,
-				toggle,
-				toggle,
-				toggle,
-				uRefPix,
-				uRefLine);
-	if (ret < 0)
-		return ret;
-    } else {
-//	    toggle = HDMITX_PIXTOGL_ENABLE;
-//	    uRefPix = 0;
-//	    uRefLine = 0;
-//	    syncMethod = 0;
-        /* Not found so assume non-scaler and auto-configure input */
-//	    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-//	                (ret = tmbslHdmiTxVideoInSetSyncManual(instance,
-//	                (tmbslHdmiTxSyncSource_t)videoInputConfig.syncSource, syncMethod, toggle, toggle, toggle, uRefPix, uRefLine, True) ) != TM_OK, ret)
-
-	    ret = tda998x_vidin_set_sync_auto(dev,
-        		    	    vidin_cfg->sync_src,
-        		    	    vidin_cfg->format,
-        		    	    vidin_cfg->mode,
-        		    	    vidin_cfg->format_3d);
-	    if (ret < 0)
-		    return ret;
-    }
-
-    /* Only set infoframes for HDMI, not DVI */
-    if (sinkType == SINK_HDMI) {
-	    /* Set avi infoframe */
-        RETIF_SEM(dlHdmiTxItSemaphore[instance],
-            (ret = dlHdmiTxSetVideoInfoframe(instance, videoOutputConfig.format, videoOutputConfig.mode) ) != TM_OK,
-            ret)
-    }
-
-    /* Set video synchronisation */
-//    RETIF_SEM(dlHdmiTxItSemaphore[instance],
-//        (ret = tmbslHdmiTxVideoOutSetSync(instance,
-//        		HDMITX_VSSRC_INTERNAL, HDMITX_VSSRC_INTERNAL, HDMITX_VSSRC_INTERNAL,
-//        		HDMITX_VSTGL_TABLE, once) ) != TM_OK, ret)
-    ret = tda998x_vidout_set_sync(dev,
-		    VSSRC_INTERNAL,
-		    VSSRC_INTERNAL,
-		    VSSRC_INTERNAL,
-		    VSTGL_TABLE,
-		    VSONCE_EACH_FRAME);
-    if (ret < 0)
-	    return ret;
-
-    /* Release the sempahore */
-//    RETIF( (ret = tmdlHdmiTxIWSemaphoreV(dlHdmiTxItSemaphore[instance]) ) != TM_OK, ret)
-
-//    instanceStatusInfoTx[instance].pColBarState->inOutFirstSetDone = True;
-
-    /* Test if pattern is already on */
-//    if (instanceStatusInfoTx[instance].pColBarState->colorBarOn == True)
-//    {
-//        /* If pattern is On, apply new settings */
-//        instanceStatusInfoTx[instance].pColBarState->changeColorBarNow = True;
-//    }
-
-    return 0;
-}
-
-

@@ -964,6 +964,14 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 	uint32_t reg_val;
 	int hact, vact, htotal, vtotal, hsync_st, hsync_end, vsync_st, vsync_end;
 
+	#define GEN_POL_VBLANK			(1 << 0)	/**< Generated vertical blank polarity */
+	#define GEN_POL_HBLANK			(1 << 1)	/**< Generated horizontal blank polarity */
+	#define GEN_POL_VSYNC			(1 << 2)	/**< Generated vertical sync polarity */
+	#define GEN_POL_HSYNC			(1 << 3)	/**< Generated horizontal sync polarity */
+	#define GEN_POL_ACTIVE_VIDEO		(1 << 4)	/**< Generated active video polarity */
+	#define GEN_POL_ACTIVE_CHROMA		(1 << 5)	/**< Generated active chroma polarity */
+	#define GEN_POL_FIELD_ID		(1 << 6)	/**< Generated field ID polarity */
+
 	switch (mode) {
 	case VTC_MODE_720p:
 		hact = 1280;
@@ -974,6 +982,13 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 		hsync_end = 1430;
 		vsync_st = 724;
 		vsync_end = 729;
+		reg_val = GEN_POL_VBLANK |
+			GEN_POL_HBLANK |
+			GEN_POL_VSYNC |
+			GEN_POL_HSYNC |
+			GEN_POL_ACTIVE_VIDEO |
+			GEN_POL_ACTIVE_CHROMA |
+			GEN_POL_FIELD_ID;
 		break;
 
 	case VTC_MODE_1080p:
@@ -985,6 +1000,13 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 		hsync_end = 2052;
 		vsync_st = 1083;
 		vsync_end = 1088;
+		reg_val = GEN_POL_VBLANK |
+			GEN_POL_HBLANK |
+			GEN_POL_VSYNC |
+			GEN_POL_HSYNC |
+			GEN_POL_ACTIVE_VIDEO |
+			GEN_POL_ACTIVE_CHROMA |
+			GEN_POL_FIELD_ID;
 		break;
 
 	case VTC_MODE_1920x1200:
@@ -996,8 +1018,14 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 		hsync_end = 2000;
 		vsync_st = 1202;
 		vsync_end = 1208;
+		reg_val = GEN_POL_VBLANK |
+			GEN_POL_HBLANK |
+			GEN_POL_HSYNC |
+			GEN_POL_ACTIVE_VIDEO |
+			GEN_POL_ACTIVE_CHROMA |
+			GEN_POL_FIELD_ID;
 		break;
-            
+
 	case VTC_MODE_WXGA:
 		hact = 1366;
 		vact = 768;
@@ -1007,6 +1035,13 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 		hsync_end = 1579;
 		vsync_st = 770;
 		vsync_end = 773;
+		reg_val = GEN_POL_VBLANK |
+			GEN_POL_HBLANK |
+			GEN_POL_VSYNC |
+			GEN_POL_HSYNC |
+			GEN_POL_ACTIVE_VIDEO |
+			GEN_POL_ACTIVE_CHROMA |
+			GEN_POL_FIELD_ID;
 		break;
 
 	default:
@@ -1014,7 +1049,7 @@ vtc_set_generator_video_mode(struct vtc_dev *dev, enum vtc_mode mode)
 		return -1;
 	}
 
-	REG_WRITE(dev->base, VTC_REG_GEN_POL, 0x7FU);
+	REG_WRITE(dev->base, VTC_REG_GEN_POL, reg_val);
 
 	reg_val = (vact << 16) | (hact);
 	REG_WRITE(dev->base, VTC_REG_GEN_ASIZE, reg_val);
@@ -1075,7 +1110,7 @@ vtc_init(struct vtc_dev *dev, const char *devname)
 		goto out;
 	}
 
-	base += 0x3c10000;			/* Device register address offset */ 
+	base += 0x3c10000;			/* Device register address offset */
 
 	dev->base = (void *) base;
 	dev->fd = fd;
