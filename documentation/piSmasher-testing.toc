@@ -4,5 +4,6 @@
 \contentsline {subsection}{\numberline {2.2}Configuration Software}{3}{subsection.2.2}
 \contentsline {subsection}{\numberline {2.3}Configuring HDMI Transceivers}{3}{subsection.2.3}
 \contentsline {subsection}{\numberline {2.4}Configuring Video Timing Controller}{4}{subsection.2.4}
-\contentsline {section}{\numberline {3}Audio Codec}{4}{section.3}
+\contentsline {subsection}{\numberline {2.5}Configuring with Script}{4}{subsection.2.5}
+\contentsline {section}{\numberline {3}Audio Codec}{5}{section.3}
 \contentsfinish 

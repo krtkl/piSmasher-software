@@ -183,6 +183,7 @@ var searchData=
   ['vtc_5fmode',['vtc_mode',['../vtc_8h.html#ac62536f18fec7ba7079eedc9d8060eff',1,'vtc.h']]],
   ['vtc_5fmode_5f1080i',['VTC_MODE_1080i',['../vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effaeea6be9c5deb1efc8d410bee230078a0',1,'vtc.h']]],
   ['vtc_5fmode_5f1080p',['VTC_MODE_1080p',['../vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effac3eb88b3f0025023b1770e72f2446934',1,'vtc.h']]],
+  ['vtc_5fmode_5f1920x1200',['VTC_MODE_1920x1200',['../vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effaa65cfde64ea5ff0bb82903bcd388d2ce',1,'vtc.h']]],
   ['vtc_5fmode_5f480p',['VTC_MODE_480p',['../vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effab58fd0061ec1ef0d2f96d485c74d1b3b',1,'vtc.h']]],
   ['vtc_5fmode_5f576p',['VTC_MODE_576p',['../vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effad10599cef700dd3f560c05de7517239a',1,'vtc.h']]],
   ['vtc_5fmode_5f720p',['VTC_MODE_720p',['../vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effaf6368506b2246e421552cc83a2516c7e',1,'vtc.h']]],

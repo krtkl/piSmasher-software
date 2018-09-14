@@ -1,10 +1,6 @@
 var searchData=
 [
   ['i2c_5faddr_5ffd',['i2c_addr_fd',['../structi2c__addr__fd.html',1,'']]],
-  ['i2c_5fmsg',['i2c_msg',['../structi2c__msg.html',1,'']]],
-  ['i2c_5frdwr_5fioctl_5fdata',['i2c_rdwr_ioctl_data',['../structi2c__rdwr__ioctl__data.html',1,'']]],
-  ['i2c_5fsmbus_5fdata',['i2c_smbus_data',['../unioni2c__smbus__data.html',1,'']]],
-  ['i2c_5fsmbus_5fioctl_5fdata',['i2c_smbus_ioctl_data',['../structi2c__smbus__ioctl__data.html',1,'']]],
   ['i2s_5ffmt_5foth_5fl',['I2S_FMT_OTH_L',['../group___t_d_a998_x___audio.html#ggac865a1e02f20e86d6c59b4e383855f65a5a2a8babab3a7004a167f4741441ffc5',1,'tda998x.h']]],
   ['i2s_5ffmt_5foth_5fr',['I2S_FMT_OTH_R',['../group___t_d_a998_x___audio.html#ggac865a1e02f20e86d6c59b4e383855f65a68b6903f27be275bc5263b0c3b47ab7b',1,'tda998x.h']]],
   ['i2s_5ffmt_5foth_5fr_5f16',['I2S_FMT_OTH_R_16',['../group___t_d_a998_x___audio.html#ggac865a1e02f20e86d6c59b4e383855f65a1a54237473ed1c09ac372bfc520ff69f',1,'tda998x.h']]],

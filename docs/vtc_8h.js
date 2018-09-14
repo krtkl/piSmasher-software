@@ -4,6 +4,7 @@ var vtc_8h =
     [ "vtc_mode", "vtc_8h.html#ac62536f18fec7ba7079eedc9d8060eff", [
       [ "VTC_MODE_720p", "vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effaf6368506b2246e421552cc83a2516c7e", null ],
       [ "VTC_MODE_1080p", "vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effac3eb88b3f0025023b1770e72f2446934", null ],
+      [ "VTC_MODE_1920x1200", "vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effaa65cfde64ea5ff0bb82903bcd388d2ce", null ],
       [ "VTC_MODE_480p", "vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effab58fd0061ec1ef0d2f96d485c74d1b3b", null ],
       [ "VTC_MODE_576p", "vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effad10599cef700dd3f560c05de7517239a", null ],
       [ "VTC_MODE_VGA", "vtc_8h.html#ac62536f18fec7ba7079eedc9d8060effaca2e6a8817dcc4e256867d73cb49953d", null ],

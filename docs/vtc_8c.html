@@ -344,6 +344,20 @@ Macros</h2></td></tr>
 <tr class="memitem:aa0b4b3bf845c58c8ce83c833a174e32b"><td class="memItemLeft" align="right" valign="top"><a id="aa0b4b3bf845c58c8ce83c833a174e32b"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>REG_WRITE</b>(__BASE__,  __OFFSET__,  __DATA__)&#160;&#160;&#160;*((volatile uint32_t *)(((uint8_t *)(__BASE__)) + (__OFFSET__))) = (__DATA__)</td></tr>
 <tr class="separator:aa0b4b3bf845c58c8ce83c833a174e32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a297e5cd163c28d090c617eb6733411cc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="vtc_8c.html#a297e5cd163c28d090c617eb6733411cc">GEN_POL_VBLANK</a>&#160;&#160;&#160;(1 &lt;&lt; 0)</td></tr>
+<tr class="separator:a297e5cd163c28d090c617eb6733411cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a966e4d239f523a5fcacda2ec258be217"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="vtc_8c.html#a966e4d239f523a5fcacda2ec258be217">GEN_POL_HBLANK</a>&#160;&#160;&#160;(1 &lt;&lt; 1)</td></tr>
+<tr class="separator:a966e4d239f523a5fcacda2ec258be217"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac89da4d9a345ff8e1ef503317152550a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="vtc_8c.html#ac89da4d9a345ff8e1ef503317152550a">GEN_POL_VSYNC</a>&#160;&#160;&#160;(1 &lt;&lt; 2)</td></tr>
+<tr class="separator:ac89da4d9a345ff8e1ef503317152550a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c54eba24aec57f20a5003438e088288"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="vtc_8c.html#a9c54eba24aec57f20a5003438e088288">GEN_POL_HSYNC</a>&#160;&#160;&#160;(1 &lt;&lt; 3)</td></tr>
+<tr class="separator:a9c54eba24aec57f20a5003438e088288"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9a0c13ee4430104cc65dfd42631840d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="vtc_8c.html#ac9a0c13ee4430104cc65dfd42631840d">GEN_POL_ACTIVE_VIDEO</a>&#160;&#160;&#160;(1 &lt;&lt; 4)</td></tr>
+<tr class="separator:ac9a0c13ee4430104cc65dfd42631840d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b5c548090679bd880c3a9c4914c0b88"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="vtc_8c.html#a4b5c548090679bd880c3a9c4914c0b88">GEN_POL_ACTIVE_CHROMA</a>&#160;&#160;&#160;(1 &lt;&lt; 5)</td></tr>
+<tr class="separator:a4b5c548090679bd880c3a9c4914c0b88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed5ea924872d223872ba2cf4f34a5456"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="vtc_8c.html#aed5ea924872d223872ba2cf4f34a5456">GEN_POL_FIELD_ID</a>&#160;&#160;&#160;(1 &lt;&lt; 6)</td></tr>
+<tr class="separator:aed5ea924872d223872ba2cf4f34a5456"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -1007,7 +1021,22 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 </div>
 </div>
 <a id="a4b5c548090679bd880c3a9c4914c0b88"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b5c548090679bd880c3a9c4914c0b88">&#9670;&nbsp;</a></span>GEN_POL_ACTIVE_CHROMA</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b5c548090679bd880c3a9c4914c0b88">&#9670;&nbsp;</a></span>GEN_POL_ACTIVE_CHROMA <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GEN_POL_ACTIVE_CHROMA&#160;&#160;&#160;(1 &lt;&lt; 5)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generated active chroma polarity </p>
+
+</div>
+</div>
+<a id="a4b5c548090679bd880c3a9c4914c0b88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b5c548090679bd880c3a9c4914c0b88">&#9670;&nbsp;</a></span>GEN_POL_ACTIVE_CHROMA <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1022,7 +1051,22 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 </div>
 </div>
 <a id="ac9a0c13ee4430104cc65dfd42631840d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9a0c13ee4430104cc65dfd42631840d">&#9670;&nbsp;</a></span>GEN_POL_ACTIVE_VIDEO</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9a0c13ee4430104cc65dfd42631840d">&#9670;&nbsp;</a></span>GEN_POL_ACTIVE_VIDEO <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GEN_POL_ACTIVE_VIDEO&#160;&#160;&#160;(1 &lt;&lt; 4)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generated active video polarity </p>
+
+</div>
+</div>
+<a id="ac9a0c13ee4430104cc65dfd42631840d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9a0c13ee4430104cc65dfd42631840d">&#9670;&nbsp;</a></span>GEN_POL_ACTIVE_VIDEO <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1052,7 +1096,22 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 </div>
 </div>
 <a id="aed5ea924872d223872ba2cf4f34a5456"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed5ea924872d223872ba2cf4f34a5456">&#9670;&nbsp;</a></span>GEN_POL_FIELD_ID</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aed5ea924872d223872ba2cf4f34a5456">&#9670;&nbsp;</a></span>GEN_POL_FIELD_ID <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GEN_POL_FIELD_ID&#160;&#160;&#160;(1 &lt;&lt; 6)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generated field ID polarity </p>
+
+</div>
+</div>
+<a id="aed5ea924872d223872ba2cf4f34a5456"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed5ea924872d223872ba2cf4f34a5456">&#9670;&nbsp;</a></span>GEN_POL_FIELD_ID <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1067,7 +1126,22 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 </div>
 </div>
 <a id="a966e4d239f523a5fcacda2ec258be217"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a966e4d239f523a5fcacda2ec258be217">&#9670;&nbsp;</a></span>GEN_POL_HBLANK</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a966e4d239f523a5fcacda2ec258be217">&#9670;&nbsp;</a></span>GEN_POL_HBLANK <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GEN_POL_HBLANK&#160;&#160;&#160;(1 &lt;&lt; 1)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generated horizontal blank polarity </p>
+
+</div>
+</div>
+<a id="a966e4d239f523a5fcacda2ec258be217"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a966e4d239f523a5fcacda2ec258be217">&#9670;&nbsp;</a></span>GEN_POL_HBLANK <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1082,7 +1156,22 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 </div>
 </div>
 <a id="a9c54eba24aec57f20a5003438e088288"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c54eba24aec57f20a5003438e088288">&#9670;&nbsp;</a></span>GEN_POL_HSYNC</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c54eba24aec57f20a5003438e088288">&#9670;&nbsp;</a></span>GEN_POL_HSYNC <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GEN_POL_HSYNC&#160;&#160;&#160;(1 &lt;&lt; 3)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generated horizontal sync polarity </p>
+
+</div>
+</div>
+<a id="a9c54eba24aec57f20a5003438e088288"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c54eba24aec57f20a5003438e088288">&#9670;&nbsp;</a></span>GEN_POL_HSYNC <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1097,7 +1186,22 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 </div>
 </div>
 <a id="a297e5cd163c28d090c617eb6733411cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a297e5cd163c28d090c617eb6733411cc">&#9670;&nbsp;</a></span>GEN_POL_VBLANK</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a297e5cd163c28d090c617eb6733411cc">&#9670;&nbsp;</a></span>GEN_POL_VBLANK <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GEN_POL_VBLANK&#160;&#160;&#160;(1 &lt;&lt; 0)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generated vertical blank polarity </p>
+
+</div>
+</div>
+<a id="a297e5cd163c28d090c617eb6733411cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a297e5cd163c28d090c617eb6733411cc">&#9670;&nbsp;</a></span>GEN_POL_VBLANK <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1112,7 +1216,22 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 </div>
 </div>
 <a id="ac89da4d9a345ff8e1ef503317152550a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac89da4d9a345ff8e1ef503317152550a">&#9670;&nbsp;</a></span>GEN_POL_VSYNC</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ac89da4d9a345ff8e1ef503317152550a">&#9670;&nbsp;</a></span>GEN_POL_VSYNC <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GEN_POL_VSYNC&#160;&#160;&#160;(1 &lt;&lt; 2)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generated vertical sync polarity </p>
+
+</div>
+</div>
+<a id="ac89da4d9a345ff8e1ef503317152550a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac89da4d9a345ff8e1ef503317152550a">&#9670;&nbsp;</a></span>GEN_POL_VSYNC <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2024,7 +2143,7 @@ static struct <a class="el" href="structvtc__timing.html">vtc_timing</a>&#160;</
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_a9ec1ef424966475f993eb98877e3088.html">projects</a></li><li class="navelem"><a class="el" href="dir_d2c8bb7959487ae6c146ed352a9d0a73.html">lib</a></li><li class="navelem"><a class="el" href="vtc_8c.html">vtc.c</a></li>
-    <li class="footer">Generated on Sat Sep 1 2018 01:23:38 for piSmasher Configuration Libraries by
+    <li class="footer">Generated on Fri Sep 14 2018 13:30:57 for piSmasher Configuration Libraries by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

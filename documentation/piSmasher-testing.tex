@@ -137,6 +137,37 @@ admin@pismasher:~/piSmasher-software/projects$ build/uio-vtc -m 1920x1080 12
 \end{lstlisting}
 \end{fullwidth}
 
+	\subsection{Configuring with Script}
+	
+	Within the projects directory is a script which encapsulates the necessary configuration commands to enable the HDMI transceivers and set the format to 1080p@60Hz. This script can be executed with root level permissions (required) to configure the video pipeline with a single command. The contents of the script are shown below.
+	
+	\newpage
+	\begin{lstlisting}[style=text]
+#!/bin/bash
+
+echo 958 > /sys/class/gpio/export
+echo 959 > /sys/class/gpio/export
+
+echo out > /sys/class/gpio/gpio958/direction
+echo out > /sys/class/gpio/gpio959/direction
+
+echo 1 > /sys/class/gpio/gpio958/value
+echo 1 > /sys/class/gpio/gpio959/value
+
+sleep 2
+
+build/hdmi-config -m 1920x1080
+build/uio-vtc -m 1920x1080 12
+build/vid-tpg-config -w 1920 -h 1080 -b 0 13
+	\end{lstlisting}
+	
+	To execute the script with root level permissions, invoke the script from the command line as shown below.
+	
+	\begin{lstlisting}[style=text]
+admin@pismasher:~/piSmasher-software/projects$ sudo ./hdmi_en.sh
+	\end{lstlisting}
+
+
 \section{Audio Codec}
 
 Configure the input and output paths for the audio codec.
