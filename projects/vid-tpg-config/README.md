@@ -3,7 +3,7 @@
 This utility configures the video test pattern generator IP. Optional arguments are available for setting the video frame height (in rows), width (in pixels) and background pattern ID. This utility uses a UIO device to access the IP register space for configuration and must be run with root permissions. The UIO device ID that should be the last argument (required) of the program invocation. The default configuration will output 1080 lines of 1920 pixels using RGB format and passing through the video input source as the test pattern output.
 
 ```
-admin@pismasher:~$ sudo ./vid-tpg-config -h 720 -w 1280 -b 4 13
+admin@pismasher:~$ sudo ./vid-tpg-config [-h height] [-w width] [-b pattern] UIO_ID
 ```
 The following table describes the pattern IDs that can be used as the background pattern option argument:
 
